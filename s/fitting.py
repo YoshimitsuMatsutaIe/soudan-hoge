@@ -37,7 +37,7 @@ class SEIRModel():
     R_0 = 5259708
     S1_0 = 36068
 
-    sol = None
+    sol = []
 
     def __init__(self, **kwargs):
         self.TIME_INTERVAL = kwargs.pop('TIME_INTERVAL')
@@ -100,11 +100,13 @@ class SEIRModel():
             [self.S_0, self.E_0, self.I_0, self.R_0, self.S1_0]
         )
         
-        self.sol = solve_ivp(
-            fun=self.dX,
-            t_span=(0, max(t)),
-            y0=X_init,
-            t_eval=t,
+        self.sol.append(
+            solve_ivp(
+                fun=self.dX,
+                t_span=(0, max(t)),
+                y0=X_init,
+                t_eval=t,
+            )
         )
 
 
@@ -141,14 +143,14 @@ class Fitting(SEIRModel):
         ax.scatter(self.t_observed, self.S1_observed, label="real S1")
         ax.set_xlim(0,76)
         
-        if self.sol is None:
+        if len(self.sol) == 0:
             pass
         else:
             #ax.plot(self.sol.t, self.sol.y[0], label="fitting S")
             #ax.plot(self.sol.t, self.sol.y[1], label="fitting E")
             #ax.plot(self.sol.t, self.sol.y[2], label="fitting I")
             #ax.plot(self.sol.t, self.sol.y[3], label="fitting R")
-            ax.plot(self.sol.t, self.sol.y[4], label="fitting S1")
+            ax.plot(self.sol[-1].t, self.sol[-1].y[4], label="fitting S1")
             ax2.plot(self.COFFIENT4s, label="COFFIENT4")
             ax3.plot(self.COFFIENT5s, label="COFFIENT5")
         
@@ -169,6 +171,23 @@ class Fitting(SEIRModel):
         plt.pause(0.8)
         plt.close('all')
 
+
+    def draw_all(self,):
+        fig = plt.figure()
+        ax = fig.add_subplot(1, 1, 1)
+        
+        ax.scatter(self.t_observed, self.S1_observed, label="real S1")
+        ax.set_xlim(0,76)
+        
+        for i, sol in enumerate(self.sol):
+            ax.plot(sol.t, sol.y[4], label=str(i))
+        
+        plt.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0,)
+        ax.grid()
+        ax.set_xlabel("day")
+        ax.set_ylabel("vaccine")
+        
+        plt.show()
 
     def S1(self, t, COFFIENT4, COFFIENT5):
         """S1を計算
@@ -191,7 +210,7 @@ class Fitting(SEIRModel):
         if self.animated:
             self.draw()
         
-        return self.sol.y[4]
+        return self.sol[-1].y[4]
 
 
     def find_param(self, p_init,):
@@ -235,7 +254,7 @@ if __name__ == "__main__":
     
     
     model = Fitting(
-        animated=True,
+        animated=False,
         t_observed=t_observed,
         S1_observed=vaccine_date_rate_observed,
         TIME_INTERVAL=STEP
@@ -250,7 +269,7 @@ if __name__ == "__main__":
     print("終了\n")
     print("(COFFIENT4_hat, COFFIENT5_hat) = ", popt[0], " , ", popt[1])
     print("cov = ", pcov)
-    model.draw(auto_close=True)
+    model.draw_all()
 
 
 
