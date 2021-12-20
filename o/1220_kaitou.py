@@ -2,11 +2,7 @@ import numpy as np
 from math import sin, cos, sqrt
 import matplotlib.pyplot as plt
 import matplotlib.animation as anm
-from scipy.optimize.nonlin import Jacobian
-import sympy as sy
 import scipy as sp
-import scipy.optimize
-from scipy.optimize import fsolve
 from scipy.integrate import solve_ivp
 
 
@@ -33,8 +29,6 @@ class Kinematics:
 
     def calc_X(self, q, xi):
         """アクチュエータ空間からタスク空間への写像
-        
-        L = [L[0,0], L[1,0], L[2,0]] -> X = [x, y, z]
         """
         
         
@@ -115,8 +109,7 @@ class PD_FeedbackLinearization_Controller:
 class Simulator:
     
     sol = None
-    
-    xi_all = np.arange(0, 1, 0.01)
+    xi_all = np.arange(0, 1, 0.01)  # xi一覧
     
     def __init__(self, TIME_SPAN, TIME_INTERVAL):
         
@@ -130,6 +123,7 @@ class Simulator:
     
     
     def xd(self, t):
+        """タスク空間上の所望の位置"""
         return np.array([
             [0.1 * sin(3*t)],
             [0.1 * cos(3*t)],
@@ -138,6 +132,7 @@ class Simulator:
 
 
     def xd_dot(self, t):
+        """タスク空間上の所望の測度"""
         return np.array([
             [0.1 * 3 * cos(3*t)],
             [0.1 * 3 * -sin(3*t)],
@@ -146,6 +141,7 @@ class Simulator:
 
 
     def xd_dot_dot(self, t):
+        """タスク空間上の所望の加速度"""
         return np.array([
             [0.1 * 9 * -sin(3*t)],
             [0.1 * 9 * -cos(3*t)],
@@ -154,8 +150,9 @@ class Simulator:
 
 
     def calc_q_dot_dot(self, x, x_dot, J, xd, xd_dot, xd_dot_dot):
-
-        z = np.linalg.inv(J) @ \
+        """アクチュエータ空間上の加速度を計算"""
+        #print(np.linalg.pinv(J))  # これが発散
+        z = np.linalg.pinv(J) @ \
             (xd_dot_dot - self.Kd*(x_dot - xd_dot) - self.Kp*(x - xd))
         return z
 
@@ -185,10 +182,8 @@ class Simulator:
     def run_simulation(self,):
         """動力学なしで軌道追従をシミュレーション"""
         
-        
         q_init = np.array([[0, 0, 0]]).T
         dq_init = np.zeros((3, 1))
-        ddq_init = np.zeros((3, 1))
         
         state_init = np.concatenate([q_init, dq_init])
         
@@ -198,14 +193,13 @@ class Simulator:
             y0 = np.ravel(state_init),
             t_eval = np.arange(0, self.TIME_SPAN, self.TIME_INTERVAL)
         )
-        
-        print(len(np.arange(0, self.TIME_SPAN, self.TIME_INTERVAL)))
-        print(len(self.sol.t))
-        print(len(self.sol.y[0]))
+        print("成功したか否か", self.sol.status)
+
         return
     
     
     def plot_actuator_data(self,):
+        """基本的なものをプロット"""
         
         if self.sol is None:
             return
@@ -216,13 +210,17 @@ class Simulator:
             ax.plot(self.sol.t, self.sol.y[0], label = "l1")
             ax.plot(self.sol.t, self.sol.y[1], label = "l2")
             ax.plot(self.sol.t, self.sol.y[2], label = "l3")
+            ax.set_xlabel("time [s]")
             ax.legend()
+            ax.grid()
             
             ax2 = fig.add_subplot(1, 2, 2)
             ax2.plot(self.sol.t, self.sol.y[3], label = "l1_dot")
             ax2.plot(self.sol.t, self.sol.y[4], label = "l2_dot")
             ax2.plot(self.sol.t, self.sol.y[5], label = "l3_dot")
+            ax2.set_xlabel("time [s]")
             ax2.legend()
+            ax2.grid()
             
             plt.show()
     
@@ -230,9 +228,10 @@ class Simulator:
     def make_animation(self,):
         """アニメーションで挙動確認"""
         
+        if self.sol.status == -1:
+            return
         
         # まずはデータ作成
-        
         xd_data = np.concatenate(
             [self.xd(t).T for t in self.sol.t]
         )
@@ -241,9 +240,20 @@ class Simulator:
         fig = plt.figure()
         ax = fig.add_subplot(projection = '3d')
 
+        x_max = 0.1
+        x_min = -0.1
+        y_max = 0.1
+        y_min = -0.1
+        z_max = 0.2
+        z_min = 0
+        max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
+        x_mid = (x_max + x_min) / 2
+        y_mid = (y_max + y_min) / 2
+        z_mid = (z_max + z_min) / 2
 
 
         def update(i):
+            """アップデート関数"""
             ax.cla()
             
             ax.grid(True)
@@ -252,16 +262,6 @@ class Simulator:
             ax.set_zlabel('Z[m]')
 
             ## 三軸のスケールを揃える
-            x_max = 0.2
-            x_min = -0.2
-            y_max = 0.2
-            y_min = -0.2
-            z_max = 0.2
-            z_min = 0
-            max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
-            x_mid = (x_max + x_min) / 2
-            y_mid = (y_max + y_min) / 2
-            z_mid = (z_max + z_min) / 2
 
             ax.set_xlim(x_mid-max_range, x_mid+max_range)
             ax.set_ylim(y_mid-max_range, y_mid+max_range)
@@ -316,54 +316,6 @@ if __name__ == "__main__":
     hoge = Simulator(5, 0.01)
     
     hoge.run_simulation()
-    #hoge.plot_actuator_data()
+    hoge.plot_actuator_data()
     hoge.make_animation()
 
-
-
-
-# def func(L):
-#     X = calc_X(L.reshape(3,1), xi=1)
-#     return np.ravel(X)
-
-# xd = [0, 0, 0.3]
-
-# sol = fsolve(func, xd)
-
-
-# L = np.array([[sol[0],sol[1],sol[2]]]).T
-# L = np.array([[-0.25,-0.25,0.05]]).T
-# print(L)
-# xi_all = np.arange(0, 1, 0.01)
-
-# Xs = np.concatenate([calc_X(L, xi).T for xi in xi_all])
-# print(Xs)
-
-# fig = plt.figure()
-# ax = fig.add_subplot(projection = '3d')
-# ax.plot(Xs[:, 0], Xs[:, 1], Xs[:, 2], label="arm")
-
-# #ax.scatter([xd[0]], [xd[1]], [xd[2]], label="xd")
-
-# ax.legend()
-
-
-
-# # x_max = 0.2
-# # x_min = -0.2
-# # y_max = 0.2
-# # y_min = -0.2
-# # z_max = 0.2
-# # z_min = 0
-# # max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
-# # x_mid = (x_max + x_min) / 2
-# # y_mid = (y_max + y_min) / 2
-# # z_mid = (z_max + z_min) / 2
-
-# # ax.set_xlim(x_mid-max_range, x_mid+max_range)
-# # ax.set_ylim(y_mid-max_range, y_mid+max_range)
-# # ax.set_zlim(z_mid-max_range, z_mid+max_range)
-
-# ax.set_box_aspect((1,1,1))
-
-# plt.show()
