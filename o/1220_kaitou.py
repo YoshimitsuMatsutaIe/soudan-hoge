@@ -1,6 +1,7 @@
 import numpy as np
 from math import sin, cos, sqrt
 import matplotlib.pyplot as plt
+import matplotlib.animation as anm
 from scipy.optimize.nonlin import Jacobian
 import sympy as sy
 import scipy as sp
@@ -115,6 +116,8 @@ class Simulator:
     
     sol = None
     
+    xi_all = np.arange(0, 1, 0.01)
+    
     def __init__(self, TIME_SPAN, TIME_INTERVAL):
         
         self.TIME_SPAN = TIME_SPAN
@@ -192,9 +195,13 @@ class Simulator:
         self.sol = solve_ivp(
             fun = self.state_dot,
             t_span = (0, self.TIME_SPAN),
-            y0 = np.ravel(state_init)
+            y0 = np.ravel(state_init),
+            t_eval = np.arange(0, self.TIME_SPAN, self.TIME_INTERVAL)
         )
         
+        print(len(np.arange(0, self.TIME_SPAN, self.TIME_INTERVAL)))
+        print(len(self.sol.t))
+        print(len(self.sol.y[0]))
         return
     
     
@@ -221,21 +228,96 @@ class Simulator:
     
     
     def make_animation(self,):
+        """アニメーションで挙動確認"""
         
         
+        # まずはデータ作成
+        
+        xd_data = np.concatenate(
+            [self.xd(t).T for t in self.sol.t]
+        )
+        
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(projection = '3d')
 
 
 
+        def update(i):
+            ax.cla()
+            
+            ax.grid(True)
+            ax.set_xlabel('X[m]')
+            ax.set_ylabel('Y[m]')
+            ax.set_zlabel('Z[m]')
+
+            ## 三軸のスケールを揃える
+            x_max = 0.2
+            x_min = -0.2
+            y_max = 0.2
+            y_min = -0.2
+            z_max = 0.2
+            z_min = 0
+            max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
+            x_mid = (x_max + x_min) / 2
+            y_mid = (y_max + y_min) / 2
+            z_mid = (z_max + z_min) / 2
+
+            ax.set_xlim(x_mid-max_range, x_mid+max_range)
+            ax.set_ylim(y_mid-max_range, y_mid+max_range)
+            ax.set_zlim(z_mid-max_range, z_mid+max_range)
+            ax.set_box_aspect((1,1,1))
+            
+            
+            q = np.array([[
+                self.sol.y[0][i],
+                self.sol.y[1][i],
+                self.sol.y[2][i],
+            ]]).T
+            
+            Xs = np.concatenate(
+                [self.kinematics.calc_X(q, xi).T for xi in self.xi_all]
+            )
+            
+            
+            xd = self.xd(self.sol.t[i])
+            
+            ax.plot(Xs[:, 0], Xs[:, 1], Xs[:, 2], label="arm")
+            ax.scatter([xd[0,0]], [xd[1,0]], [xd[2,0]], label="temp xd")
+            ax.plot(xd_data[:, 0], xd_data[:, 1], xd_data[:, 2], label="xd line")
+            
+            ax.legend()
+            
+            
+            ax.text(0, 0, 0, str(self.TIME_INTERVAL * i) + "[s]")
+
+
+
+        ani = anm.FuncAnimation(
+            fig = fig, 
+            func = update, 
+            frames = int(self.TIME_SPAN / self.TIME_INTERVAL)-1,
+            interval = self.TIME_INTERVAL * 0.001
+        )
+        
+        ani.save(
+            filename = "softrobot.gif", 
+            fps = 1 / self.TIME_INTERVAL, 
+            writer='pillow'
+        )
+        
+        
+        plt.show()
 
 
 
 if __name__ == "__main__":
     
-    hoge = Simulator(3, 0.01)
+    hoge = Simulator(5, 0.01)
     
     hoge.run_simulation()
-    hoge.plot_actuator_data()
-    
+    #hoge.plot_actuator_data()
+    hoge.make_animation()
 
 
 
