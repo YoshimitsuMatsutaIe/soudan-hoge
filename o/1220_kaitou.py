@@ -1,11 +1,12 @@
 import numpy as np
 from math import sin, cos, sqrt
 import matplotlib.pyplot as plt
+from scipy.optimize.nonlin import Jacobian
 import sympy as sy
 import scipy as sp
 import scipy.optimize
 from scipy.optimize import fsolve
-from scipy.integrate import odeint
+from scipy.integrate import solve_ivp
 
 
 
@@ -63,7 +64,7 @@ class Kinematics:
         return np.array([[x, y, z]]).T
 
 
-    def Jacobian(self, q, xi):
+    def calc_Jacobian(self, q, xi):
         """ヤコビ行列
         
         タスク写像XのアクチュエータベクトルLによる偏微分
@@ -110,59 +111,177 @@ class PD_FeedbackLinearization_Controller:
 
 
 
-def run_simulation():
-    """動力学なしで軌道追従をシミュレーション"""
+class Simulator:
+    
+    sol = None
+    
+    def __init__(self, TIME_SPAN, TIME_INTERVAL):
+        
+        self.TIME_SPAN = TIME_SPAN
+        self.TIME_INTERVAL = TIME_INTERVAL
+        
+        self.Kd = 200
+        self.Kp = 1e4
+        
+        self.kinematics = Kinematics()
     
     
-    q_init = np.array([[0, 0, 0]]).T
-    dq_init = np.zeros((3, 1))
-    ddq_init = np.zeros((3, 1))
+    def xd(self, t):
+        return np.array([
+            [0.1 * sin(3*t)],
+            [0.1 * cos(3*t)],
+            [0.147],
+        ])
+
+
+    def xd_dot(self, t):
+        return np.array([
+            [0.1 * 3 * cos(3*t)],
+            [0.1 * 3 * -sin(3*t)],
+            [0],
+        ])
+
+
+    def xd_dot_dot(self, t):
+        return np.array([
+            [0.1 * 9 * -sin(3*t)],
+            [0.1 * 9 * -cos(3*t)],
+            [0],
+        ])
+
+
+    def calc_q_dot_dot(self, x, x_dot, J, xd, xd_dot, xd_dot_dot):
+
+        z = np.linalg.inv(J) @ \
+            (xd_dot_dot - self.Kd*(x_dot - xd_dot) - self.Kp*(x - xd))
+        return z
+
+
+    def state_dot(self, t, state):
+        
+        q = np.array([state[:3]]).T
+        q_dot = np.array([state[3:]]).T
+        
+        x = self.kinematics.calc_X(q, xi=1)
+        J = self.kinematics.calc_Jacobian(q, xi=1)
+        x_dot = J @ q_dot
+        
+        q_dot_dot = self.calc_q_dot_dot(
+            x, x_dot, J,
+            xd = self.xd(t),
+            xd_dot = self.xd_dot(t),
+            xd_dot_dot = self.xd_dot_dot(t),
+        )
+        
+        z = np.concatenate([q_dot, q_dot_dot])
+        
+        return np.ravel(z)
+
+
+
+    def run_simulation(self,):
+        """動力学なしで軌道追従をシミュレーション"""
+        
+        
+        q_init = np.array([[0, 0, 0]]).T
+        dq_init = np.zeros((3, 1))
+        ddq_init = np.zeros((3, 1))
+        
+        state_init = np.concatenate([q_init, dq_init])
+        
+        self.sol = solve_ivp(
+            fun = self.state_dot,
+            t_span = (0, self.TIME_SPAN),
+            y0 = np.ravel(state_init)
+        )
+        
+        return
     
-    return
+    
+    def plot_actuator_data(self,):
+        
+        if self.sol is None:
+            return
+        
+        else:
+            fig = plt.figure()
+            ax = fig.add_subplot(1, 2, 1)
+            ax.plot(self.sol.t, self.sol.y[0], label = "l1")
+            ax.plot(self.sol.t, self.sol.y[1], label = "l2")
+            ax.plot(self.sol.t, self.sol.y[2], label = "l3")
+            ax.legend()
+            
+            ax2 = fig.add_subplot(1, 2, 2)
+            ax2.plot(self.sol.t, self.sol.y[3], label = "l1_dot")
+            ax2.plot(self.sol.t, self.sol.y[4], label = "l2_dot")
+            ax2.plot(self.sol.t, self.sol.y[5], label = "l3_dot")
+            ax2.legend()
+            
+            plt.show()
+    
+    
+    def make_animation(self,):
+        
+        
 
 
-def func(L):
-    X = calc_X(L.reshape(3,1), xi=1)
-    return np.ravel(X)
-
-xd = [0, 0, 0.3]
-
-sol = fsolve(func, xd)
-
-
-L = np.array([[sol[0],sol[1],sol[2]]]).T
-L = np.array([[-0.25,-0.25,0.05]]).T
-print(L)
-xi_all = np.arange(0, 1, 0.01)
-
-Xs = np.concatenate([calc_X(L, xi).T for xi in xi_all])
-print(Xs)
-
-fig = plt.figure()
-ax = fig.add_subplot(projection = '3d')
-ax.plot(Xs[:, 0], Xs[:, 1], Xs[:, 2], label="arm")
-
-#ax.scatter([xd[0]], [xd[1]], [xd[2]], label="xd")
-
-ax.legend()
 
 
 
-# x_max = 0.2
-# x_min = -0.2
-# y_max = 0.2
-# y_min = -0.2
-# z_max = 0.2
-# z_min = 0
-# max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
-# x_mid = (x_max + x_min) / 2
-# y_mid = (y_max + y_min) / 2
-# z_mid = (z_max + z_min) / 2
 
-# ax.set_xlim(x_mid-max_range, x_mid+max_range)
-# ax.set_ylim(y_mid-max_range, y_mid+max_range)
-# ax.set_zlim(z_mid-max_range, z_mid+max_range)
+if __name__ == "__main__":
+    
+    hoge = Simulator(3, 0.01)
+    
+    hoge.run_simulation()
+    hoge.plot_actuator_data()
+    
 
-ax.set_box_aspect((1,1,1))
 
-plt.show()
+
+
+# def func(L):
+#     X = calc_X(L.reshape(3,1), xi=1)
+#     return np.ravel(X)
+
+# xd = [0, 0, 0.3]
+
+# sol = fsolve(func, xd)
+
+
+# L = np.array([[sol[0],sol[1],sol[2]]]).T
+# L = np.array([[-0.25,-0.25,0.05]]).T
+# print(L)
+# xi_all = np.arange(0, 1, 0.01)
+
+# Xs = np.concatenate([calc_X(L, xi).T for xi in xi_all])
+# print(Xs)
+
+# fig = plt.figure()
+# ax = fig.add_subplot(projection = '3d')
+# ax.plot(Xs[:, 0], Xs[:, 1], Xs[:, 2], label="arm")
+
+# #ax.scatter([xd[0]], [xd[1]], [xd[2]], label="xd")
+
+# ax.legend()
+
+
+
+# # x_max = 0.2
+# # x_min = -0.2
+# # y_max = 0.2
+# # y_min = -0.2
+# # z_max = 0.2
+# # z_min = 0
+# # max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
+# # x_mid = (x_max + x_min) / 2
+# # y_mid = (y_max + y_min) / 2
+# # z_mid = (z_max + z_min) / 2
+
+# # ax.set_xlim(x_mid-max_range, x_mid+max_range)
+# # ax.set_ylim(y_mid-max_range, y_mid+max_range)
+# # ax.set_zlim(z_mid-max_range, z_mid+max_range)
+
+# ax.set_box_aspect((1,1,1))
+
+# plt.show()
