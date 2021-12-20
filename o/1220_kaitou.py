@@ -29,18 +29,18 @@ class Kinematics:
         self.L0 = 0.15
 
 
-    def calc_X(self, L, xi):
+    def calc_X(self, q, xi):
         """アクチュエータ空間からタスク空間への写像
         
         L = [L[0,0], L[1,0], L[2,0]] -> X = [x, y, z]
         """
         
         
-        A1 = L[0,0]**2 + L[1,0]**2 + L[1,0]**2 - \
-            L[0,0]*L[1,0] - L[0,0]*L[2,0] - L[1,0]*L[2,0]
-        A2 = 2*L[0,0] - L[1,0] - L[2,0]
-        A3 = L[1,0] - L[2,0]
-        A4 = 3*self.L0 + L[0,0] + L[1,0] + L[2,0]
+        A1 = q[0,0]**2 + q[1,0]**2 + q[1,0]**2 - \
+            q[0,0]*q[1,0] - q[0,0]*q[2,0] - q[1,0]*q[2,0]
+        A2 = 2*q[0,0] - q[1,0] - q[2,0]
+        A3 = q[1,0] - q[2,0]
+        A4 = 3*self.L0 + q[0,0] + q[1,0] + q[2,0]
         
         x = -(A2 * A1**4 * A4 * xi**10) / ((self.c1 * self.r**9)) + \
             (A2 * A1**3 * A4 * xi**8) / (self.c2 * self.r**7) - \
@@ -63,15 +63,15 @@ class Kinematics:
         return np.array([[x, y, z]]).T
 
 
-    def Jacobian(self, L, xi):
+    def Jacobian(self, q, xi):
         """ヤコビ行列
         
         タスク写像XのアクチュエータベクトルLによる偏微分
         """
         
-        l1 = L[0,0]
-        l2 = L[1,0]
-        l3 = L[2,0]
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
         
         return np.array([
             [
@@ -114,7 +114,9 @@ def run_simulation():
     """動力学なしで軌道追従をシミュレーション"""
     
     
-    L_init = np.array([[]])
+    q_init = np.array([[0, 0, 0]]).T
+    dq_init = np.zeros((3, 1))
+    ddq_init = np.zeros((3, 1))
     
     return
 
