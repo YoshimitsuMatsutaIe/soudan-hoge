@@ -3,6 +3,7 @@ from math import sin, cos, sqrt
 
 
 def sknew_symmetric(a):
+    """ベクトル -> 歪対称行列"""
     return np.array([
         [0, -a[2,0], a[1,0]],
         [a[2,0], 0, -a[0,0]],
@@ -10,6 +11,7 @@ def sknew_symmetric(a):
     ])
 
 def inv_sknew_symmetric(A):
+    """歪対称行列 -> ベクトル"""
     return np.array([[A[2,1], A[0,2], A[1,0]]]).T
 
 
@@ -57,6 +59,12 @@ class Kinematics:
         lam = A4 / 2*sqrt(A1)
         phi = 2*sqrt(A1) / 3*self.r
         theta = np.arctan(sqrt(3) * (-A3) / (-A2))
+        
+        if phi <= 0 or phi > 2*np.pi:
+            print("phiが範囲外!")
+        
+        if theta <= -np.pi or theta >= np.pi:
+            print("thetaが範囲外")
         
         return np.array([[lam, phi, theta]]).T
 
