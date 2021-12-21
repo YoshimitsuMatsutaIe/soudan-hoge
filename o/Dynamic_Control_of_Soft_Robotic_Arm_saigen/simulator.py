@@ -2,13 +2,15 @@ import numpy as np
 from math import sin, cos, sqrt
 import matplotlib.pyplot as plt
 import matplotlib.animation as anm
-import scipy as sp
 from scipy.integrate import solve_ivp
 
 from kinematics import Kinematics
 from dynamics import Dynamics
+from controller import PD_FeedbackLinearization_Controller
+
 
 class Simulator:
+    """シミュレーター"""
     
     sol = None
     xi_all = np.arange(0, 1, 0.01)  # xi一覧
@@ -106,25 +108,28 @@ class Simulator:
         if self.sol is None:
             return
         
-        else:
-            fig = plt.figure()
-            ax = fig.add_subplot(1, 2, 1)
-            ax.plot(self.sol.t, self.sol.y[0], label = "l1")
-            ax.plot(self.sol.t, self.sol.y[1], label = "l2")
-            ax.plot(self.sol.t, self.sol.y[2], label = "l3")
-            ax.set_xlabel("time [s]")
-            ax.legend()
-            ax.grid()
-            
-            ax2 = fig.add_subplot(1, 2, 2)
-            ax2.plot(self.sol.t, self.sol.y[3], label = "l1_dot")
-            ax2.plot(self.sol.t, self.sol.y[4], label = "l2_dot")
-            ax2.plot(self.sol.t, self.sol.y[5], label = "l3_dot")
-            ax2.set_xlabel("time [s]")
-            ax2.legend()
-            ax2.grid()
-            
-            plt.show()
+        fig = plt.figure(figsize=(10, 5))
+        ax = fig.add_subplot(1, 2, 1)
+        ax.plot(self.sol.t, self.sol.y[0], label = "l1")
+        ax.plot(self.sol.t, self.sol.y[1], label = "l2")
+        ax.plot(self.sol.t, self.sol.y[2], label = "l3")
+        ax.set_xlabel("time [s]")
+        ax.legend()
+        ax.set_xlim(0, self.sol.t[-1])
+        ax.grid()
+        
+        ax2 = fig.add_subplot(1, 2, 2)
+        ax2.plot(self.sol.t, self.sol.y[3], label = "l1_dot")
+        ax2.plot(self.sol.t, self.sol.y[4], label = "l2_dot")
+        ax2.plot(self.sol.t, self.sol.y[5], label = "l3_dot")
+        ax2.set_xlabel("time [s]")
+        ax2.legend()
+        ax2.set_xlim(0, self.sol.t[-1])
+        ax2.grid()
+        
+        fig.savefig("misc/softrobot.png")
+        
+        plt.show()
     
     
     def make_animation(self,):
@@ -184,27 +189,27 @@ class Simulator:
             
             xd = self.xd(self.sol.t[i])
             
-            ax.plot(Xs[:, 0], Xs[:, 1], Xs[:, 2], label="arm")
-            ax.scatter([xd[0,0]], [xd[1,0]], [xd[2,0]], label="temp xd")
+            ax.plot(Xs[:, 0], Xs[:, 1], Xs[:, 2], label="arm", marker="o")
+            ax.scatter([xd[0,0]], [xd[1,0]], [xd[2,0]], label="temp xd", marker="*", color="r")
             ax.plot(xd_data[:, 0], xd_data[:, 1], xd_data[:, 2], label="xd line")
             
             ax.legend()
             
             
-            ax.text(0, 0, 0, str(self.TIME_INTERVAL * i) + "[s]")
+            ax.text(0, 0, 0, str(self.sol.t[i]) + "[s]")
 
 
 
         ani = anm.FuncAnimation(
-            fig = fig, 
-            func = update, 
-            frames = int(self.TIME_SPAN / self.TIME_INTERVAL)-1,
+            fig = fig,
+            func = update,
+            frames = len(self.sol.t),
             interval = self.TIME_INTERVAL * 0.001
         )
         
         ani.save(
-            filename = "softrobot.gif", 
-            fps = 1 / self.TIME_INTERVAL, 
+            filename = "misc/softrobot.gif",
+            fps = 1 / self.TIME_INTERVAL,
             writer='pillow'
         )
         
@@ -215,7 +220,7 @@ class Simulator:
 
 if __name__ == "__main__":
     
-    hoge = Simulator(5, 0.01)
+    hoge = Simulator(0.9, 0.01)
     
     hoge.run_simulation()
     hoge.plot_actuator_data()

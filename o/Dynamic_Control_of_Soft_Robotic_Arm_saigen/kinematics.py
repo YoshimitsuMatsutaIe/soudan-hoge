@@ -1,6 +1,6 @@
 import numpy as np
 from math import sin, cos, sqrt
-from scipy.integrate import solve_ivp
+
 
 
 
@@ -26,14 +26,19 @@ class Kinematics:
 
     def calc_X(self, q, xi):
         """アクチュエータ空間からタスク空間への写像
+        
+        順運動学
         """
         
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
         
-        A1 = q[0,0]**2 + q[1,0]**2 + q[1,0]**2 - \
-            q[0,0]*q[1,0] - q[0,0]*q[2,0] - q[1,0]*q[2,0]
-        A2 = 2*q[0,0] - q[1,0] - q[2,0]
-        A3 = q[1,0] - q[2,0]
-        A4 = 3*self.L0 + q[0,0] + q[1,0] + q[2,0]
+        A1 = l1**2 + l2**2 + l3**2 - \
+            l1*l2 - l1*l3 - l2*l3
+        A2 = 2*l1 - l2 - l3
+        A3 = l2 - l3
+        A4 = 3*self.L0 + l1 + l2 + l3
         
         x = -(A2 * A1**4 * A4 * xi**10) / ((self.c1 * self.r**9)) + \
             (A2 * A1**3 * A4 * xi**8) / (self.c2 * self.r**7) - \
