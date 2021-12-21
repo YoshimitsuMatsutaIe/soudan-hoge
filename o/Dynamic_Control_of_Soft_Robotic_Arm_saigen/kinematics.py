@@ -133,7 +133,7 @@ class Kinematics:
         R13 = -(2 * A2 * A1**4 * xi**9) / (self.c6 * self.r**9) + \
             (4 * A2 * A1**3 * xi**7) / (self.c7 * self.r**7) - \
                 (2 * A2 * A1**2 * xi**5) / (self.c8 * self.r**5) + \
-                    (2 * A2 * A1 * xi**3) / (self.c9 * self,r**3) - \
+                    (2 * A2 * A1 * xi**3) / (self.c9 * self.r**3) - \
                         (A2 * xi) / (3 * self.r)
         
         R22 = 1 - (A3**2 * A1**4 * xi**10) / (self.c10 * self.r**10) + \
@@ -175,6 +175,15 @@ class Kinematics:
             [R, p],
             [np.zeros((1, 3)), np.eye(1)],
         ])
+
+
+    def J_oemga(q, i, j):
+        
+        
+        
+        
+        
+        return 
 
 
     def calc_Jacobian(self, q, xi):
