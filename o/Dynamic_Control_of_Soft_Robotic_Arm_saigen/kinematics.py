@@ -130,7 +130,7 @@ class Kinematics:
         """同時変換行列"""
         
         c = self.mapping_from_actuator_to_configuration(q, xi)
-        x = self.mapping_from_configration_to_task_p(c, xi)
+        p = self.mapping_from_configration_to_task_p(c, xi)
         R = self.mapping_from_configration_to_task_R(c, xi)
 
         return np.block([
