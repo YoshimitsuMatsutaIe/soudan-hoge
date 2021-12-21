@@ -139,6 +139,45 @@ class Kinematics:
         ])
 
 
+    def jacobian_dcdq(self, q, xi):
+        """配置空間のアクチュエータ空間による偏微分"""
+        
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        
+        return np.array([
+            [
+                (l1 - l2/2 - l3/2)*(3*self.L0/2 + l1/2 + l2/2 + l3/2)/sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2) + sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/2,
+                (-l1/2 + l2 - l3/2)*(3*self.L0/2 + l1/2 + l2/2 + l3/2)/sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2) + sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/2,
+                (-l1/2 - l2/2 + l3)*(3*self.L0/2 + l1/2 + l2/2 + l3/2)/sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2) + sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/2
+            ],
+            [
+                2*self.r*(l1 - l2/2 - l3/2)/(3*sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)),
+                2*self.r*(-l1/2 + l2 - l3/2)/(3*sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)),
+                2*self.r*(-l1/2 - l2/2 + l3)/(3*sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2))
+            ],
+            [
+                2*sqrt(3)*(-l2 + l3)/((3*(-l2 + l3)**2/(-2*l1 + l2 + l3)**2 + 1)*(-2*l1 + l2 + l3)**2),
+                (-sqrt(3)*(-l2 + l3)/(-2*l1 + l2 + l3)**2 - sqrt(3)/(-2*l1 + l2 + l3))/(3*(-l2 + l3)**2/(-2*l1 + l2 + l3)**2 + 1),
+                (-sqrt(3)*(-l2 + l3)/(-2*l1 + l2 + l3)**2 + sqrt(3)/(-2*l1 + l2 + l3))/(3*(-l2 + l3)**2/(-2*l1 + l2 + l3)**2 + 1)
+            ]
+        ])
+
+    def jacobian_dpdc(self, c, xi):
+        """タスク空間の配置空間による偏微分"""
+        
+        lam = c[0, 0]
+        phi = c[1, 0]
+        theta = c[2, 0]
+        
+        return np.array([
+            [(1 - cos(phi*xi))*cos(theta), lam*xi*sin(phi*xi)*cos(theta), -lam*(1 - cos(phi*xi))*sin(theta)],
+            [(1 - cos(phi*xi))*sin(theta), lam*xi*sin(theta)*sin(phi*xi), lam*(1 - cos(phi*xi))*cos(theta)],
+            [sin(phi*xi), lam*xi*cos(phi*xi), 0]
+        ])
+
+
     def linearized_mapping_from_actuator_to_task_p(self, q, xi):
         """線形化されたアクチュエータ空間からタスク空間への写像
         
@@ -246,13 +285,8 @@ class Kinematics:
         ])
 
 
-    def J_oemga(q, i, j):
-        
-        
-        
-        
-        
-        return 
+
+
 
 
     def calc_Jacobian(self, q, xi):
@@ -280,6 +314,8 @@ class Kinematics:
                 xi/3 - xi**3*(-2*l1 - 2*l2)*(3*self.L0 + l1 + l2 + l3)/(self.c9*self.r**2) - xi**3*(2*l1**2 - 2*l1*l2 - 2*l1*l3 + 4*l2**2 - 2*l2*l3)/(self.c9*self.r**2) + 2*xi**5*(-2*l1 - 2*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c8*self.r**4) + 2*xi**5*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c8*self.r**4) - 4*xi**7*(-3*l1 - 3*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c7*self.r**6) - 4*xi**7*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c7*self.r**6) + 2*xi**9*(-4*l1 - 4*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c6*self.r**8) + 2*xi**9*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c6*self.r**8)
             ]
         ])
+
+
 
 
 
