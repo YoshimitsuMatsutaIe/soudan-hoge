@@ -70,8 +70,8 @@ class Kinematics:
         return np.array([[lam, phi, theta]]).T
 
 
-    def mapping_from_configration_to_task(self, c, xi):
-        """配置空間からタスク空間への写像"""
+    def mapping_from_configration_to_task_p(self, c, xi):
+        """配置空間からタスク空間pへの写像"""
         
         lam = c[0, 0]
         phi = c[1, 0]
@@ -84,16 +84,62 @@ class Kinematics:
         ])
 
 
-    def mapping_from_actuator_to_task(self, q, xi):
+    def mapping_from_configration_to_task_R(self, c, xi):
+        """配置空間からタスク空間Rへの写像"""
+        
+        lam = c[0, 0]
+        phi = c[1, 0]
+        theta = c[2, 0]
+        
+        R11 = cos(theta)**2 * cos(xi*phi) + sin(theta)**2
+        R12 = sin(theta) * cos(theta) * (cos(xi*phi) - 1)
+        R13 = cos(theta) * sin(xi*phi)
+        R21 = R12
+        R22 = sin(theta)**2 * cos(xi*phi) + cos(theta)**2
+        R23 = sin(theta) * sin(xi*phi)
+        R31 = -R13
+        R32 = -R23
+        R33 = cos(xi*phi)
+        
+        return np.array([
+            [R11, R12, R13],
+            [R21, R22, R23],
+            [R31, R32, R33],
+        ])
+
+
+    def mapping_from_actuator_to_task_p(self, q, xi):
         """アクチュエータ空間からタスク空間への写像"""
         
         c = self.mapping_from_actuator_to_configuration(q, xi)
-        x = self.mapping_from_configration_to_task(c, xi)
+        x = self.mapping_from_configration_to_task_p(c, xi)
         
         return x
 
 
-    def calc_linearized_X(self, q, xi):
+    def mapping_from_actuator_to_task_R(self, q, xi):
+        """アクチュエータ空間からタスク空間への写像"""
+        
+        c = self.mapping_from_actuator_to_configuration(q, xi)
+        R = self.mapping_from_configration_to_task_R(c, xi)
+        
+        return R
+
+
+    def HTM(self, q, xi):
+        """同時変換行列"""
+        
+        c = self.mapping_from_actuator_to_configuration(q, xi)
+        x = self.mapping_from_configration_to_task_p(c, xi)
+        R = self.mapping_from_configration_to_task_R(c, xi)
+
+        return np.block([
+            [R, p],
+            [np.zeros((1, 3)), np.eye(1)],
+        ])
+
+
+    def linearized_mapping_from_actuator_to_task_p(self, q, xi):
         """線形化されたアクチュエータ空間からタスク空間への写像
         
         順運動学
@@ -129,7 +175,7 @@ class Kinematics:
         return np.array([[x, y, z]]).T
 
 
-    def calc_linearized_R(self, q, xi):
+    def linearized_mapping_from_actuator_to_task_R(self, q, xi):
         """線形化された回転行列"""
         
         l1 = q[0,0]
@@ -188,11 +234,11 @@ class Kinematics:
         ])
 
 
-    def MHTM(self, q, xi):
-        """Modal Homogeneous Transformation Matrix"""
+    def linearized_MHTM(self, q, xi):
+        """線形化されたModal Homogeneous Transformation Matrix"""
         
-        p = self.calc_X(q, xi)
-        R = self.calc_R(q, xi)
+        p = self.linearized_mapping_from_actuator_to_task_p(q, xi)
+        R = self.linearized_mapping_from_actuator_to_task_R(q, xi)
         
         return np.block([
             [R, p],
