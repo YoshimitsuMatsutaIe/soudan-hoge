@@ -21,6 +21,7 @@ class Kinematics:
 
     def __init__(self,):
         
+        # 線形化した後の様々なパラメータ
         self.c1 = 837019575
         self.c2 = 4133430
         self.c3 = 32805
@@ -43,7 +44,7 @@ class Kinematics:
         self.L0 = 0.15
 
 
-    def calc_C(self, q, xi):
+    def mapping_from_actuator_to_configuration(self, q, xi):
         """アクチュエータ空間から配置空間への写像"""
         
         l1 = q[0,0]
@@ -69,9 +70,31 @@ class Kinematics:
         return np.array([[lam, phi, theta]]).T
 
 
+    def mapping_from_configration_to_task(self, c, xi):
+        """配置空間からタスク空間への写像"""
+        
+        lam = c[0, 0]
+        phi = c[1, 0]
+        theta = c[2, 0]
+        
+        return np.array([
+            [lam * cos(theta) * (1 - cos(xi * phi))],
+            [lam * sin(theta) * (1 - cos(xi * phi))],
+            [lam * sin(xi * phi)],
+        ])
 
-    def calc_X(self, q, xi):
-        """アクチュエータ空間からタスク空間への写像
+
+    def mapping_from_actuator_to_task(self, q, xi):
+        """アクチュエータ空間からタスク空間への写像"""
+        
+        c = self.mapping_from_actuator_to_configuration(q, xi)
+        x = self.mapping_from_configration_to_task(c, xi)
+        
+        return x
+
+
+    def calc_linearized_X(self, q, xi):
+        """線形化されたアクチュエータ空間からタスク空間への写像
         
         順運動学
         """
@@ -106,8 +129,8 @@ class Kinematics:
         return np.array([[x, y, z]]).T
 
 
-    def calc_R(self, q, xi):
-        """回転行列"""
+    def calc_linearized_R(self, q, xi):
+        """線形化された回転行列"""
         
         l1 = q[0,0]
         l2 = q[1,0]

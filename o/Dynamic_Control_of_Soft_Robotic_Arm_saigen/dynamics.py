@@ -27,4 +27,4 @@ class Dynamics(Kinematics):
     
     
     def M_omega(j, k):
-        
+        pass
