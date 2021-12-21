@@ -2,11 +2,20 @@ import numpy as np
 from math import sin, cos, sqrt
 
 
+def sknew_symmetric(a):
+    return np.array([
+        [0, -a[2,0], a[1,0]],
+        [a[2,0], 0, -a[0,0]],
+        [-a[1,0], a[0,0], 0],
+    ])
+
+def inv_sknew_symmetric(A):
+    return np.array([[A[2,1], A[0,2], A[1,0]]]).T
+
 
 
 class Kinematics:
     """ソフトロボットの運動学"""
-
 
     def __init__(self,):
         
