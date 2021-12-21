@@ -19,9 +19,35 @@ class Kinematics:
         self.c7 = 688905
         self.c8 = 3645
         self.c9 = 81
+        
+        self.c10 = 279006525
+        self.c11 = 1377810
+        self.c12 = 10935
+        self.c13 = 162
 
         self.r = 0.0125
         self.L0 = 0.15
+
+
+    def calc_C(self, q, xi):
+        """アクチュエータ空間から配置空間への写像"""
+        
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        
+        A1 = l1**2 + l2**2 + l3**2 - \
+            l1*l2 - l1*l3 - l2*l3
+        A2 = 2*l1 - l2 - l3
+        A3 = l2 - l3
+        A4 = 3*self.L0 + l1 + l2 + l3
+        
+        lam = A4 / 2*sqrt(A1)
+        phi = 2*sqrt(A1) / 3*self.r
+        theta = np.arctan(sqrt(3) * (-A3) / (-A2))
+        
+        return np.array([[lam, phi, theta]]).T
+
 
 
     def calc_X(self, q, xi):
@@ -34,8 +60,7 @@ class Kinematics:
         l2 = q[1,0]
         l3 = q[2,0]
         
-        A1 = l1**2 + l2**2 + l3**2 - \
-            l1*l2 - l1*l3 - l2*l3
+        A1 = l1**2 + l2**2 + l3**2 - l1*l2 - l1*l3 - l2*l3
         A2 = 2*l1 - l2 - l3
         A3 = l2 - l3
         A4 = 3*self.L0 + l1 + l2 + l3
@@ -59,6 +84,48 @@ class Kinematics:
                         (A4 * xi) / 3
 
         return np.array([[x, y, z]]).T
+
+
+    def calc_R(self, q, xi):
+        """回転行列"""
+        
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        
+        A1 = l1**2 + l2**2 + l3**2 - l1*l2 - l1*l3 - l2*l3
+        A2 = 2*l1 - l2 - l3
+        A3 = l2 - l3
+        A4 = 3*self.L0 + l1 + l2 + l3
+        
+        R11 = 1 - (A2**2 * A1**4 * xi**10) / (self.c1 * self.r**10) + \
+            (A2**2 * A1**3 * xi**8) / (self.c1 * self.r**8) - \
+                (A2**2 * A1**2 * xi**6) / (self.c3 * self.r**6) + \
+                    (A1 * A2**2 * xi**4) / (self.c4 * self.r**4) - \
+                        (A2**2 * xi**2) / (self.c5 * self.r**2)
+        
+        R12 = (sqrt(3) * A2 * A3 * A1**4 * xi**10) / (self.c1 * self.r**10) + \
+            (sqrt(3) * A2 * A3 * A1**3 * xi**8) / (self.c2 * self.r**8) - \
+                (sqrt(3) * A2 * A3 * A1**2 * xi**6) / (self.c3 * self.r**6) + \
+                    (sqrt(3) * A2 * A3 * A1 * xi**4) / (self.c4 * self.r**4) - \
+                        (sqrt(3) * A2 * A3 * xi**2) / (self.c5 * self.r**2)
+        
+        R13 = -(2 * A2 * A1**4 * xi**9) / (self.c6 * self.r**9) + \
+            (4 * A2 * A1**3 * xi**7) / (self.c7 * self.r**7) - \
+                (2 * A2 * A1**2 * xi**5) / (self.c8 * self.r**5) + \
+                    (2 * A2 * A1 * xi**3) / (self.c9 * self,r**3) - \
+                        (A2 * xi) / (3 * self.r)
+        
+        R22 = 1 - (A3**2 * A1**4 * xi**10) / (self.c10 * self.r**10) + \
+            (A3**2 * A1**3 * xi**8) / (self.c11 * self.r**8) - \
+                (A3**2 * A1**2 * xi**6) / (self.c12 * self.r**6) + \
+                    (A3**2 * A1 * xi**4) / (self.c13 * self.r**4) - \
+                        (A3**2 * xi**2) / (6 * self.r**2)
+        
+        
+        
+        
+        return 
 
 
     def calc_Jacobian(self, q, xi):
