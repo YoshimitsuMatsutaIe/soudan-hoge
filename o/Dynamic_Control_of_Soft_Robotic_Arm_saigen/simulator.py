@@ -58,6 +58,7 @@ class Simulator:
         #print(np.linalg.pinv(J))  # これが発散
         z = np.linalg.pinv(J) @ \
             (pd_dot_dot - self.Kd*(p_dot - pd_dot) - self.Kp*(p - pd))
+        print(z)
         return z
 
 
@@ -204,7 +205,8 @@ class Simulator:
             fig = fig,
             func = update,
             frames = len(self.sol.t),
-            interval = self.TIME_INTERVAL * 0.001
+            interval = self.TIME_INTERVAL * 0.001,
+            #blit=True
         )
         
         ani.save(
@@ -220,7 +222,7 @@ class Simulator:
 
 if __name__ == "__main__":
     
-    hoge = Simulator(30, 0.01)
+    hoge = Simulator(3, 0.01)
     
     hoge.run_simulation()
     hoge.plot_actuator_data()

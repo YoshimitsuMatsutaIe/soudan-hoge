@@ -145,22 +145,25 @@ class Kinematics:
         l1 = q[0,0]
         l2 = q[1,0]
         l3 = q[2,0]
+        A1 = l1**2 + l2**2 + l3**2 - l1*l2 - l1*l3 - l2*l3
+        A2 = 2*l1 - l2 - l3
+        A4 = 3*self.L0 + l1 + l2 + l3
         
         return np.array([
             [
-                (l1 - l2/2 - l3/2)*(3*self.L0/2 + l1/2 + l2/2 + l3/2)/sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2) + sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/2,
-                (-l1/2 + l2 - l3/2)*(3*self.L0/2 + l1/2 + l2/2 + l3/2)/sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2) + sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/2,
-                (-l1/2 - l2/2 + l3)*(3*self.L0/2 + l1/2 + l2/2 + l3/2)/sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2) + sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/2
+                (l1 - l2/2 - l3/2)*(3*self.L0/2 + l1/2 + l2/2 + l3/2)/sqrt(A1) + sqrt(A1)/2,
+                (-l1/2 + l2 - l3/2)*(3*self.L0/2 + l1/2 + l2/2 + l3/2)/sqrt(A1) + sqrt(A1)/2,
+                (-l1/2 - l2/2 + l3)*(3*self.L0/2 + l1/2 + l2/2 + l3/2)/sqrt(A1) + sqrt(A1)/2
             ],
             [
-                2*self.r*(l1 - l2/2 - l3/2)/(3*sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)),
-                2*self.r*(-l1/2 + l2 - l3/2)/(3*sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)),
-                2*self.r*(-l1/2 - l2/2 + l3)/(3*sqrt(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2))
+                2*self.r*(l1 - l2/2 - l3/2)/(3*sqrt(A1)),
+                2*self.r*(-l1/2 + l2 - l3/2)/(3*sqrt(A1)),
+                2*self.r*(-l1/2 - l2/2 + l3)/(3*sqrt(A1))
             ],
             [
-                2*sqrt(3)*(-l2 + l3)/((3*(-l2 + l3)**2/(-2*l1 + l2 + l3)**2 + 1)*(-2*l1 + l2 + l3)**2),
-                (-sqrt(3)*(-l2 + l3)/(-2*l1 + l2 + l3)**2 - sqrt(3)/(-2*l1 + l2 + l3))/(3*(-l2 + l3)**2/(-2*l1 + l2 + l3)**2 + 1),
-                (-sqrt(3)*(-l2 + l3)/(-2*l1 + l2 + l3)**2 + sqrt(3)/(-2*l1 + l2 + l3))/(3*(-l2 + l3)**2/(-2*l1 + l2 + l3)**2 + 1)
+                2*sqrt(3)*(-l2 + l3)/((3*(-l2 + l3)**2/(-A2)**2 + 1)*(-A2)**2),
+                (-sqrt(3)*(-l2 + l3)/(-A2)**2 - sqrt(3)/(-A2))/(3*(-l2 + l3)**2/(-A2)**2 + 1),
+                (-sqrt(3)*(-l2 + l3)/(-A2)**2 + sqrt(3)/(-A2))/(3*(-l2 + l3)**2/(-A2)**2 + 1)
             ]
         ])
 
@@ -181,12 +184,39 @@ class Kinematics:
     def jacobian_dpdq(self, q, xi):
         """タスク空間のアクチュエータ空間による偏微分"""
         
-        c = self.mapping_from_actuator_to_configuration(q, xi)
+        # c = self.mapping_from_actuator_to_configuration(q, xi)
         
-        dcdq = self.jacobian_dcdq(q, xi)
-        dpdc = self.jacobian_dpdc(c, xi)
+        # dcdq = self.jacobian_dcdq(q, xi)
+        # dpdc = self.jacobian_dpdc(c, xi)
         
-        return dpdc @ dcdq
+        # J =  dpdc @ dcdq
+        
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        A1 = l1**2 + l2**2 + l3**2 - l1*l2 - l1*l3 - l2*l3
+        A2 = 2*l1 - l2 - l3
+        A4 = 3*self.L0 + l1 + l2 + l3
+        
+        J = np.array([
+            [
+                (3*(l2 - l3)**2 + (-A2)**2)*(36*(l2 - l3)**2*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(3*self.L0 + l1 + l2 + l3)*(A1) + 2*(-self.r*xi*(-A2)*(A4)*sin(2*self.r*xi*sqrt(A1)/3) + 6*sqrt(A1)*sin(self.r*xi*sqrt(A1)/3)**2)*(3*(l2 - l3)**2 + (-A2)**2)*(-A2)*sqrt(A1) + 3*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)**2*(A4))/(12*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(5/2)*(-A2)**5*sqrt(A1)),
+                (3*(l2 - l3)**2 + (-A2)**2)*(-18*((-l2 + l3)*(-A2) + (l2 - l3)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) + 2*(-self.r*xi*(l1 - 2*l2 + l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3) + 6*sqrt(A1)*sin(self.r*xi*sqrt(A1)/3)**2)*(3*(l2 - l3)**2 + (-A2)**2)*(-A2)*sqrt(A1) + 3*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(l1 - 2*l2 + l3)*(A4))/(12*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(5/2)*(-A2)**5*sqrt(A1)),
+                (3*(l2 - l3)**2 + (-A2)**2)*(-36*(-l1 + l2)*(l2 - l3)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) + 2*(-self.r*xi*(l1 + l2 - 2*l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3) + 6*sqrt(A1)*sin(self.r*xi*sqrt(A1)/3)**2)*(3*(l2 - l3)**2 + (-A2)**2)*(-A2)*sqrt(A1) + 3*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(l1 + l2 - 2*l3)*(A4))/(12*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(5/2)*(-A2)**5*sqrt(A1))
+            ],
+            [
+                sqrt(3)*(l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)**2*(2*self.r*xi*(3*(l2 - l3)**2 + (-A2)**2)*(-A2)**2*(A4)*sqrt(A1)*sin(2*self.r*xi*sqrt(A1)/3) - 36*(l2 - l3)**2*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) - 3*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)**2*(A4) + 6*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(A1) + 12*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1))/(12*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(7/2)*(-A2)**8*sqrt(A1)),
+                sqrt(3)*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(3/2)*(-A2)**2*(18*(l2 - l3)*((-l2 + l3)*(-A2) + (l2 - l3)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) - 3*(l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(l1 - 2*l2 + l3)*(A4) - 6*(l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) + 2*(3*(l2 - l3)**2 + (-A2)**2)*(-A2)*(self.r*xi*(l2 - l3)*(l1 - 2*l2 + l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3) + 3*(l2 - l3)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*sqrt(A1) + 3*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*sqrt(A1))*sqrt(A1))/(12*(3*(l2 - l3)**2 + (-A2)**2)**3*sqrt(A1)),
+                sqrt(3)*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(3/2)*(-A2)**2*(3*(-l1 + l2)*(l2 - l3)**2*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) - (l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(l1 + l2 - 2*l3)*(A4)/4 - (l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1)/2 + (3*(l2 - l3)**2 + (-A2)**2)*(-A2)*(self.r*xi*(l2 - l3)*(l1 + l2 - 2*l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3) + 3*(l2 - l3)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*sqrt(A1) - 3*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*sqrt(A1))*sqrt(A1)/6)/((3*(l2 - l3)**2 + (-A2)**2)**3*sqrt(A1))
+            ],
+            [
+                (2*(-self.r*xi*(-A2)*(A4)*cos(2*self.r*xi*sqrt(A1)/3) + 3*sqrt(A1)*sin(2*self.r*xi*sqrt(A1)/3))*sqrt(A1) - 3*(-A2)*(A4)*sin(2*self.r*xi*sqrt(A1)/3))/(12*sqrt(A1)),
+                (2*(-self.r*xi*(l1 - 2*l2 + l3)*(A4)*cos(2*self.r*xi*sqrt(A1)/3) + 3*sqrt(A1)*sin(2*self.r*xi*sqrt(A1)/3))*sqrt(A1) - 3*(l1 - 2*l2 + l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3))/(12*sqrt(A1)),
+                (2*(-self.r*xi*(l1 + l2 - 2*l3)*(A4)*cos(2*self.r*xi*sqrt(A1)/3) + 3*sqrt(A1)*sin(2*self.r*xi*sqrt(A1)/3))*sqrt(A1) - 3*(l1 + l2 - 2*l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3))/(12*sqrt(A1))
+            ]
+        ])
+        
+        return J
 
 
     def linearized_mapping_from_actuator_to_task_p(self, q, xi):
