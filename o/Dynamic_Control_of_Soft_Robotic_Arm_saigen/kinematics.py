@@ -57,7 +57,7 @@ class Kinematics:
         A3 = l2 - l3
         A4 = 3*self.L0 + l1 + l2 + l3
         
-        lam = A4 / 2*sqrt(A1)
+        lam = A4 * self.r / 2*sqrt(A1)
         phi = 2*sqrt(A1) / 3*self.r
         theta = np.arctan2(1, sqrt(3) * (-A3) / (-A2))
         
