@@ -26,7 +26,7 @@ class Simulator:
         self.kinematics = Kinematics()
     
     
-    def xd(self, t):
+    def pd(self, t):
         """タスク空間上の所望の位置"""
         return np.array([
             [0.1 * sin(3*t)],
@@ -35,7 +35,7 @@ class Simulator:
         ])
 
 
-    def xd_dot(self, t):
+    def pd_dot(self, t):
         """タスク空間上の所望の測度"""
         return np.array([
             [0.1 * 3 * cos(3*t)],
@@ -44,7 +44,7 @@ class Simulator:
         ])
 
 
-    def xd_dot_dot(self, t):
+    def pd_dot_dot(self, t):
         """タスク空間上の所望の加速度"""
         return np.array([
             [0.1 * 9 * -sin(3*t)],
@@ -53,11 +53,11 @@ class Simulator:
         ])
 
 
-    def calc_q_dot_dot(self, x, x_dot, J, xd, xd_dot, xd_dot_dot):
+    def calc_q_dot_dot(self, p, p_dot, J, pd, pd_dot, pd_dot_dot):
         """アクチュエータ空間上の加速度を計算"""
         #print(np.linalg.pinv(J))  # これが発散
         z = np.linalg.pinv(J) @ \
-            (xd_dot_dot - self.Kd*(x_dot - xd_dot) - self.Kp*(x - xd))
+            (pd_dot_dot - self.Kd*(p_dot - pd_dot) - self.Kp*(p - pd))
         return z
 
 
@@ -66,15 +66,15 @@ class Simulator:
         q = np.array([state[:3]]).T
         q_dot = np.array([state[3:]]).T
         
-        x = self.kinematics.calc_X(q, xi=1)
-        J = self.kinematics.calc_Jacobian(q, xi=1)
-        x_dot = J @ q_dot
+        p = self.kinematics.mapping_from_actuator_to_task_p(q, xi=1)
+        J = self.kinematics.jacobian_dpdq(q, xi=1)
+        p_dot = J @ q_dot
         
         q_dot_dot = self.calc_q_dot_dot(
-            x, x_dot, J,
-            xd = self.xd(t),
-            xd_dot = self.xd_dot(t),
-            xd_dot_dot = self.xd_dot_dot(t),
+            p, p_dot, J,
+            pd = self.pd(t),
+            pd_dot = self.pd_dot(t),
+            pd_dot_dot = self.pd_dot_dot(t),
         )
         
         z = np.concatenate([q_dot, q_dot_dot])
@@ -183,7 +183,7 @@ class Simulator:
             ]]).T
             
             Xs = np.concatenate(
-                [self.kinematics.calc_X(q, xi).T for xi in self.xi_all]
+                [self.kinematics.mapping_from_actuator_to_task_p(q, xi).T for xi in self.xi_all]
             )
             
             

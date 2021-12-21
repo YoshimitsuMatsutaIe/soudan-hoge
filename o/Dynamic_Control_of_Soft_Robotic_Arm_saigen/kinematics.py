@@ -178,6 +178,17 @@ class Kinematics:
         ])
 
 
+    def jacobian_dpdq(self, q, xi):
+        """タスク空間のアクチュエータ空間による偏微分"""
+        
+        c = self.mapping_from_actuator_to_configuration(q, xi)
+        
+        dcdq = self.jacobian_dcdq(q, xi)
+        dpdc = self.jacobian_dpdc(c, xi)
+        
+        return dpdc @ dcdq
+
+
     def linearized_mapping_from_actuator_to_task_p(self, q, xi):
         """線形化されたアクチュエータ空間からタスク空間への写像
         
