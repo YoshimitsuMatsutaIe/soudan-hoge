@@ -86,7 +86,7 @@ class Simulator:
     def run_simulation(self,):
         """動力学なしで軌道追従をシミュレーション"""
         
-        q_init = np.array([[0, 0, 0]]).T
+        q_init = np.array([[0.147, 0.147, 0.147]]).T
         dq_init = np.zeros((3, 1))
         
         state_init = np.concatenate([q_init, dq_init])
@@ -140,7 +140,7 @@ class Simulator:
         
         # まずはデータ作成
         xd_data = np.concatenate(
-            [self.xd(t).T for t in self.sol.t]
+            [self.pd(t).T for t in self.sol.t]
         )
         
         
@@ -187,10 +187,10 @@ class Simulator:
             )
             
             
-            xd = self.xd(self.sol.t[i])
+            pd = self.pd(self.sol.t[i])
             
             ax.plot(Xs[:, 0], Xs[:, 1], Xs[:, 2], label="arm", marker="o")
-            ax.scatter([xd[0,0]], [xd[1,0]], [xd[2,0]], label="temp xd", marker="*", color="r")
+            ax.scatter([pd[0,0]], [pd[1,0]], [pd[2,0]], label="temp xd", marker="*", color="r")
             ax.plot(xd_data[:, 0], xd_data[:, 1], xd_data[:, 2], label="xd line")
             
             ax.legend()
@@ -220,7 +220,7 @@ class Simulator:
 
 if __name__ == "__main__":
     
-    hoge = Simulator(0.9, 0.01)
+    hoge = Simulator(0.1, 0.01)
     
     hoge.run_simulation()
     hoge.plot_actuator_data()

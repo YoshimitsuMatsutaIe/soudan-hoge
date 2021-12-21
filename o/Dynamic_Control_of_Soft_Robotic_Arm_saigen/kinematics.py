@@ -59,7 +59,7 @@ class Kinematics:
         
         lam = A4 / 2*sqrt(A1)
         phi = 2*sqrt(A1) / 3*self.r
-        theta = np.arctan(sqrt(3) * (-A3) / (-A2))
+        theta = np.arctan2(1, sqrt(3) * (-A3) / (-A2))
         
         if phi <= 0 or phi > 2*np.pi:
             print("phiが範囲外!")
