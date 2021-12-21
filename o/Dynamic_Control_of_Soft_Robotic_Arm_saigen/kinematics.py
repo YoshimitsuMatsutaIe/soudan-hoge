@@ -25,6 +25,9 @@ class Kinematics:
         self.c12 = 10935
         self.c13 = 162
 
+        self.c14 = 243
+        self.c15 = 2066715
+
         self.r = 0.0125
         self.L0 = 0.15
 
@@ -122,10 +125,39 @@ class Kinematics:
                     (A3**2 * A1 * xi**4) / (self.c13 * self.r**4) - \
                         (A3**2 * xi**2) / (6 * self.r**2)
         
+        R23 = -(2*sqrt(3) * A3 * A1**4 * xi**9) / (self.c6 * self.r**9) + \
+            (4*sqrt(3) * A3 * A1**3 * xi**7) / (self.c7 * self.r**7) - \
+                (2*sqrt(3) * A3 * A1**2 * xi**5) / (self.c8 * self.r**5) + \
+                    (2*sqrt(3) * A3 * A1 * xi**3) / (self.c9 * self.r**3) - \
+                        (sqrt(3) * A3 * xi) / (3 * self.r)
         
+        R33 = 1 - (2 * xi**2 * A1) / (9 * self.r**2) + \
+            (2 * xi**4 * A1**2) / (self.c14 * self.r**4) - \
+                (4 * xi**6 * A1**3) / (self.c3 * self.r**6) + \
+                    (2 * xi**8 * A1**4) / (self.c15 * self.r**8) - \
+                        (4 * xi**10 * A1**5) / (self.c1 * self.r**10)
         
+        R21 = R12
+        R31 = -R13
+        R32 = -R23
         
-        return 
+        return np.array([
+            [R11, R12, R13],
+            [R21, R22, R23],
+            [R31, R32, R33],
+        ])
+
+
+    def MHTM(self, q, xi):
+        """Modal Homogeneous Transformation Matrix"""
+        
+        p = self.calc_X(q, xi)
+        R = self.calc_R(q, xi)
+        
+        return np.block([
+            [R, p],
+            [np.zeros((1, 3)), np.eye(1)],
+        ])
 
 
     def calc_Jacobian(self, q, xi):
@@ -153,3 +185,8 @@ class Kinematics:
                 xi/3 - xi**3*(-2*l1 - 2*l2)*(3*self.L0 + l1 + l2 + l3)/(self.c9*self.r**2) - xi**3*(2*l1**2 - 2*l1*l2 - 2*l1*l3 + 4*l2**2 - 2*l2*l3)/(self.c9*self.r**2) + 2*xi**5*(-2*l1 - 2*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c8*self.r**4) + 2*xi**5*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c8*self.r**4) - 4*xi**7*(-3*l1 - 3*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c7*self.r**6) - 4*xi**7*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c7*self.r**6) + 2*xi**9*(-4*l1 - 4*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c6*self.r**8) + 2*xi**9*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c6*self.r**8)
             ]
         ])
+
+
+
+if __name__ == "__main__":
+    pass
