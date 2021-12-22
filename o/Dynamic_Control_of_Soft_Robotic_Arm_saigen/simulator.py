@@ -9,6 +9,34 @@ from dynamics import Dynamics
 from controller import PD_FeedbackLinearization_Controller
 
 
+
+def pd(t):
+    """タスク空間上の所望の位置"""
+    return np.array([
+        [0.1 * sin(3*t)],
+        [0.1 * cos(3*t)],
+        [0.147],
+    ])
+
+
+def pd_dot(t):
+    """タスク空間上の所望の測度"""
+    return np.array([
+        [0.1 * 3 * cos(3*t)],
+        [0.1 * 3 * -sin(3*t)],
+        [0],
+    ])
+
+
+def pd_dot_dot(t):
+    """タスク空間上の所望の加速度"""
+    return np.array([
+        [0.1 * 9 * -sin(3*t)],
+        [0.1 * 9 * -cos(3*t)],
+        [0],
+    ])
+
+
 class Simulator:
     """シミュレーター"""
     
@@ -26,31 +54,14 @@ class Simulator:
         self.kinematics = Kinematics()
     
     
-    def pd(self, t):
-        """タスク空間上の所望の位置"""
-        return np.array([
-            [0.1 * sin(3*t)],
-            [0.1 * cos(3*t)],
-            [0.147],
-        ])
+    def set_desired_position(self, xd, xd_dot, xd_dot_dot):
+        
+        self.xd = xd
+        self.xd_dot = xd_dot
+        self.xd_dot_dot = xd_dot_dot
+        
+        
 
-
-    def pd_dot(self, t):
-        """タスク空間上の所望の測度"""
-        return np.array([
-            [0.1 * 3 * cos(3*t)],
-            [0.1 * 3 * -sin(3*t)],
-            [0],
-        ])
-
-
-    def pd_dot_dot(self, t):
-        """タスク空間上の所望の加速度"""
-        return np.array([
-            [0.1 * 9 * -sin(3*t)],
-            [0.1 * 9 * -cos(3*t)],
-            [0],
-        ])
 
 
     def calc_q_dot_dot(self, p, p_dot, J, pd, pd_dot, pd_dot_dot):
