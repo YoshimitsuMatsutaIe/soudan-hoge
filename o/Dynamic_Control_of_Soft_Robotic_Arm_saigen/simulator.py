@@ -61,12 +61,12 @@ class Simulator:
 
 
 
-    def calc_q_dot_dot(self, p, p_dot, J, pd, pd_dot, pd_dot_dot):
+    def calc_q_dot_dot(self, q, q_dot, p, p_dot, J, J_dot, pd, pd_dot, pd_dot_dot):
         """アクチュエータ空間上の加速度を計算"""
         #print(np.linalg.pinv(J))  # これが発散
         print("error = ", np.linalg.norm(p - pd))
         z = np.linalg.pinv(J) @ \
-            (pd_dot_dot - self.Kd*(p_dot - pd_dot) - self.Kp*(p - pd))
+            (pd_dot_dot - self.Kd*(p_dot - pd_dot) - self.Kp*(p - pd) - J_dot @ q_dot)
         #print(z)
         return z
 
@@ -80,12 +80,14 @@ class Simulator:
         # J = self.kinematics.jacobian_dpdq(q, xi=1)
         
         p = self.kinematics.linearized_mapping_from_actuator_to_task_p(q, xi=1)
-        J = self.kinematics.calc_Jacobian(q, xi=1)
+        J = self.kinematics.linearized_jacobian_dpdq(q, xi=1)
+        J_dot = self.kinematics.linearized_jacobian_dpdq_dot(q, q_dot, xi=1)
         
         p_dot = J @ q_dot
         
         q_dot_dot = self.calc_q_dot_dot(
-            p, p_dot, J,
+            q, q_dot,
+            p, p_dot, J, J_dot,
             pd = self.pd(t),
             pd_dot = self.pd_dot(t),
             pd_dot_dot = self.pd_dot_dot(t),

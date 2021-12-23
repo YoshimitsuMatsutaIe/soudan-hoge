@@ -1,6 +1,7 @@
 import numpy as np
 from math import sin, cos, sqrt
 
+import linearized_J_dot
 
 def sknew_symmetric(a):
     """ベクトル -> 歪対称行列"""
@@ -342,9 +343,7 @@ class KinematicsOfOneSection:
 
 
 
-
-
-    def calc_Jacobian(self, q, xi):
+    def linearized_jacobian_dpdq(self, q, xi):
         """ヤコビ行列
         
         タスク写像XのアクチュエータベクトルLによる偏微分
@@ -369,6 +368,21 @@ class KinematicsOfOneSection:
                 xi/3 - xi**3*(-2*l1 - 2*l2)*(3*self.L0 + l1 + l2 + l3)/(self.c9*self.r**2) - xi**3*(2*l1**2 - 2*l1*l2 - 2*l1*l3 + 4*l2**2 - 2*l2*l3)/(self.c9*self.r**2) + 2*xi**5*(-2*l1 - 2*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c8*self.r**4) + 2*xi**5*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c8*self.r**4) - 4*xi**7*(-3*l1 - 3*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c7*self.r**6) - 4*xi**7*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c7*self.r**6) + 2*xi**9*(-4*l1 - 4*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c6*self.r**8) + 2*xi**9*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c6*self.r**8)
             ]
         ])
+
+
+    def linearized_jacobian_dpdq_dot(self, q, q_dot, xi):
+        """ヤコビ行列
+        
+        タスク写像XのアクチュエータベクトルLによる偏微分の時間微分
+        """
+        
+        return linearized_J_dot.f(
+            q[0,0], q[1,0], q[2,0],
+            q_dot[0,0], q_dot[1,0], q_dot[2,0],
+            xi, self.r, self.L0,
+            self.c1, self.c2, self.c3, self.c4, self.c5,
+            self.c6, self.c7, self.c8, self.c9
+        )
 
 
 class KinematicsOfHole:
