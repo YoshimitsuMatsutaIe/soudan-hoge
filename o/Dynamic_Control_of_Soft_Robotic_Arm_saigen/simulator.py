@@ -25,7 +25,7 @@ class Simulator:
             self.TIME_INTERVAL = TIME_INTERVAL
         
         self.Kd = 200
-        self.Kp = 10000
+        self.Kp = 1000000
         
         self.kinematics = KinematicsOfOneSection()
         
@@ -67,12 +67,12 @@ class Simulator:
         print("error = ", np.linalg.norm(p - pd))
         z = np.linalg.pinv(J) @ \
             (pd_dot_dot - self.Kd*(p_dot - pd_dot) - self.Kp*(p - pd) - J_dot @ q_dot)
-        #print(z)
+        print(z)
         return z
 
 
     def state_dot(self, t, state):
-        
+        print("t = ", t)
         q = np.array([state[:3]]).T
         q_dot = np.array([state[3:]]).T
         
