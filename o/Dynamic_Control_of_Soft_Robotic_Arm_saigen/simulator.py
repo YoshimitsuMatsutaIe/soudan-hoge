@@ -33,6 +33,22 @@ class Simulator:
         if pd is not None and pd_dot is not None and pd_dot is not None:
             self.set_desired_position(pd, pd_dot, pd_dot_dot)
     
+        x_max = 0.1
+        x_min = -0.1
+        y_max = 0.1
+        y_min = -0.1
+        z_max = 0.2
+        z_min = 0
+        max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
+        x_mid = (x_max + x_min) / 2
+        y_mid = (y_max + y_min) / 2
+        z_mid = (z_max + z_min) / 2
+        
+        self.x_range = (x_mid-max_range, x_mid+max_range)
+        self.y_range = (y_mid-max_range, y_mid+max_range)
+        self.z_range = (z_mid-max_range, z_mid+max_range)
+    
+    
     
     def set_desired_position(self, pd, pd_dot, pd_dot_dot):
         """目標位置の関数をセット"""
@@ -133,16 +149,41 @@ class Simulator:
     
     
     def plot_arm(self, ax, q,):
-        """アームをプロット"""
+        """axにアームをプロット"""
         
-        ps = np.concatenate(
-            [self.kinematics.mapping_from_actuator_to_task_p(q, xi).T for xi in self.xi_all]
-        )
+        ps = self.kinematics.calc_all_task_ps(q)
         
+        ax.grid(True)
+        ax.set_xlabel('X[m]')
+        ax.set_ylabel('Y[m]')
+        ax.set_zlabel('Z[m]')
+
+        ## 三軸のスケールを揃える
+        ax.set_xlim(self.x_range)
+        ax.set_ylim(self.y_range)
+        ax.set_zlim(self.z_range)
+        ax.set_box_aspect((1,1,1))
+        
+        ps = self.kinematics.calc_all_task_ps(q)
+        
+        ax.plot(ps[:, 0], ps[:, 1], ps[:, 2], label="arm", marker="o")
+        
+        ax.legend()
         
         return
     
     
+    def plot_test(self, q):
+        """チェック用"""
+        
+        fig = plt.figure()
+        ax = fig.add_subplot(projection = '3d')
+        
+        self.plot_arm(ax, q)
+        
+        
+        plt.show()
+        
     
     
     def make_animation(self,):
@@ -160,47 +201,21 @@ class Simulator:
         fig = plt.figure()
         ax = fig.add_subplot(projection = '3d')
 
-        x_max = 0.1
-        x_min = -0.1
-        y_max = 0.1
-        y_min = -0.1
-        z_max = 0.2
-        z_min = 0
-        max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
-        x_mid = (x_max + x_min) / 2
-        y_mid = (y_max + y_min) / 2
-        z_mid = (z_max + z_min) / 2
-
-
         def update(i):
             """アップデート関数"""
             ax.cla()
             
-            ax.grid(True)
-            ax.set_xlabel('X[m]')
-            ax.set_ylabel('Y[m]')
-            ax.set_zlabel('Z[m]')
-
-            ## 三軸のスケールを揃える
-
-            ax.set_xlim(x_mid-max_range, x_mid+max_range)
-            ax.set_ylim(y_mid-max_range, y_mid+max_range)
-            ax.set_zlim(z_mid-max_range, z_mid+max_range)
-            ax.set_box_aspect((1,1,1))
             
-            
-            q = np.array([[
+            self.plot_arm(
+                ax = ax,
+                q = np.array([[
                 self.sol.y[0][i],
                 self.sol.y[1][i],
                 self.sol.y[2][i],
-            ]]).T
-            
-            ps = self.kinematics.calc_all_task_ps(q)
-            
+                ]]).T
+            )
             
             pd = self.pd(self.sol.t[i])
-            
-            ax.plot(ps[:, 0], ps[:, 1], ps[:, 2], label="arm", marker="o")
             ax.scatter([pd[0,0]], [pd[1,0]], [pd[2,0]], label="temp xd", marker="*", color="r")
             ax.plot(xd_data[:, 0], xd_data[:, 1], xd_data[:, 2], label="xd line")
             
