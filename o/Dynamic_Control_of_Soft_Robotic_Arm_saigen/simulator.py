@@ -25,7 +25,7 @@ class Simulator:
             self.TIME_INTERVAL = TIME_INTERVAL
         
         self.Kd = 200
-        self.Kp = 1e4
+        self.Kp = 10000
         
         self.kinematics = KinematicsOfOneSection()
         
@@ -64,9 +64,10 @@ class Simulator:
     def calc_q_dot_dot(self, p, p_dot, J, pd, pd_dot, pd_dot_dot):
         """アクチュエータ空間上の加速度を計算"""
         #print(np.linalg.pinv(J))  # これが発散
+        print("error = ", np.linalg.norm(p - pd))
         z = np.linalg.pinv(J) @ \
             (pd_dot_dot - self.Kd*(p_dot - pd_dot) - self.Kp*(p - pd))
-        print(z)
+        #print(z)
         return z
 
 
@@ -75,8 +76,12 @@ class Simulator:
         q = np.array([state[:3]]).T
         q_dot = np.array([state[3:]]).T
         
-        p = self.kinematics.mapping_from_actuator_to_task_p(q, xi=1)
-        J = self.kinematics.jacobian_dpdq(q, xi=1)
+        # p = self.kinematics.mapping_from_actuator_to_task_p(q, xi=1)
+        # J = self.kinematics.jacobian_dpdq(q, xi=1)
+        
+        p = self.kinematics.linearized_mapping_from_actuator_to_task_p(q, xi=1)
+        J = self.kinematics.calc_Jacobian(q, xi=1)
+        
         p_dot = J @ q_dot
         
         q_dot_dot = self.calc_q_dot_dot(
@@ -95,7 +100,7 @@ class Simulator:
     def run_simulation(self,):
         """動力学なしで軌道追従をシミュレーション"""
         
-        q_init = np.array([[0.147, 0.147, 0.5]]).T
+        q_init = np.array([[0.001, 0.001, 0.001]]).T
         dq_init = np.zeros((3, 1))
         
         state_init = np.concatenate([q_init, dq_init])
@@ -152,7 +157,7 @@ class Simulator:
         """axにアームをプロット"""
         
         ps = self.kinematics.calc_all_task_ps(q)
-        
+        #print(ps)
         ax.grid(True)
         ax.set_xlabel('X[m]')
         ax.set_ylabel('Y[m]')
@@ -167,7 +172,8 @@ class Simulator:
         ps = self.kinematics.calc_all_task_ps(q)
         
         ax.plot(ps[:, 0], ps[:, 1], ps[:, 2], label="arm", marker="o")
-        
+        ax.scatter(ps[0, 0], ps[0, 1], ps[0, 2], label="w0")
+        ax.scatter(ps[-1, 0], ps[-1, 1], ps[-1, 2], label="end-effector")
         ax.legend()
         
         return

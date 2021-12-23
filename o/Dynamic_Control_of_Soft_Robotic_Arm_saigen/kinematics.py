@@ -59,12 +59,13 @@ class KinematicsOfOneSection:
         A3 = l2 - l3
         A4 = 3*self.L0 + l1 + l2 + l3
         
+        #print("A1 =", A1)
         if A1 < 1e-6:
             lam = A4 * self.r / 2*1e-6
         else:
             lam = A4 * self.r / 2*sqrt(A1)
         phi = 2*sqrt(A1) / 3*self.r
-        theta = np.arctan2(1, sqrt(3) * (-A3) / (-A2))
+        theta = np.arctan2(sqrt(3) * (-A3) / (-A2), 1)
         
         if phi <= 0 or phi > 2*np.pi:
             print("phiが範囲外!")
@@ -117,13 +118,17 @@ class KinematicsOfOneSection:
         """アクチュエータ空間からタスク空間への写像"""
         
         c = self.mapping_from_actuator_to_configuration(q, xi)
+        #print("c = ", c)
         x = self.mapping_from_configration_to_task_p(c, xi)
-        
+        #print("x = ", x)
         return x
 
     def calc_all_task_ps(self, q):
+        # return np.concatenate(
+        #     [self.mapping_from_actuator_to_task_p(q, xi).T for xi in self.xi_all]
+        # )
         return np.concatenate(
-            [self.mapping_from_actuator_to_task_p(q, xi).T for xi in self.xi_all]
+            [self.linearized_mapping_from_actuator_to_task_p(q, xi).T for xi in self.xi_all]
         )
 
     def mapping_from_actuator_to_task_R(self, q, xi):

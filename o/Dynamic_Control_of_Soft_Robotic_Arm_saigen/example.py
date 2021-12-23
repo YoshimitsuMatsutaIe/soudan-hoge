@@ -40,7 +40,7 @@ def pd_dot_dot(t):
 
 
 hoge = Simulator(
-    TIME_SPAN = 3,
+    TIME_SPAN = 1,
     TIME_INTERVAL = 0.01,
     pd = pd,
     pd_dot = pd_dot,
@@ -50,3 +50,7 @@ hoge = Simulator(
 hoge.run_simulation()
 hoge.plot_actuator_data()
 hoge.make_animation()
+
+
+# hoge2 = Simulator()
+# hoge2.plot_test(np.array([[0.01, 0, 0]]).T)
