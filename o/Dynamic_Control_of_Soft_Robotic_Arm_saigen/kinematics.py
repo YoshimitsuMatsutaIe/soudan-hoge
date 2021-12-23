@@ -16,9 +16,11 @@ def inv_sknew_symmetric(A):
 
 
 
-class Kinematics:
-    """ソフトロボットの運動学"""
+class KinematicsOfOneSection:
+    """1つのセクションの運動学"""
 
+    xi_all = np.arange(0, 1, 0.01)  # xi一覧
+    
     def __init__(self,):
         
         # 線形化した後のパラメータ
@@ -57,7 +59,10 @@ class Kinematics:
         A3 = l2 - l3
         A4 = 3*self.L0 + l1 + l2 + l3
         
-        lam = A4 * self.r / 2*sqrt(A1)
+        if A1 < 1e-6:
+            lam = A4 * self.r / 2*1e-6
+        else:
+            lam = A4 * self.r / 2*sqrt(A1)
         phi = 2*sqrt(A1) / 3*self.r
         theta = np.arctan2(1, sqrt(3) * (-A3) / (-A2))
         
@@ -116,6 +121,10 @@ class Kinematics:
         
         return x
 
+    def calc_all_task_ps(self, q):
+        return np.concatenate(
+            [self.mapping_from_actuator_to_task_p(q, xi).T for xi in self.xi_all]
+        )
 
     def mapping_from_actuator_to_task_R(self, q, xi):
         """アクチュエータ空間からタスク空間への写像"""
@@ -357,7 +366,11 @@ class Kinematics:
         ])
 
 
-
+class KinematicsOfHole:
+    """アーム全体の運動学"""
+    
+    def __init__(self,):
+        pass
 
 
 if __name__ == "__main__":

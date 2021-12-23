@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as anm
 from scipy.integrate import solve_ivp
 
-from kinematics import Kinematics
-from dynamics import Dynamics
+from kinematics import KinematicsOfOneSection
+#from dynamics import Dynamics
 from controller import PD_FeedbackLinearization_Controller
 
 
@@ -14,20 +14,20 @@ class Simulator:
     """シミュレーター"""
     
     sol = None
-    xi_all = np.arange(0, 1, 0.01)  # xi一覧
     
     def __init__(
-        self, TIME_SPAN, TIME_INTERVAL,
+        self, TIME_SPAN=None, TIME_INTERVAL=None,
         pd=None, pd_dot=None, pd_dot_dot=None
     ):
         
-        self.TIME_SPAN = TIME_SPAN
-        self.TIME_INTERVAL = TIME_INTERVAL
+        if TIME_SPAN is not None:
+            self.TIME_SPAN = TIME_SPAN
+            self.TIME_INTERVAL = TIME_INTERVAL
         
         self.Kd = 200
         self.Kp = 1e4
         
-        self.kinematics = Kinematics()
+        self.kinematics = KinematicsOfOneSection()
         
         
         if pd is not None and pd_dot is not None and pd_dot is not None:
@@ -101,6 +101,7 @@ class Simulator:
         return
     
     
+    
     def plot_actuator_data(self,):
         """基本的なものをプロット"""
         
@@ -131,6 +132,15 @@ class Simulator:
         plt.show()
     
     
+    def plot_arm(self, ax, q,):
+        """アームをプロット"""
+        
+        ps = np.concatenate(
+            [self.kinematics.mapping_from_actuator_to_task_p(q, xi).T for xi in self.xi_all]
+        )
+        
+        
+        return
     
     
     
@@ -185,14 +195,12 @@ class Simulator:
                 self.sol.y[2][i],
             ]]).T
             
-            Xs = np.concatenate(
-                [self.kinematics.mapping_from_actuator_to_task_p(q, xi).T for xi in self.xi_all]
-            )
+            ps = self.kinematics.calc_all_task_ps(q)
             
             
             pd = self.pd(self.sol.t[i])
             
-            ax.plot(Xs[:, 0], Xs[:, 1], Xs[:, 2], label="arm", marker="o")
+            ax.plot(ps[:, 0], ps[:, 1], ps[:, 2], label="arm", marker="o")
             ax.scatter([pd[0,0]], [pd[1,0]], [pd[2,0]], label="temp xd", marker="*", color="r")
             ax.plot(xd_data[:, 0], xd_data[:, 1], xd_data[:, 2], label="xd line")
             
