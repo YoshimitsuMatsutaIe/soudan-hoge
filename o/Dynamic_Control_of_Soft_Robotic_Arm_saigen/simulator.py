@@ -10,40 +10,16 @@ from controller import PD_FeedbackLinearization_Controller
 
 
 
-def pd(t):
-    """タスク空間上の所望の位置"""
-    return np.array([
-        [0.1 * sin(3*t)],
-        [0.1 * cos(3*t)],
-        [0.147],
-    ])
-
-
-def pd_dot(t):
-    """タスク空間上の所望の測度"""
-    return np.array([
-        [0.1 * 3 * cos(3*t)],
-        [0.1 * 3 * -sin(3*t)],
-        [0],
-    ])
-
-
-def pd_dot_dot(t):
-    """タスク空間上の所望の加速度"""
-    return np.array([
-        [0.1 * 9 * -sin(3*t)],
-        [0.1 * 9 * -cos(3*t)],
-        [0],
-    ])
-
-
 class Simulator:
     """シミュレーター"""
     
     sol = None
     xi_all = np.arange(0, 1, 0.01)  # xi一覧
     
-    def __init__(self, TIME_SPAN, TIME_INTERVAL):
+    def __init__(
+        self, TIME_SPAN, TIME_INTERVAL,
+        pd=None, pd_dot=None, pd_dot_dot=None
+    ):
         
         self.TIME_SPAN = TIME_SPAN
         self.TIME_INTERVAL = TIME_INTERVAL
@@ -52,13 +28,18 @@ class Simulator:
         self.Kp = 1e4
         
         self.kinematics = Kinematics()
-    
-    
-    def set_desired_position(self, xd, xd_dot, xd_dot_dot):
         
-        self.xd = xd
-        self.xd_dot = xd_dot
-        self.xd_dot_dot = xd_dot_dot
+        
+        if pd is not None and pd_dot is not None and pd_dot is not None:
+            self.set_desired_position(pd, pd_dot, pd_dot_dot)
+    
+    
+    def set_desired_position(self, pd, pd_dot, pd_dot_dot):
+        """目標位置の関数をセット"""
+        
+        self.pd = pd
+        self.pd_dot = pd_dot
+        self.pd_dot_dot = pd_dot_dot
         
         
 
@@ -109,7 +90,13 @@ class Simulator:
             y0 = np.ravel(state_init),
             t_eval = np.arange(0, self.TIME_SPAN, self.TIME_INTERVAL)
         )
-        print("成功したか否か", self.sol.status)
+        
+        if self.sol.status == -1:
+            print("失敗...")
+        elif self.sol.status == 0:
+            print("成功!!!")
+        else:
+            print("途中で終了")
 
         return
     
@@ -142,6 +129,10 @@ class Simulator:
         fig.savefig("misc/softrobot.png")
         
         plt.show()
+    
+    
+    
+    
     
     
     def make_animation(self,):
@@ -233,8 +224,4 @@ class Simulator:
 
 if __name__ == "__main__":
     
-    hoge = Simulator(3, 0.01)
-    
-    hoge.run_simulation()
-    hoge.plot_actuator_data()
-    hoge.make_animation()
+    print("hoge!!")

@@ -21,7 +21,7 @@ class Kinematics:
 
     def __init__(self,):
         
-        # 線形化した後の様々なパラメータ
+        # 線形化した後のパラメータ
         self.c1 = 837019575
         self.c2 = 4133430
         self.c3 = 32805
