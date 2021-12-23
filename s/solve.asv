@@ -1,7 +1,0 @@
-
-syms LAMBDA,CONTACT_E,TOTAL,CONTACT_I,CONTACT_S1,ALPHA,MU,RATE_W,GAMMA ,THETA1,THETA2,SPAN1,SPAN2,SPAN12,S,E,I,R,S1
-
-f = x + y;
-g = x - y;
-
-sol = solve(f==0, y==0);
