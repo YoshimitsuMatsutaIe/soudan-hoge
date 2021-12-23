@@ -63,7 +63,7 @@ class Simulator:
 
     def calc_q_dot_dot(self, q, q_dot, p, p_dot, J, J_dot, pd, pd_dot, pd_dot_dot):
         """アクチュエータ空間上の加速度を計算"""
-        #print(np.linalg.pinv(J))  # これが発散
+        print(np.linalg.det(J))  # これが発散?
         print("error = ", np.linalg.norm(p - pd))
         z = np.linalg.pinv(J) @ \
             (pd_dot_dot - self.Kd*(p_dot - pd_dot) - self.Kp*(p - pd) - J_dot @ q_dot)
@@ -197,8 +197,8 @@ class Simulator:
     def make_animation(self,):
         """アニメーションで挙動確認"""
         
-        if self.sol.status == -1:
-            return
+        # if self.sol.status == -1:
+        #     return
         
         # まずはデータ作成
         xd_data = np.concatenate(

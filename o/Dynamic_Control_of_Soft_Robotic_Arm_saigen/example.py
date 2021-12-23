@@ -40,7 +40,7 @@ def pd_dot_dot(t):
 
 
 hoge = Simulator(
-    TIME_SPAN = 1,
+    TIME_SPAN = 2,
     TIME_INTERVAL = 0.01,
     pd = pd,
     pd_dot = pd_dot,
