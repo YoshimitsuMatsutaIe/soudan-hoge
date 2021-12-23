@@ -20,7 +20,7 @@ def inv_sknew_symmetric(A):
 class KinematicsOfOneSection:
     """1つのセクションの運動学"""
 
-    xi_all = np.arange(0, 1, 0.01)  # xi一覧
+    xi_all = np.arange(0, 1, 0.05)  # xi一覧
     
     def __init__(self,):
         
@@ -115,7 +115,7 @@ class KinematicsOfOneSection:
         ])
 
 
-    def mapping_from_actuator_to_task_p(self, q, xi):
+    def mapping_from_actuator_to_task_p(self, q, xi=1):
         """アクチュエータ空間からタスク空間への写像"""
         
         c = self.mapping_from_actuator_to_configuration(q, xi)
@@ -234,7 +234,7 @@ class KinematicsOfOneSection:
         return J
 
 
-    def linearized_mapping_from_actuator_to_task_p(self, q, xi):
+    def linearized_mapping_from_actuator_to_task_p(self, q, xi=1):
         """線形化されたアクチュエータ空間からタスク空間への写像
         
         順運動学

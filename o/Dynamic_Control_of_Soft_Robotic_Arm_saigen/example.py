@@ -4,7 +4,6 @@
 """
 
 import numpy as np
-from math import sin, cos, sqrt, pi
 
 
 from simulator import Simulator
@@ -14,8 +13,8 @@ from simulator import Simulator
 def pd(t):
     """タスク空間上の所望の位置"""
     return np.array([
-        [0.1 * sin(3*t)],
-        [0.1 * cos(3*t)],
+        [0.1 * np.sin(3*t)],
+        [0.1 * np.cos(3*t)],
         [0.147],
     ])
 
@@ -23,8 +22,8 @@ def pd(t):
 def pd_dot(t):
     """タスク空間上の所望の測度"""
     return np.array([
-        [0.1 * 3 * cos(3*t)],
-        [0.1 * 3 * -sin(3*t)],
+        [0.1 * 3 * np.cos(3*t)],
+        [0.1 * 3 * -np.sin(3*t)],
         [0],
     ])
 
@@ -32,8 +31,8 @@ def pd_dot(t):
 def pd_dot_dot(t):
     """タスク空間上の所望の加速度"""
     return np.array([
-        [0.1 * 9 * -sin(3*t)],
-        [0.1 * 9 * -cos(3*t)],
+        [0.1 * 9 * -np.sin(3*t)],
+        [0.1 * 9 * -np.cos(3*t)],
         [0],
     ])
 
@@ -48,8 +47,9 @@ hoge = Simulator(
 )
 
 hoge.run_simulation()
-hoge.plot_actuator_data()
-hoge.make_animation()
+#hoge.plot_actuator_data()
+hoge.plot_all()
+#hoge.make_animation()
 
 
 # hoge2 = Simulator()
