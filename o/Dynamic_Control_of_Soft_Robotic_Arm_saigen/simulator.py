@@ -169,13 +169,65 @@ class Simulator:
         
         ee_p_data = np.concatenate([
             self.kinematics.linearized_mapping_from_actuator_to_task_p(q, xi=1) for q in q_data
-        ])
+        ], axis=1)
         ee_p_dot_data = np.concatenate([
             self.kinematics.linearized_jacobian_dpdq(q, xi=1) @ q_dot for (q, q_dot) in zip(q_data, q_dot_data)
-        ])
+        ], axis=1)
         
-        pd_data = self.pd(self.sol.t)
-        print(pd_data)
+        pd_data = np.concatenate(
+            [self.pd(t) for t in self.sol.t], axis=1
+        )
+        pd_dot_data = np.concatenate(
+            [self.pd_dot(t) for t in self.sol.t], axis=1
+        )
+        
+        error = ee_p_data - pd_data
+        error_dot = ee_p_dot_data - pd_dot_data
+        
+        error_norm = np.linalg.norm(error, axis=0)
+        error_dot_norm = np.linalg.norm(error_dot, axis=0)
+        
+        
+        fig = plt.figure(figsize=(15, 10))
+        ax = fig.add_subplot(2, 2, 1)
+        ax.plot(self.sol.t, self.sol.y[0], label = "l1")
+        ax.plot(self.sol.t, self.sol.y[1], label = "l2")
+        ax.plot(self.sol.t, self.sol.y[2], label = "l3")
+        ax.set_xlabel("time [s]")
+        ax.set_ylabel("[m]")
+        ax.legend()
+        ax.set_xlim(0, self.sol.t[-1])
+        ax.grid()
+        
+        ax2 = fig.add_subplot(2, 2, 2)
+        ax2.plot(self.sol.t, self.sol.y[3], label = "l1_dot")
+        ax2.plot(self.sol.t, self.sol.y[4], label = "l2_dot")
+        ax2.plot(self.sol.t, self.sol.y[5], label = "l3_dot")
+        ax2.set_xlabel("time [s]")
+        ax2.set_ylabel("[m/s]")
+        ax2.legend()
+        ax2.set_xlim(0, self.sol.t[-1])
+        ax2.grid()
+        
+        ax3 = fig.add_subplot(2, 2, 3)
+        ax3.plot(self.sol.t, error_norm, label = "position error")
+        ax3.set_xlabel("time [s]")
+        ax3.set_ylabel("[m]")
+        ax3.legend()
+        ax3.set_xlim(0, self.sol.t[-1])
+        ax3.grid()
+        
+        ax4 = fig.add_subplot(2, 2, 4)
+        ax4.plot(self.sol.t, error_dot_norm, label = "verosity error")
+        ax4.set_xlabel("time [s]")
+        ax4.set_ylabel("[m/s]")
+        ax4.legend()
+        ax4.set_xlim(0, self.sol.t[-1])
+        ax4.grid()
+        
+        fig.savefig("misc/softrobot_all.png")
+        
+        plt.show()
     
     
     
