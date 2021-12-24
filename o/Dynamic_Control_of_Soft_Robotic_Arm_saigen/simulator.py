@@ -63,15 +63,15 @@ class Simulator:
 
     def calc_q_dot_dot(self, q, q_dot, p, p_dot, J, J_dot, pd, pd_dot, pd_dot_dot):
         """アクチュエータ空間上の加速度を計算"""
-        print(np.linalg.det(J))  # これが発散?
+        #print(np.linalg.det(J))  # これが発散?
         #print("error = ", np.linalg.norm(p - pd))
         if np.linalg.det(J) < 1e-8:
             print("特異姿勢!")
-            return np.zeros((3, 1))
+            #return np.zeros((3, 1))
+            z = np.linalg.pinv(J) @ (pd_dot_dot - self.Kd*(p_dot - pd_dot) - self.Kp*(p - pd) - J_dot @ q_dot)
         else:
-            z = np.linalg.pinv(J) @ \
-                (pd_dot_dot - self.Kd*(p_dot - pd_dot) - self.Kp*(p - pd) - J_dot @ q_dot)
-        #print(z)
+            z = np.linalg.pinv(J) @ (pd_dot_dot - self.Kd*(p_dot - pd_dot) - self.Kp*(p - pd) - J_dot @ q_dot)
+        
         return z
 
 
@@ -106,7 +106,7 @@ class Simulator:
     def run_simulation(self,):
         """動力学なしで軌道追従をシミュレーション"""
         
-        q_init = np.array([[0.001, 0.001, 0.001]]).T
+        q_init = np.array([[-0.1, -0.1, -0.1]]).T
         dq_init = np.zeros((3, 1))
         
         state_init = np.concatenate([q_init, dq_init])
@@ -242,9 +242,9 @@ class Simulator:
         ax.set_zlabel('Z[m]')
 
         ## 三軸のスケールを揃える
-        ax.set_xlim(self.x_range)
-        ax.set_ylim(self.y_range)
-        ax.set_zlim(self.z_range)
+        # ax.set_xlim(self.x_range)
+        # ax.set_ylim(self.y_range)
+        # ax.set_zlim(self.z_range)
         ax.set_box_aspect((1,1,1))
         
         ps = self.kinematics.calc_all_task_ps(q)
