@@ -8,7 +8,7 @@ from scipy.optimize import fsolve
 from scipy.integrate import odeint
 
 
-T = np.arange(0.0, 5.2, 0.1)
+T = np.arange(0.0, 1, 0.01)
 T1 = np.arange(0.0, 5.1, 0.1)
 T2 = np.arange(0.0, 5.0, 0.1)
 
@@ -39,43 +39,52 @@ def calc_qd(p, t):
 
 
     
-for t in T:
+# for t in T:
 
-    qd=fsolve(calc_qd,[0, 0, 0],args=(t,)) 
-    #print("qd = ", qd)
+     
+#     #print("qd = ", qd)
 
 
-    #qの算出
+#     #qの算出
     
 
-        #dqdの算出
+#         #dqdの算出
+    
+
+#         #d2qdの算出    
+    
+#     #print("dqd = ", dqd)
+#     #print("d2qd = ", d2qd)
+    
+    
+
+def fun(q0, t):
+    #微分方程式の定義
+    
+    qd=fsolve(calc_qd,[0, 0, 0],args=(t,))
     dqd=(fsolve(calc_qd,[0, 0, 0],args=(t+0.1,))-fsolve(calc_qd,[0, 0, 0],args=(t,)))/0.1
-
-        #d2qdの算出    
     d2qd= (((fsolve(calc_qd,[0, 0, 0],args=(t+0.2,))-fsolve(calc_qd,[0, 0, 0],args=(t+0.1,)))/0.1)-((fsolve(calc_qd,[0, 0, 0],args=(t+0.1,))-fsolve(calc_qd,[0, 0, 0],args=(t,)))/0.1))/0.1
-    
-    #print("dqd = ", dqd)
-    #print("d2qd = ", d2qd)
-    
-    
 
-    def fun(q0,t):
-        #微分方程式の定義
-        dq0dt = np.concatenate(
-        [
-            q0[0:3],
-            -200*q0[0:3]-10000*q0[3:6]+d2qd+200*dqd+10000*qd
-           ],
-             axis = 0
-         )
-        print("dq0dt = ", dq0dt)
-        return dq0dt
+    
+    dq0dt = np.concatenate(
+    [
+        q0[0:3],
+        -10000*q0[0:3]-200*q0[3:6]+d2qd+200*dqd+10000*qd
+        ],
+            axis = 0
+        )
+    #print("dq0dt = ", dq0dt)
+    return dq0dt
 
 
     #微分方程式を解く
 sol2 = odeint(
      func = fun,
      y0 = np.zeros(6),
-     t=T2
-        )     
-#print("sol2 = ", sol2)
+     t=T
+    )     
+print("sol2 = ", len(sol2))
+
+
+plt.plot(sol2)
+plt.show()
