@@ -1,10 +1,17 @@
 import numpy as np
 from math import sin, cos, sqrt
 
-from kinematics import Kinematics
+from kinematics import KinematicsOfOneSection
 
 
-class Dynamics(Kinematics):
+def T2(M):
+    return M[0,0] + M[1,1]
+
+
+
+
+
+class Dynamics(KinematicsOfOneSection):
     """ソフトロボットの動力学"""
     
     K = 1700
@@ -20,11 +27,33 @@ class Dynamics(Kinematics):
         return
     
     
-    def update_state(self, q):
-        """アクチュエータベクトルを更新"""
-        self.q = q
+    def update(self, q):
+        """いろいろ更新"""
+        
+        self.dRdq_all = [
+            [self.linearized_dRdl1(q, xi) for xi in self.xi_all],
+            [self.linearized_dRdl2(q, xi) for xi in self.xi_all],
+            [self.linearized_dRdl3(q, xi) for xi in self.xi_all],
+        ]
+        
+        self.dpdq_all = [
+            [self.linearized_dpdl1(q, xi) for xi in self.xi_all],
+            [self.linearized_dpdl2(q, xi) for xi in self.xi_all],
+            [self.linearized_dpdl3(q, xi) for xi in self.xi_all],
+        ]
+        
+        
+        
         return
     
     
-    def M_omega(j, k):
+    def M_omega_jk(j, k):
         pass
+
+
+
+
+
+
+if __name__ == "__main__":
+    print("hello!")
