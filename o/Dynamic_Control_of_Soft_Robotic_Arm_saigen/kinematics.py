@@ -45,6 +45,8 @@ class KinematicsOfOneSection:
 
         self.r = 0.0125
         self.L0 = 0.15
+        
+        self.sq3 = sqrt(3)
 
 
     def mapping_from_actuator_to_configuration(self, q, xi):
@@ -66,7 +68,7 @@ class KinematicsOfOneSection:
         else:
             lam = A4 * self.r / 2*sqrt(A1)
         phi = 2*sqrt(A1) / 3*self.r
-        theta = np.arctan2(sqrt(3) * (-A3) / (-A2), 1)
+        theta = np.arctan2(self.sq3 * (-A3) / (-A2), 1)
         
         if phi <= 0 or phi > 2*np.pi:
             print("phiが範囲外!")
@@ -176,9 +178,9 @@ class KinematicsOfOneSection:
                 2*self.r*(-l1/2 - l2/2 + l3)/(3*sqrt(A1))
             ],
             [
-                2*sqrt(3)*(-l2 + l3)/((3*(-l2 + l3)**2/(-A2)**2 + 1)*(-A2)**2),
-                (-sqrt(3)*(-l2 + l3)/(-A2)**2 - sqrt(3)/(-A2))/(3*(-l2 + l3)**2/(-A2)**2 + 1),
-                (-sqrt(3)*(-l2 + l3)/(-A2)**2 + sqrt(3)/(-A2))/(3*(-l2 + l3)**2/(-A2)**2 + 1)
+                2*self.sq3*(-l2 + l3)/((3*(-l2 + l3)**2/(-A2)**2 + 1)*(-A2)**2),
+                (-self.sq3*(-l2 + l3)/(-A2)**2 - self.sq3/(-A2))/(3*(-l2 + l3)**2/(-A2)**2 + 1),
+                (-self.sq3*(-l2 + l3)/(-A2)**2 + self.sq3/(-A2))/(3*(-l2 + l3)**2/(-A2)**2 + 1)
             ]
         ])
 
@@ -220,9 +222,9 @@ class KinematicsOfOneSection:
                 (3*(l2 - l3)**2 + (-A2)**2)*(-36*(-l1 + l2)*(l2 - l3)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) + 2*(-self.r*xi*(l1 + l2 - 2*l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3) + 6*sqrt(A1)*sin(self.r*xi*sqrt(A1)/3)**2)*(3*(l2 - l3)**2 + (-A2)**2)*(-A2)*sqrt(A1) + 3*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(l1 + l2 - 2*l3)*(A4))/(12*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(5/2)*(-A2)**5*sqrt(A1))
             ],
             [
-                sqrt(3)*(l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)**2*(2*self.r*xi*(3*(l2 - l3)**2 + (-A2)**2)*(-A2)**2*(A4)*sqrt(A1)*sin(2*self.r*xi*sqrt(A1)/3) - 36*(l2 - l3)**2*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) - 3*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)**2*(A4) + 6*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(A1) + 12*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1))/(12*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(7/2)*(-A2)**8*sqrt(A1)),
-                sqrt(3)*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(3/2)*(-A2)**2*(18*(l2 - l3)*((-l2 + l3)*(-A2) + (l2 - l3)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) - 3*(l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(l1 - 2*l2 + l3)*(A4) - 6*(l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) + 2*(3*(l2 - l3)**2 + (-A2)**2)*(-A2)*(self.r*xi*(l2 - l3)*(l1 - 2*l2 + l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3) + 3*(l2 - l3)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*sqrt(A1) + 3*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*sqrt(A1))*sqrt(A1))/(12*(3*(l2 - l3)**2 + (-A2)**2)**3*sqrt(A1)),
-                sqrt(3)*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(3/2)*(-A2)**2*(3*(-l1 + l2)*(l2 - l3)**2*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) - (l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(l1 + l2 - 2*l3)*(A4)/4 - (l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1)/2 + (3*(l2 - l3)**2 + (-A2)**2)*(-A2)*(self.r*xi*(l2 - l3)*(l1 + l2 - 2*l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3) + 3*(l2 - l3)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*sqrt(A1) - 3*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*sqrt(A1))*sqrt(A1)/6)/((3*(l2 - l3)**2 + (-A2)**2)**3*sqrt(A1))
+                self.sq3*(l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)**2*(2*self.r*xi*(3*(l2 - l3)**2 + (-A2)**2)*(-A2)**2*(A4)*sqrt(A1)*sin(2*self.r*xi*sqrt(A1)/3) - 36*(l2 - l3)**2*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) - 3*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)**2*(A4) + 6*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(A1) + 12*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1))/(12*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(7/2)*(-A2)**8*sqrt(A1)),
+                self.sq3*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(3/2)*(-A2)**2*(18*(l2 - l3)*((-l2 + l3)*(-A2) + (l2 - l3)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) - 3*(l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(l1 - 2*l2 + l3)*(A4) - 6*(l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) + 2*(3*(l2 - l3)**2 + (-A2)**2)*(-A2)*(self.r*xi*(l2 - l3)*(l1 - 2*l2 + l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3) + 3*(l2 - l3)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*sqrt(A1) + 3*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*sqrt(A1))*sqrt(A1))/(12*(3*(l2 - l3)**2 + (-A2)**2)**3*sqrt(A1)),
+                self.sq3*((3*(l2 - l3)**2 + (-A2)**2)/(-A2)**2)**(3/2)*(-A2)**2*(3*(-l1 + l2)*(l2 - l3)**2*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1) - (l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(-A2)*(l1 + l2 - 2*l3)*(A4)/4 - (l2 - l3)*(3*(l2 - l3)**2 + (-A2)**2)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*(A1)/2 + (3*(l2 - l3)**2 + (-A2)**2)*(-A2)*(self.r*xi*(l2 - l3)*(l1 + l2 - 2*l3)*(A4)*sin(2*self.r*xi*sqrt(A1)/3) + 3*(l2 - l3)*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*sqrt(A1) - 3*(cos(2*self.r*xi*sqrt(A1)/3) - 1)*(A4)*sqrt(A1))*sqrt(A1)/6)/((3*(l2 - l3)**2 + (-A2)**2)**3*sqrt(A1))
             ],
             [
                 (2*(-self.r*xi*(-A2)*(A4)*cos(2*self.r*xi*sqrt(A1)/3) + 3*sqrt(A1)*sin(2*self.r*xi*sqrt(A1)/3))*sqrt(A1) - 3*(-A2)*(A4)*sin(2*self.r*xi*sqrt(A1)/3))/(12*sqrt(A1)),
@@ -255,11 +257,11 @@ class KinematicsOfOneSection:
                     (A2 * A1 * A4 * xi**4) / (self.c4 * self.r**3) - \
                         (A2 * A4 * xi**2) / (self.c5 * self.r)
         
-        y = -(sqrt(3) * A4 * A3 * A1**4 * xi**10) / (self.c1 * self.r**9) + \
-            (sqrt(3) * A4 * A3 * A1**3 * xi**8) / (self.c2 * self.r**7) - \
-                (sqrt(3) * A4 * A3 * A1**2 * xi**6) / (self.c3 * self.r**5) + \
-                    (sqrt(3) * A4 * A1 * A2 * xi**4) / (self.c4 * self.r**3) - \
-                        (sqrt(3) * A4 * A3 * xi**2) / (self.c5 * self.r)
+        y = -(self.sq3 * A4 * A3 * A1**4 * xi**10) / (self.c1 * self.r**9) + \
+            (self.sq3 * A4 * A3 * A1**3 * xi**8) / (self.c2 * self.r**7) - \
+                (self.sq3 * A4 * A3 * A1**2 * xi**6) / (self.c3 * self.r**5) + \
+                    (self.sq3 * A4 * A1 * A2 * xi**4) / (self.c4 * self.r**3) - \
+                        (self.sq3 * A4 * A3 * xi**2) / (self.c5 * self.r)
         
         z = (2 * A1**4 * A4 * xi**9) / (self.c6 * self.r**8) - \
             (4 * A1**3 * A4 * xi**7) / (self.c7 * self.r**6) + \
@@ -288,11 +290,11 @@ class KinematicsOfOneSection:
                     (A1 * A2**2 * xi**4) / (self.c4 * self.r**4) - \
                         (A2**2 * xi**2) / (self.c5 * self.r**2)
         
-        R12 = (sqrt(3) * A2 * A3 * A1**4 * xi**10) / (self.c1 * self.r**10) + \
-            (sqrt(3) * A2 * A3 * A1**3 * xi**8) / (self.c2 * self.r**8) - \
-                (sqrt(3) * A2 * A3 * A1**2 * xi**6) / (self.c3 * self.r**6) + \
-                    (sqrt(3) * A2 * A3 * A1 * xi**4) / (self.c4 * self.r**4) - \
-                        (sqrt(3) * A2 * A3 * xi**2) / (self.c5 * self.r**2)
+        R12 = (self.sq3 * A2 * A3 * A1**4 * xi**10) / (self.c1 * self.r**10) + \
+            (self.sq3 * A2 * A3 * A1**3 * xi**8) / (self.c2 * self.r**8) - \
+                (self.sq3 * A2 * A3 * A1**2 * xi**6) / (self.c3 * self.r**6) + \
+                    (self.sq3 * A2 * A3 * A1 * xi**4) / (self.c4 * self.r**4) - \
+                        (self.sq3 * A2 * A3 * xi**2) / (self.c5 * self.r**2)
         
         R13 = -(2 * A2 * A1**4 * xi**9) / (self.c6 * self.r**9) + \
             (4 * A2 * A1**3 * xi**7) / (self.c7 * self.r**7) - \
@@ -306,11 +308,11 @@ class KinematicsOfOneSection:
                     (A3**2 * A1 * xi**4) / (self.c13 * self.r**4) - \
                         (A3**2 * xi**2) / (6 * self.r**2)
         
-        R23 = -(2*sqrt(3) * A3 * A1**4 * xi**9) / (self.c6 * self.r**9) + \
-            (4*sqrt(3) * A3 * A1**3 * xi**7) / (self.c7 * self.r**7) - \
-                (2*sqrt(3) * A3 * A1**2 * xi**5) / (self.c8 * self.r**5) + \
-                    (2*sqrt(3) * A3 * A1 * xi**3) / (self.c9 * self.r**3) - \
-                        (sqrt(3) * A3 * xi) / (3 * self.r)
+        R23 = -(2*self.sq3 * A3 * A1**4 * xi**9) / (self.c6 * self.r**9) + \
+            (4*self.sq3 * A3 * A1**3 * xi**7) / (self.c7 * self.r**7) - \
+                (2*self.sq3 * A3 * A1**2 * xi**5) / (self.c8 * self.r**5) + \
+                    (2*self.sq3 * A3 * A1 * xi**3) / (self.c9 * self.r**3) - \
+                        (self.sq3 * A3 * xi) / (3 * self.r)
         
         R33 = 1 - (2 * xi**2 * A1) / (9 * self.r**2) + \
             (2 * xi**4 * A1**2) / (self.c14 * self.r**4) - \
@@ -361,9 +363,9 @@ class KinematicsOfOneSection:
                 -xi**2*(2*l1 - l2 - l3)/(self.c5*self.r) + xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + xi**4*(-l1 + 4*l2 - l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - xi**6*(-2*l1 + 8*l2 - 2*l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - xi**6*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + xi**8*(-3*l1 + 12*l2 - 3*l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + xi**8*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - xi**10*(-4*l1 + 16*l2 - 4*l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - xi**10*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) + xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
                 -xi**2*(2*l1 - l2 - l3)/(self.c5*self.r) + xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + xi**4*(-l1 - l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - xi**6*(-2*l1 - 2*l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - xi**6*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + xi**8*(-3*l1 - 3*l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + xi**8*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - xi**10*(-4*l1 - 4*l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - xi**10*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) + xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9)],
             [
-                -sqrt(3)*xi**2*(l2 - l3)/(self.c5*self.r) + sqrt(3)*xi**4*(2*l1 - l2 - l3)**2*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + sqrt(3)*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) + 2*sqrt(3)*xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - sqrt(3)*xi**6*(l2 - l3)*(4*l1 - 2*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - sqrt(3)*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + sqrt(3)*xi**8*(l2 - l3)*(6*l1 - 3*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + sqrt(3)*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - sqrt(3)*xi**10*(l2 - l3)*(8*l1 - 4*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - sqrt(3)*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
-                -sqrt(3)*xi**2*(l2 - l3)/(self.c5*self.r) - sqrt(3)*xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + sqrt(3)*xi**4*(-l1 + 4*l2 - l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + sqrt(3)*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - sqrt(3)*xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - sqrt(3)*xi**6*(l2 - l3)*(-2*l1 + 8*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - sqrt(3)*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) - sqrt(3)*xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + sqrt(3)*xi**8*(l2 - l3)*(-3*l1 + 12*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + sqrt(3)*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) + sqrt(3)*xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - sqrt(3)*xi**10*(l2 - l3)*(-4*l1 + 16*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - sqrt(3)*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) - sqrt(3)*xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
-                -sqrt(3)*xi**2*(l2 - l3)/(self.c5*self.r) + sqrt(3)*xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + sqrt(3)*xi**4*(-l1 - l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + sqrt(3)*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - sqrt(3)*xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - sqrt(3)*xi**6*(-2*l1 - 2*l2)*(l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - sqrt(3)*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + sqrt(3)*xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + sqrt(3)*xi**8*(-3*l1 - 3*l2)*(l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + sqrt(3)*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - sqrt(3)*xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - sqrt(3)*xi**10*(-4*l1 - 4*l2)*(l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - sqrt(3)*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) + sqrt(3)*xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9)],
+                -self.sq3*xi**2*(l2 - l3)/(self.c5*self.r) + self.sq3*xi**4*(2*l1 - l2 - l3)**2*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + self.sq3*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) + 2*self.sq3*xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - self.sq3*xi**6*(l2 - l3)*(4*l1 - 2*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + self.sq3*xi**8*(l2 - l3)*(6*l1 - 3*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - self.sq3*xi**10*(l2 - l3)*(8*l1 - 4*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
+                -self.sq3*xi**2*(l2 - l3)/(self.c5*self.r) - self.sq3*xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + self.sq3*xi**4*(-l1 + 4*l2 - l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + self.sq3*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - self.sq3*xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - self.sq3*xi**6*(l2 - l3)*(-2*l1 + 8*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) - self.sq3*xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + self.sq3*xi**8*(l2 - l3)*(-3*l1 + 12*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) + self.sq3*xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - self.sq3*xi**10*(l2 - l3)*(-4*l1 + 16*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) - self.sq3*xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
+                -self.sq3*xi**2*(l2 - l3)/(self.c5*self.r) + self.sq3*xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + self.sq3*xi**4*(-l1 - l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + self.sq3*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - self.sq3*xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - self.sq3*xi**6*(-2*l1 - 2*l2)*(l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + self.sq3*xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + self.sq3*xi**8*(-3*l1 - 3*l2)*(l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - self.sq3*xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - self.sq3*xi**10*(-4*l1 - 4*l2)*(l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) + self.sq3*xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9)],
             [
                 xi/3 - xi**3*(4*l1 - 2*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)/(self.c9*self.r**2) - xi**3*(2*l1**2 - 2*l1*l2 - 2*l1*l3 + 4*l2**2 - 2*l2*l3)/(self.c9*self.r**2) + 2*xi**5*(4*l1 - 2*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c8*self.r**4) + 2*xi**5*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c8*self.r**4) - 4*xi**7*(6*l1 - 3*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c7*self.r**6) - 4*xi**7*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c7*self.r**6) + 2*xi**9*(8*l1 - 4*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c6*self.r**8) + 2*xi**9*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c6*self.r**8),
                 xi/3 - xi**3*(-2*l1 + 8*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)/(self.c9*self.r**2) - xi**3*(2*l1**2 - 2*l1*l2 - 2*l1*l3 + 4*l2**2 - 2*l2*l3)/(self.c9*self.r**2) + 2*xi**5*(-2*l1 + 8*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c8*self.r**4) + 2*xi**5*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c8*self.r**4) - 4*xi**7*(-3*l1 + 12*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c7*self.r**6) - 4*xi**7*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c7*self.r**6) + 2*xi**9*(-4*l1 + 16*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c6*self.r**8) + 2*xi**9*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c6*self.r**8),
@@ -373,7 +375,7 @@ class KinematicsOfOneSection:
 
 
     def linearized_jacobian_dpdq_dot(self, q, q_dot, xi):
-        """ヤコビ行列
+        """ヤコビ行列の時間微分
         
         タスク写像XのアクチュエータベクトルLによる偏微分の時間微分
         """
@@ -387,8 +389,50 @@ class KinematicsOfOneSection:
         )
     
     
+    def linearized_dRdl1(self, q, xi):
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        return np.array([
+            [
+                1 - xi**2*(2*l1 - l2 - l3)**2/(self.c5*self.r**2) + xi**4*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - xi**6*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + xi**8*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**8) - xi**10*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                -self.sq3*xi**2*(l2 - l3)*(2*l1 - l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**4*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**6*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**8*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**10*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                -xi*(2*l1 - l2 - l3)/(3*self.r) + xi**3*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) - xi**5*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) + xi**7*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) - xi**9*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9)
+            ],
+            [
+                -self.sq3*xi**2*(l2 - l3)*(2*l1 - l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**4*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**6*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**8*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**10*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                1 - xi**2*(l2 - l3)**2/(6*self.r**2) + xi**4*(l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c13*self.r**4) - xi**6*(l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c12*self.r**6) + xi**8*(l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c11*self.r**8) - xi**10*(l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c10*self.r**10),
+                -self.sq3*xi*(l2 - l3)/(3*self.r) + 2*self.sq3*xi**3*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) - 2*self.sq3*xi**5*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) + 4*self.sq3*xi**7*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) - 2*self.sq3*xi**9*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9)
+            ],
+            [
+                xi*(2*l1 - l2 - l3)/(3*self.r) - xi**3*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) + xi**5*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) - xi**7*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) + xi**9*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9),
+                self.sq3*xi*(l2 - l3)/(3*self.r) - 2*self.sq3*xi**3*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) + 2*self.sq3*xi**5*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) - 4*self.sq3*xi**7*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) + 2*self.sq3*xi**9*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9),
+                1 - 2*xi**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(9*self.r**2) - 4*xi**6*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c3*self.r**6) + 2*xi**8*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c15*self.r**8) + 2*xi**4*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c14*self.r**4) - 4*xi**10*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**5/(self.c1*self.r**10)
+            ]
+        ])
     
     
+    def linearized_dRdl2(self, q, xi):
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        return np.array([
+            [
+                1 - xi**2*(2*l1 - l2 - l3)**2/(self.c5*self.r**2) + xi**4*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - xi**6*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + xi**8*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**8) - xi**10*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                -self.sq3*xi**2*(l2 - l3)*(2*l1 - l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**4*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**6*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**8*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**10*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                -xi*(2*l1 - l2 - l3)/(3*self.r) + xi**3*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) - xi**5*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) + xi**7*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) - xi**9*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9)
+            ],
+            [
+                -self.sq3*xi**2*(l2 - l3)*(2*l1 - l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**4*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**6*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**8*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**10*(l2 - l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                1 - xi**2*(l2 - l3)**2/(6*self.r**2) + xi**4*(l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c13*self.r**4) - xi**6*(l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c12*self.r**6) + xi**8*(l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c11*self.r**8) - xi**10*(l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c10*self.r**10),
+                -self.sq3*xi*(l2 - l3)/(3*self.r) + 2*self.sq3*xi**3*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) - 2*self.sq3*xi**5*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) + 4*self.sq3*xi**7*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) - 2*self.sq3*xi**9*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9)
+            ],
+            [
+                xi*(2*l1 - l2 - l3)/(3*self.r) - xi**3*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) + xi**5*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) - xi**7*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) + xi**9*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9),
+                self.sq3*xi*(l2 - l3)/(3*self.r) - 2*self.sq3*xi**3*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) + 2*self.sq3*xi**5*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) - 4*self.sq3*xi**7*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) + 2*self.sq3*xi**9*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9),
+                1 - 2*xi**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(9*self.r**2) - 4*xi**6*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c3*self.r**6) + 2*xi**8*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c15*self.r**8) + 2*xi**4*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c14*self.r**4) - 4*xi**10*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**5/(self.c1*self.r**10)
+            ]
+        ])
 
 
 class KinematicsOfHole:
