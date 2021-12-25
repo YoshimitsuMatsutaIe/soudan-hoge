@@ -329,8 +329,11 @@ class KinematicsOfOneSection:
         ])
 
 
-    def linearized_MHTM(self, q, xi):
-        """線形化されたModal Homogeneous Transformation Matrix"""
+    def MHTM(self, q, xi):
+        """モーダル同時変換行列
+        
+        線形化されたHomogeneous Transformation Matrix
+        """
         
         p = self.linearized_mapping_from_actuator_to_task_p(q, xi)
         R = self.linearized_mapping_from_actuator_to_task_R(q, xi)
@@ -339,7 +342,6 @@ class KinematicsOfOneSection:
             [R, p],
             [np.zeros((1, 3)), np.eye(1)],
         ])
-
 
 
 
@@ -383,6 +385,10 @@ class KinematicsOfOneSection:
             self.c1, self.c2, self.c3, self.c4, self.c5,
             self.c6, self.c7, self.c8, self.c9
         )
+    
+    
+    
+    
 
 
 class KinematicsOfHole:
