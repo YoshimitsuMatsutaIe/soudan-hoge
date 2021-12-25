@@ -1,3 +1,5 @@
+"""でかすぎるので分離"""
+
 import numpy as np
 
 def f(
