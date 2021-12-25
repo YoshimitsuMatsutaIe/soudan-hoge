@@ -29,28 +29,30 @@ class Dynamics(KinematicsOfOneSection):
         self.Gv = np.array([[0, 0, self.g]]).T
         
         
-        self.dpdq = [
-            self.linearized_dpdl1,
-            self.linearized_dpdl2,
-            self.linearized_dpdl3,
-        ]
-        
-        self.dRdq = [
-            self.linearized_dRdl1,
-            self.linearized_dRdl2,
-            self.linearized_dRdl3,
-        ]
+
         
         return
     
     def update_state(self, q):
         """状態を更新"""
         self.q = q
+        
+        self.dpdq = [
+            [self.linearized_dpdl1(self.q, xi) for xi in self.xi_all],
+            [self.linearized_dpdl2(self.q, xi) for xi in self.xi_all],
+            [self.linearized_dpdl3(self.q, xi) for xi in self.xi_all],
+        ]
+        
+        self.dRdq = [
+            [self.linearized_dRdl1(self.q, xi) for xi in self.xi_all],
+            [self.linearized_dRdl2(self.q, xi) for xi in self.xi_all],
+            [self.linearized_dRdl3(self.q, xi) for xi in self.xi_all],
+        ]
+    
     
     def M_omega_jk(self, j, k):
-        
         dRdq = [
-            T2(self.dRdq[j+1](self.q, xi) @ self.dRdq[k+1](self.q, xi)) for xi in self.xi_all
+            T2(self.dRdq[j+1][i] @ self.dRdq[k+1][i]) for i, _ in enumerate(self.xi_all)
         ]
         
         return self.Ixx * np.sum(dRdq)
@@ -58,7 +60,7 @@ class Dynamics(KinematicsOfOneSection):
     
     def M_v_jk(self, j, k):
         dpdq = [
-            T2(self.dpdq[j+1](self.q, xi) @ self.dpdq[k+1](self.q, xi)) for xi in self.xi_all
+            self.dpdq[j+1][i] @ self.dpdq[k+1][i] for i, _ in enumerate(self.xi_all)
         ]
         
         return self.m * np.sum(dpdq)
