@@ -169,12 +169,28 @@ class AllSection:
     def set_section(self,):
         self.sections = [OneSection(n) for n in range(self.N)]
     
-    def update_local(self, q):
+    
+    def update_all(self, q_all, q_dot_all):
+        """全部更新"""
+        self.q_all = q_all
+        self.q_dot_all = q_dot_all
+    
+    
+    def update_local(self,):
+        """ローカル位置，回転行列を更新"""
         for i in range(self.N):
-            pass
+            self.sections[i].update_state(self.q_all[i:i+3, :])
+    
+    
+    def update_J_OMEGA_ij(self,):
+        
     
 
 
 if __name__ == "__main__":
-    hoge = AllSection(100)
+    N = 100
+    q_all = np.zeros((3*N, 1))
+    q_dot_all = np.zeros((3*N, 1))
     
+    hoge = AllSection(N)
+    hoge.update_all(q_all, q_dot_all)
