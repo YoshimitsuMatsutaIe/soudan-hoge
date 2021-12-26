@@ -1,6 +1,7 @@
 import numpy as np
 from math import sin, cos, sqrt
 
+from math_utils import *
 
 
 class Base:
@@ -140,16 +141,40 @@ class Base:
 
 
 
-class KinematicsOfOneSection(Base):
+class OneSection(Base):
+    """1つセクションのローカル変数"""
+    
+    def __init__(self, n):
+        
+        self.n = n  # セクション番号
+        self.xi_vec = np.arange(0, 1, 0.1)  # xiベクトル
+
+
+    def update_state(self, q):
+        self.q = q  # アクチュエータベクトル
+        self.Ps = [self.P(self.q, xi) for xi in self.xi_vec]
+        self.Rs = [self.R(self.q, xi) for xi in self.xi_vec]
+
+
+
+class AllSection:
     """アーム全体の運動学"""
     
-    def __init__(self,):
-        pass
+    def __init__(self, N):
+        
+        self.N = N
+        self.set_section()
+    
+    
+    def set_section(self,):
+        self.sections = [OneSection(n) for n in range(self.N)]
+    
+    def update_local(self, q):
+        for i in range(self.N):
+            pass
+    
 
 
 if __name__ == "__main__":
-    hoge = KinematicsOfOneSection()
-    q = np.array([[1,2,3]]).T
-    print(hoge.P(q,1))
-    print(hoge.R(q,1))
-    print(hoge.MHTM(q,1))
+    hoge = AllSection(100)
+    
