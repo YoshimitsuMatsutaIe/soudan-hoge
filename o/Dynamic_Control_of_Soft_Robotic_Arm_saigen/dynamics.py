@@ -4,13 +4,6 @@ from math import sin, cos, sqrt
 from kinematics import KinematicsOfOneSection
 
 
-def T2(M):
-    """主対角線上の最初の2つの要素の和"""
-    return M[0,0] + M[1,1]
-
-
-
-
 
 class Dynamics(KinematicsOfOneSection):
     """ソフトロボットの動力学"""
