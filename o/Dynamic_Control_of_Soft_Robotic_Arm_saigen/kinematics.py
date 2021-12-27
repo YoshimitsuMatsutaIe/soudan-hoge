@@ -183,8 +183,12 @@ class AllSection:
     
     
     def update_J_OMEGA_ij(self,):
-        
+        pass
     
+    
+    
+    def update_J_v_ij(self,):
+        pass
 
 
 if __name__ == "__main__":
