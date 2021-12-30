@@ -66,6 +66,7 @@ class Base:
                         (A4 * xi) / 3
 
         return np.array([[x, y, z]]).T
+    
 
 
     def calc_R(self, q, xi):
@@ -132,29 +133,129 @@ class Base:
         
         線形化されたHomogeneous Transformation Matrix
         """
-        
         return np.block([
-            [self.R(q, xi), self.P(q, xi)],
+            [self.calc_R(q, xi), self.calc_P(q, xi)],
             [np.zeros((1, 3)), np.eye(1)],
         ])
 
+    def calc_dPdl1(self, q, xi):
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        
+        return np.array([[
+            -xi**2*(2*l1 - l2 - l3)/(self.c5*self.r) - 2*xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + xi**4*(2*l1 - l2 - l3)**2*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) + 2*xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - xi**6*(2*l1 - l2 - l3)*(4*l1 - 2*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - xi**6*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) - 2*xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + xi**8*(2*l1 - l2 - l3)*(6*l1 - 3*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + xi**8*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) + 2*xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - xi**10*(2*l1 - l2 - l3)*(8*l1 - 4*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - xi**10*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) - 2*xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
+            -self.sq3*xi**2*(l2 - l3)/(self.c5*self.r) + self.sq3*xi**4*(2*l1 - l2 - l3)**2*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + self.sq3*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) + 2*self.sq3*xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - self.sq3*xi**6*(l2 - l3)*(4*l1 - 2*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + self.sq3*xi**8*(l2 - l3)*(6*l1 - 3*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - self.sq3*xi**10*(l2 - l3)*(8*l1 - 4*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
+            xi/3 - xi**3*(4*l1 - 2*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)/(self.c9*self.r**2) - xi**3*(2*l1**2 - 2*l1*l2 - 2*l1*l3 + 4*l2**2 - 2*l2*l3)/(self.c9*self.r**2) + 2*xi**5*(4*l1 - 2*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c8*self.r**4) + 2*xi**5*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c8*self.r**4) - 4*xi**7*(6*l1 - 3*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c7*self.r**6) - 4*xi**7*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c7*self.r**6) + 2*xi**9*(8*l1 - 4*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c6*self.r**8) + 2*xi**9*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c6*self.r**8),
+        ]]).T
 
+    def calc_dPdl2(self, q, xi):
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        
+        return np.array([[
+            -xi**2*(2*l1 - l2 - l3)/(self.c5*self.r) + xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + xi**4*(-l1 + 4*l2 - l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - xi**6*(-2*l1 + 8*l2 - 2*l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - xi**6*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + xi**8*(-3*l1 + 12*l2 - 3*l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + xi**8*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - xi**10*(-4*l1 + 16*l2 - 4*l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - xi**10*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) + xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
+            -self.sq3*xi**2*(l2 - l3)/(self.c5*self.r) - self.sq3*xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + self.sq3*xi**4*(-l1 + 4*l2 - l3)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + self.sq3*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - self.sq3*xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - self.sq3*xi**6*(l2 - l3)*(-2*l1 + 8*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) - self.sq3*xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + self.sq3*xi**8*(l2 - l3)*(-3*l1 + 12*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) + self.sq3*xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - self.sq3*xi**10*(l2 - l3)*(-4*l1 + 16*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) - self.sq3*xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
+            xi/3 - xi**3*(-2*l1 + 8*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)/(self.c9*self.r**2) - xi**3*(2*l1**2 - 2*l1*l2 - 2*l1*l3 + 4*l2**2 - 2*l2*l3)/(self.c9*self.r**2) + 2*xi**5*(-2*l1 + 8*l2 - 2*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c8*self.r**4) + 2*xi**5*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c8*self.r**4) - 4*xi**7*(-3*l1 + 12*l2 - 3*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c7*self.r**6) - 4*xi**7*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c7*self.r**6) + 2*xi**9*(-4*l1 + 16*l2 - 4*l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c6*self.r**8) + 2*xi**9*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c6*self.r**8),
+        ]]).T
+
+    def calc_dPdl3(self, q, xi):
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+
+        return np.array([[
+            -xi**2*(2*l1 - l2 - l3)/(self.c5*self.r) + xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + xi**4*(-l1 - l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - xi**6*(-2*l1 - 2*l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - xi**6*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + xi**8*(-3*l1 - 3*l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + xi**8*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - xi**10*(-4*l1 - 4*l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - xi**10*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) + xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
+            -self.sq3*xi**2*(l2 - l3)/(self.c5*self.r) + self.sq3*xi**2*(3*self.L0 + l1 + l2 + l3)/(self.c5*self.r) + self.sq3*xi**4*(-l1 - l2)*(2*l1 - l2 - l3)*(3*self.L0 + l1 + l2 + l3)/(self.c4*self.r**3) + self.sq3*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - self.sq3*xi**4*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c4*self.r**3) - self.sq3*xi**6*(-2*l1 - 2*l2)*(l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c3*self.r**5) - self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + self.sq3*xi**6*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c3*self.r**5) + self.sq3*xi**8*(-3*l1 - 3*l2)*(l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c2*self.r**7) + self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - self.sq3*xi**8*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c2*self.r**7) - self.sq3*xi**10*(-4*l1 - 4*l2)*(l2 - l3)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c1*self.r**9) - self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9) + self.sq3*xi**10*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c1*self.r**9),
+            xi/3 - xi**3*(-2*l1 - 2*l2)*(3*self.L0 + l1 + l2 + l3)/(self.c9*self.r**2) - xi**3*(2*l1**2 - 2*l1*l2 - 2*l1*l3 + 4*l2**2 - 2*l2*l3)/(self.c9*self.r**2) + 2*xi**5*(-2*l1 - 2*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)/(self.c8*self.r**4) + 2*xi**5*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c8*self.r**4) - 4*xi**7*(-3*l1 - 3*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**2/(self.c7*self.r**6) - 4*xi**7*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c7*self.r**6) + 2*xi**9*(-4*l1 - 4*l2)*(3*self.L0 + l1 + l2 + l3)*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**3/(self.c6*self.r**8) + 2*xi**9*(l1**2 - l1*l2 - l1*l3 + 2*l2**2 - l2*l3)**4/(self.c6*self.r**8)
+        ]]).T
+
+
+    def calc_dRdl1(self, q, xi):
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        return np.array([
+            [
+                -xi**2*(8*l1 - 4*l2 - 4*l3)/(self.c5*self.r**2) + xi**4*(2*l1 - l2 - l3)**3/(self.c4*self.r**4) + xi**4*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - xi**6*(2*l1 - l2 - l3)**2*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c3*self.r**6) - xi**6*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + xi**8*(2*l1 - l2 - l3)**2*(6*l1 - 3*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c1*self.r**8) + xi**8*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**8) - xi**10*(2*l1 - l2 - l3)**2*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**10) - xi**10*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10), 
+                -2*self.sq3*xi**2*(l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**4*(l2 - l3)*(2*l1 - l2 - l3)**2/(self.c4*self.r**4) + 2*self.sq3*xi**4*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**6*(l2 - l3)*(2*l1 - l2 - l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c3*self.r**6) - 2*self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**8*(l2 - l3)*(2*l1 - l2 - l3)*(6*l1 - 3*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c2*self.r**8) + 2*self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**10*(l2 - l3)*(2*l1 - l2 - l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**10) + 2*self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                -2*xi/(3*self.r) + xi**3*(2*l1 - l2 - l3)*(4*l1 - 2*l2 - 2*l3)/(self.c9*self.r**3) + 4*xi**3*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) - xi**5*(4*l1 - 2*l2 - 2*l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) - 4*xi**5*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) + xi**7*(6*l1 - 3*l2 - 3*l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) + 8*xi**7*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) - xi**9*(4*l1 - 2*l2 - 2*l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9) - 4*xi**9*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9)
+            ], 
+            [
+                -2*self.sq3*xi**2*(l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**4*(l2 - l3)*(2*l1 - l2 - l3)**2/(self.c4*self.r**4) + 2*self.sq3*xi**4*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**6*(l2 - l3)*(2*l1 - l2 - l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c3*self.r**6) - 2*self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**8*(l2 - l3)*(2*l1 - l2 - l3)*(6*l1 - 3*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c2*self.r**8) + 2*self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**10*(l2 - l3)*(2*l1 - l2 - l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**10) + 2*self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10), 
+                xi**4*(l2 - l3)**2*(2*l1 - l2 - l3)/(self.c13*self.r**4) - xi**6*(l2 - l3)**2*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c12*self.r**6) + xi**8*(l2 - l3)**2*(6*l1 - 3*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c11*self.r**8) - xi**10*(l2 - l3)**2*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c10*self.r**10),
+                2*self.sq3*xi**3*(l2 - l3)*(2*l1 - l2 - l3)/(self.c9*self.r**3) - 2*self.sq3*xi**5*(l2 - l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) + 4*self.sq3*xi**7*(l2 - l3)*(6*l1 - 3*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) - 2*self.sq3*xi**9*(l2 - l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9)
+            ],
+            [
+                2*xi/(3*self.r) - xi**3*(2*l1 - l2 - l3)*(4*l1 - 2*l2 - 2*l3)/(self.c9*self.r**3) - 4*xi**3*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) + xi**5*(4*l1 - 2*l2 - 2*l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) + 4*xi**5*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) - xi**7*(6*l1 - 3*l2 - 3*l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) - 8*xi**7*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) + xi**9*(4*l1 - 2*l2 - 2*l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9) + 4*xi**9*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9),
+                -2*self.sq3*xi**3*(l2 - l3)*(2*l1 - l2 - l3)/(self.c9*self.r**3) + 2*self.sq3*xi**5*(l2 - l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) - 4*self.sq3*xi**7*(l2 - l3)*(6*l1 - 3*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) + 2*self.sq3*xi**9*(l2 - l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9),
+                -2*xi**2*(2*l1 - l2 - l3)/(9*self.r**2) - 4*xi**6*(6*l1 - 3*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + 2*xi**8*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c15*self.r**8) + 2*xi**4*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c14*self.r**4) - 4*xi**10*(10*l1 - 5*l2 - 5*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10)
+            ]
+        ])
+    
+    
+    def calc_dRdl2(self, q, xi):
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        return np.array([
+            [
+                -xi**2*(-4*l1 + 2*l2 + 2*l3)/(self.c5*self.r**2) + xi**4*(-4*l1 + 2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) + xi**4*(-l1 + 2*l2 - l3)*(2*l1 - l2 - l3)**2/(self.c4*self.r**4) - xi**6*(-4*l1 + 2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) - xi**6*(-2*l1 + 4*l2 - 2*l3)*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c3*self.r**6) + xi**8*(-4*l1 + 2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**8) + xi**8*(-3*l1 + 6*l2 - 3*l3)*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c1*self.r**8) - xi**10*(-4*l1 + 2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10) - xi**10*(-4*l1 + 8*l2 - 4*l3)*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**10), 
+                self.sq3*xi**2*(l2 - l3)/(self.c5*self.r**2) - self.sq3*xi**2*(2*l1 - l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**4*(l2 - l3)*(-l1 + 2*l2 - l3)*(2*l1 - l2 - l3)/(self.c4*self.r**4) - self.sq3*xi**4*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) + self.sq3*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**6*(l2 - l3)*(-2*l1 + 4*l2 - 2*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c3*self.r**6) + self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) - self.sq3*xi**6*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**8*(l2 - l3)*(-3*l1 + 6*l2 - 3*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c2*self.r**8) - self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**8*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**10*(l2 - l3)*(-4*l1 + 8*l2 - 4*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**10) - self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10) + self.sq3*xi**10*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                xi/(3*self.r) + xi**3*(-l1 + 2*l2 - l3)*(4*l1 - 2*l2 - 2*l3)/(self.c9*self.r**3) - 2*xi**3*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) - xi**5*(-2*l1 + 4*l2 - 2*l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) + 2*xi**5*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) + xi**7*(-3*l1 + 6*l2 - 3*l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) - 4*xi**7*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) - xi**9*(-4*l1 + 8*l2 - 4*l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9) + 2*xi**9*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9),
+            ],
+            [
+                self.sq3*xi**2*(l2 - l3)/(self.c5*self.r**2) - self.sq3*xi**2*(2*l1 - l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**4*(l2 - l3)*(-l1 + 2*l2 - l3)*(2*l1 - l2 - l3)/(self.c4*self.r**4) - self.sq3*xi**4*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) + self.sq3*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**6*(l2 - l3)*(-2*l1 + 4*l2 - 2*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c3*self.r**6) + self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) - self.sq3*xi**6*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**8*(l2 - l3)*(-3*l1 + 6*l2 - 3*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c2*self.r**8) - self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**8*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**10*(l2 - l3)*(-4*l1 + 8*l2 - 4*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**10) - self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10) + self.sq3*xi**10*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                -xi**2*(2*l2 - 2*l3)/(6*self.r**2) + xi**4*(l2 - l3)**2*(-l1 + 2*l2 - l3)/(self.c13*self.r**4) + xi**4*(2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c13*self.r**4) - xi**6*(l2 - l3)**2*(-2*l1 + 4*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c12*self.r**6) - xi**6*(2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c12*self.r**6) + xi**8*(l2 - l3)**2*(-3*l1 + 6*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c11*self.r**8) + xi**8*(2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c11*self.r**8) - xi**10*(l2 - l3)**2*(-4*l1 + 8*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c10*self.r**10) - xi**10*(2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c10*self.r**10),
+                -self.sq3*xi/(3*self.r) + 2*self.sq3*xi**3*(l2 - l3)*(-l1 + 2*l2 - l3)/(self.c9*self.r**3) + 2*self.sq3*xi**3*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) - 2*self.sq3*xi**5*(l2 - l3)*(-2*l1 + 4*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) - 2*self.sq3*xi**5*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) + 4*self.sq3*xi**7*(l2 - l3)*(-3*l1 + 6*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) + 4*self.sq3*xi**7*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) - 2*self.sq3*xi**9*(l2 - l3)*(-4*l1 + 8*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9) - 2*self.sq3*xi**9*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9),
+            ], 
+            [
+                -xi/(3*self.r) - xi**3*(-l1 + 2*l2 - l3)*(4*l1 - 2*l2 - 2*l3)/(self.c9*self.r**3) + 2*xi**3*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) + xi**5*(-2*l1 + 4*l2 - 2*l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) - 2*xi**5*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) - xi**7*(-3*l1 + 6*l2 - 3*l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) + 4*xi**7*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) + xi**9*(-4*l1 + 8*l2 - 4*l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9) - 2*xi**9*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9),
+                self.sq3*xi/(3*self.r) - 2*self.sq3*xi**3*(l2 - l3)*(-l1 + 2*l2 - l3)/(self.c9*self.r**3) - 2*self.sq3*xi**3*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) + 2*self.sq3*xi**5*(l2 - l3)*(-2*l1 + 4*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) + 2*self.sq3*xi**5*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) - 4*self.sq3*xi**7*(l2 - l3)*(-3*l1 + 6*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) - 4*self.sq3*xi**7*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) + 2*self.sq3*xi**9*(l2 - l3)*(-4*l1 + 8*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9) + 2*self.sq3*xi**9*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9),
+                -2*xi**2*(-l1 + 2*l2 - l3)/(9*self.r**2) - 4*xi**6*(-3*l1 + 6*l2 - 3*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + 2*xi**8*(-4*l1 + 8*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c15*self.r**8) + 2*xi**4*(-2*l1 + 4*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c14*self.r**4) - 4*xi**10*(-5*l1 + 10*l2 - 5*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10)
+            ]
+        ])
+
+    def calc_dRdl3(self, q, xi):
+        l1 = q[0,0]
+        l2 = q[1,0]
+        l3 = q[2,0]
+        return np.array([
+            [
+                -xi**2*(-4*l1 + 2*l2 + 2*l3)/(self.c5*self.r**2) + xi**4*(-4*l1 + 2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) + xi**4*(-l1 - l2 + 2*l3)*(2*l1 - l2 - l3)**2/(self.c4*self.r**4) - xi**6*(-4*l1 + 2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) - xi**6*(-2*l1 - 2*l2 + 4*l3)*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c3*self.r**6) + xi**8*(-4*l1 + 2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**8) + xi**8*(-3*l1 - 3*l2 + 6*l3)*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c1*self.r**8) - xi**10*(-4*l1 - 4*l2 + 8*l3)*(2*l1 - l2 - l3)**2*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**10) - xi**10*(-4*l1 + 2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                self.sq3*xi**2*(l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**2*(2*l1 - l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**4*(l2 - l3)*(-l1 - l2 + 2*l3)*(2*l1 - l2 - l3)/(self.c4*self.r**4) - self.sq3*xi**4*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**6*(l2 - l3)*(-2*l1 - 2*l2 + 4*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c3*self.r**6) + self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**6*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**8*(l2 - l3)*(-3*l1 - 3*l2 + 6*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c2*self.r**8) - self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) - self.sq3*xi**8*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**10*(l2 - l3)*(-4*l1 - 4*l2 + 8*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**10) - self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10) - self.sq3*xi**10*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                xi/(3*self.r) + xi**3*(-l1 - l2 + 2*l3)*(4*l1 - 2*l2 - 2*l3)/(self.c9*self.r**3) - 2*xi**3*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) - xi**5*(-2*l1 - 2*l2 + 4*l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) + 2*xi**5*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) + xi**7*(-3*l1 - 3*l2 + 6*l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) - 4*xi**7*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) - xi**9*(-4*l1 - 4*l2 + 8*l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9) + 2*xi**9*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9)
+            ],
+            [
+                self.sq3*xi**2*(l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**2*(2*l1 - l2 - l3)/(self.c5*self.r**2) + self.sq3*xi**4*(l2 - l3)*(-l1 - l2 + 2*l3)*(2*l1 - l2 - l3)/(self.c4*self.r**4) - self.sq3*xi**4*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**4*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c4*self.r**4) - self.sq3*xi**6*(l2 - l3)*(-2*l1 - 2*l2 + 4*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c3*self.r**6) + self.sq3*xi**6*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**6*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + self.sq3*xi**8*(l2 - l3)*(-3*l1 - 3*l2 + 6*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c2*self.r**8) - self.sq3*xi**8*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) - self.sq3*xi**8*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c2*self.r**8) + self.sq3*xi**10*(l2 - l3)*(-4*l1 - 4*l2 + 8*l3)*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c1*self.r**10) - self.sq3*xi**10*(l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10) - self.sq3*xi**10*(2*l1 - l2 - l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10),
+                -xi**2*(-2*l2 + 2*l3)/(6*self.r**2) + xi**4*(-2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c13*self.r**4) + xi**4*(l2 - l3)**2*(-l1 - l2 + 2*l3)/(self.c13*self.r**4) - xi**6*(-2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c12*self.r**6) - xi**6*(l2 - l3)**2*(-2*l1 - 2*l2 + 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c12*self.r**6) + xi**8*(-2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c11*self.r**8) + xi**8*(l2 - l3)**2*(-3*l1 - 3*l2 + 6*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c11*self.r**8) - xi**10*(-2*l2 + 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c10*self.r**10) - xi**10*(l2 - l3)**2*(-4*l1 - 4*l2 + 8*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c10*self.r**10),
+                self.sq3*xi/(3*self.r) + 2*self.sq3*xi**3*(l2 - l3)*(-l1 - l2 + 2*l3)/(self.c9*self.r**3) - 2*self.sq3*xi**3*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) - 2*self.sq3*xi**5*(l2 - l3)*(-2*l1 - 2*l2 + 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) + 2*self.sq3*xi**5*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) + 4*self.sq3*xi**7*(l2 - l3)*(-3*l1 - 3*l2 + 6*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) - 4*self.sq3*xi**7*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) - 2*self.sq3*xi**9*(l2 - l3)*(-4*l1 - 4*l2 + 8*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9) + 2*self.sq3*xi**9*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9)], 
+            [
+                -xi/(3*self.r) - xi**3*(-l1 - l2 + 2*l3)*(4*l1 - 2*l2 - 2*l3)/(self.c9*self.r**3) + 2*xi**3*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) + xi**5*(-2*l1 - 2*l2 + 4*l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) - 2*xi**5*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) - xi**7*(-3*l1 - 3*l2 + 6*l3)*(8*l1 - 4*l2 - 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) + 4*xi**7*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) + xi**9*(-4*l1 - 4*l2 + 8*l3)*(4*l1 - 2*l2 - 2*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9) - 2*xi**9*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9), -self.sq3*xi/(3*self.r) - 2*self.sq3*xi**3*(l2 - l3)*(-l1 - l2 + 2*l3)/(self.c9*self.r**3) + 2*self.sq3*xi**3*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c9*self.r**3) + 2*self.sq3*xi**5*(l2 - l3)*(-2*l1 - 2*l2 + 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c8*self.r**5) - 2*self.sq3*xi**5*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c8*self.r**5) - 4*self.sq3*xi**7*(l2 - l3)*(-3*l1 - 3*l2 + 6*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c7*self.r**7) + 4*self.sq3*xi**7*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c7*self.r**7) + 2*self.sq3*xi**9*(l2 - l3)*(-4*l1 - 4*l2 + 8*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c6*self.r**9) - 2*self.sq3*xi**9*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c6*self.r**9),
+                -2*xi**2*(-l1 - l2 + 2*l3)/(9*self.r**2) - 4*xi**6*(-3*l1 - 3*l2 + 6*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**2/(self.c3*self.r**6) + 2*xi**8*(-4*l1 - 4*l2 + 8*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**3/(self.c15*self.r**8) + 2*xi**4*(-2*l1 - 2*l2 + 4*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)/(self.c14*self.r**4) - 4*xi**10*(-5*l1 - 5*l2 + 10*l3)*(l1**2 - l1*l2 - l1*l3 + l2**2 - l2*l3 + l3**2)**4/(self.c1*self.r**10)
+            ]
+        ])
 
 
 class OneSection(Base):
     """1つセクションのローカル変数"""
     
-    def __init__(self, n, xi):
+    def __init__(self, n, n_step):
         
         self.n = n  # セクション番号
-        self.xi = xi
+        self.xis = np.linspace(0, 1, n_step)
+        
+        self.J_OMEGAs = None
+        self.J_omegas = None
+        self.J_vs = None
 
 
-    def update_state(self, q):
+    def update_local_state(self, q):
         self.q = q  # アクチュエータベクトル
-        self.P = self.calc_P(self.q, self.xi)
-        self.R = self.calc_R(self.q, self.xi)
-        self.MHTM = self.calc_MHTM(self.q, self.xi)
+        self.Ps = [self.calc_P(self.q, xi) for xi in self.xis]
+        self.Rs = [self.calc_R(self.q, xi) for xi in self.xis]
+        self.MHTMs = [self.calc_MHTM(self.q, xi) for xi in self.xis]
 
 
 
@@ -164,14 +265,14 @@ class AllSection:
     def __init__(self, N):
         
         self.N = N  # セクションの数
-        self.xi_all = np.linspace(0, 1, N).reshape(N, 1)  # xiの拡張ベクトル
+        self.n_step = 100
         self.set_section()
     
     
     def set_section(self,):
         """ローカルセクションを追加"""
         self.sections = [
-            OneSection(n, xi) for n, xi in enumerate(self.xi_all)
+            OneSection(i, self.n_step) for i in range(self.N)
         ]
     
     
@@ -184,26 +285,30 @@ class AllSection:
     def update_local(self,):
         """ローカル位置，回転行列を更新"""
         for i in range(self.N):
-            self.sections[i].update_state(self.q_all[i:i+3, :])
+            self.sections[i].update_local_state(self.q_all[i:i+3, :])
     
     
     def update_J_OMEGA_ij(self,):
-        """J_OMEGA_ijを更新"""
-        self.J_OMEGA = []
-        for i in range(self.N):
-            _J_OMEGA_i = []
-            Ri = self.sections[i].R
-            for j in range(3):
-                if j == i:
-                    _J_OMEGA_i.append(
-                        Ri.T @ Ri[j:j+1]
-                    )
-                else:
-                    _J_OMEGA_i.append(
-                        Ri.T @ self.J_OMEGA[i-1][j] @ Ri
-                    )
-            self.J_OMEGA.append(_J_OMEGA_i)
+        """J_OMEGAを更新"""
         
+        for i, sec in enumerate(self.sections):
+            print(i)
+            for j in range(self.N):  # jはNまで
+                J_OMEGAs = []
+                for k in range(self.n_step):
+                    Ri = sec.Rs[k]
+                    J_OMEGA = []
+                    if j == i:
+                        J_OMEGA.append(
+                            Ri.T @ Ri[:, j:j+1]
+                        )
+                    else:
+                        J_OMEGA_prev = self.sections[i-1].J_OMEGAs[-1]
+                        J_OMEGA.append(
+                            Ri.T @ J_OMEGA_prev[:, j:j+1] @ Ri
+                        )
+                J_OMEGAs.append(np.array(J_OMEGA))
+            self.sections[i].J_OMEGAs = J_OMEGAs
         return
     
     
