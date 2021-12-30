@@ -144,16 +144,17 @@ class Base:
 class OneSection(Base):
     """1つセクションのローカル変数"""
     
-    def __init__(self, n):
+    def __init__(self, n, xi):
         
         self.n = n  # セクション番号
-        self.xi_vec = np.arange(0, 1, 0.1)  # xiベクトル
+        self.xi = xi
 
 
     def update_state(self, q):
         self.q = q  # アクチュエータベクトル
-        self.Ps = [self.P(self.q, xi) for xi in self.xi_vec]
-        self.Rs = [self.R(self.q, xi) for xi in self.xi_vec]
+        self.Ps = self.P(self.q, self.xi)
+        self.Rs = self.R(self.q, self.xi)
+        self.MHTMs = self.MHTM(self.q, self.xi)
 
 
 
@@ -162,17 +163,19 @@ class AllSection:
     
     def __init__(self, N):
         
-        self.N = N
+        self.N = N  # セクションの数
+        self.xi_all = np.linspace(0, 1, N).reshape(N, 1)
         self.set_section()
     
     
     def set_section(self,):
-        self.sections = [OneSection(n) for n in range(self.N)]
+        """ローカルセクションを追加"""
+        self.sections = [OneSection(n, xi) for n, xi in enumerate(self.xi_all)]
     
     
     def update_all(self, q_all, q_dot_all):
         """全部更新"""
-        self.q_all = q_all
+        self.q_all = q_all  # 縦ベクトル
         self.q_dot_all = q_dot_all
     
     
@@ -183,7 +186,17 @@ class AllSection:
     
     
     def update_J_OMEGA_ij(self,):
-        pass
+        """J_OMEGA_ijを更新"""
+        self.J_OMEGA = []
+        for i in range(self.N):
+            _J_OMEGA_i = []
+            for j in range(self.N):
+                if j == i:
+                    _J_OMEGA_i.append(
+                        self.sections[i].
+                    )
+        
+        return
     
     
     
@@ -195,6 +208,7 @@ if __name__ == "__main__":
     N = 100
     q_all = np.zeros((3*N, 1))
     q_dot_all = np.zeros((3*N, 1))
+
     
     hoge = AllSection(N)
     hoge.update_all(q_all, q_dot_all)
