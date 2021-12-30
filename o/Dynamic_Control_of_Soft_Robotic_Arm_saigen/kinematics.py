@@ -256,6 +256,20 @@ class OneSection(Base):
         self.Ps = [self.calc_P(self.q, xi) for xi in self.xis]
         self.Rs = [self.calc_R(self.q, xi) for xi in self.xis]
         self.MHTMs = [self.calc_MHTM(self.q, xi) for xi in self.xis]
+        self.dPdls = [
+            [
+                self.calc_dPdl1(self.q, xi),
+                self.calc_dPdl2(self.q, xi),
+                self.calc_dPdl3(self.q, xi), 
+            ] for xi in self.xis
+        ]
+        self.dRdls = [
+            [
+                self.calc_dRdl1(self.q, xi),
+                self.calc_dRdl2(self.q, xi),
+                self.calc_dRdl3(self.q, xi), 
+            ] for xi in self.xis
+        ]
 
 
 
@@ -265,7 +279,7 @@ class AllSection:
     def __init__(self, N):
         
         self.N = N  # セクションの数
-        self.n_step = 100
+        self.n_step = 10
         self.set_section()
     
     
@@ -291,24 +305,35 @@ class AllSection:
     def update_J_OMEGA_ij(self,):
         """J_OMEGAを更新"""
         
-        for i, sec in enumerate(self.sections):
-            print(i)
-            for j in range(self.N):  # jはNまで
-                J_OMEGAs = []
-                for k in range(self.n_step):
-                    Ri = sec.Rs[k]
-                    J_OMEGA = []
-                    if j == i:
-                        J_OMEGA.append(
-                            Ri.T @ Ri[:, j:j+1]
-                        )
-                    else:
-                        J_OMEGA_prev = self.sections[i-1].J_OMEGAs[-1]
-                        J_OMEGA.append(
-                            Ri.T @ J_OMEGA_prev[:, j:j+1] @ Ri
-                        )
-                J_OMEGAs.append(np.array(J_OMEGA))
-            self.sections[i].J_OMEGAs = J_OMEGAs
+        for k in range(self.N):
+            print("k = ", k)
+            
+            J_OMEGA_ijs_all = []
+            for l in range(self.n_step):  # xiの一個一個の分を順番に計算
+                J_OMEGA_ijs = []
+                for i in range(k+1):
+                    print("i = ", i)
+                    Ri = self.sections[i].Rs[l]
+                    J_OMEGA_ij = []
+                    for j in range(3):
+                        
+                        if i == k:
+                            print("ketu")
+                            dRidlj = self.sections[i].dRdls[l][j]
+                            J_OMEGA_ij.append(Ri.T @ dRidlj)
+                        else:
+                            print("mae")
+                            print(self.sections[i].J_OMEGAs)
+                            J_OMEGGA_prev = self.sections[i-1].J_OMEGAs[-1][i][j]
+                            J_OMEGA_ij.append(Ri.T @ J_OMEGGA_prev @ Ri)
+                    
+                    J_OMEGA_ijs.append(J_OMEGA_ij)
+                J_OMEGA_ijs_all.append(J_OMEGA_ijs)
+            
+            self.sections[k].J_OMEGAs = J_OMEGA_ijs_all
+
+        
+        
         return
     
     
@@ -318,7 +343,7 @@ class AllSection:
 
 
 if __name__ == "__main__":
-    N = 100
+    N = 3
     q_all = np.zeros((3*N, 1))
     q_dot_all = np.zeros((3*N, 1))
 
