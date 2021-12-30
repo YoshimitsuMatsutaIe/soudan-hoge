@@ -32,7 +32,7 @@ class Base:
     sq3 = sqrt(3)
     
     
-    def P(self, q, xi):
+    def calc_P(self, q, xi):
         """線形化されたアクチュエータ空間からタスク空間への写像
         
         順運動学
@@ -68,7 +68,7 @@ class Base:
         return np.array([[x, y, z]]).T
 
 
-    def R(self, q, xi):
+    def calc_R(self, q, xi):
         """線形化された回転行列"""
         
         l1 = q[0,0]
@@ -127,7 +127,7 @@ class Base:
         ])
 
 
-    def MHTM(self, q, xi):
+    def calc_MHTM(self, q, xi):
         """モーダル同時変換行列
         
         線形化されたHomogeneous Transformation Matrix
@@ -152,9 +152,9 @@ class OneSection(Base):
 
     def update_state(self, q):
         self.q = q  # アクチュエータベクトル
-        self.Ps = self.P(self.q, self.xi)
-        self.Rs = self.R(self.q, self.xi)
-        self.MHTMs = self.MHTM(self.q, self.xi)
+        self.P = self.calc_P(self.q, self.xi)
+        self.R = self.calc_R(self.q, self.xi)
+        self.MHTM = self.calc_MHTM(self.q, self.xi)
 
 
 
@@ -164,13 +164,15 @@ class AllSection:
     def __init__(self, N):
         
         self.N = N  # セクションの数
-        self.xi_all = np.linspace(0, 1, N).reshape(N, 1)
+        self.xi_all = np.linspace(0, 1, N).reshape(N, 1)  # xiの拡張ベクトル
         self.set_section()
     
     
     def set_section(self,):
         """ローカルセクションを追加"""
-        self.sections = [OneSection(n, xi) for n, xi in enumerate(self.xi_all)]
+        self.sections = [
+            OneSection(n, xi) for n, xi in enumerate(self.xi_all)
+        ]
     
     
     def update_all(self, q_all, q_dot_all):
@@ -190,11 +192,17 @@ class AllSection:
         self.J_OMEGA = []
         for i in range(self.N):
             _J_OMEGA_i = []
-            for j in range(self.N):
+            Ri = self.sections[i].R
+            for j in range(3):
                 if j == i:
                     _J_OMEGA_i.append(
-                        self.sections[i].
+                        Ri.T @ Ri[j:j+1]
                     )
+                else:
+                    _J_OMEGA_i.append(
+                        Ri.T @ self.J_OMEGA[i-1][j] @ Ri
+                    )
+            self.J_OMEGA.append(_J_OMEGA_i)
         
         return
     
@@ -212,3 +220,5 @@ if __name__ == "__main__":
     
     hoge = AllSection(N)
     hoge.update_all(q_all, q_dot_all)
+    hoge.update_local()
+    hoge.update_J_OMEGA_ij()
