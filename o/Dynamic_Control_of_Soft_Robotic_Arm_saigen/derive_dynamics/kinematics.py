@@ -174,6 +174,7 @@ class Global(Local):
         self.xi_large = sy.Matrix(sy.MatrixSymbol('xi_large', N, 1))
         self.set_local()
         self.set_global()
+        self.set_J_OMEGA()
     
     
     def set_local(self,):
@@ -204,6 +205,27 @@ class Global(Local):
 
 
 
+    def set_J_OMEGA(self,):
+        
+        
+        def J_OMEGA_ij(i, j):
+            if j <= 3*i-1:
+                return self.R_s[i].T * J_OMEGAs[i-1][j] * self.R_s[i]
+            elif 3*i <= j <= 3*i+2:
+                return self.R_s[i].T * sy.diff(self.R_s[i], self.q_large[j, 0])
+            else:
+                return sy.zeros(3, 3)
+        
+        J_OMEGAs = []
+        for i in range(self.N):
+            print("i = ", i)
+            J_OMEGAs_i = []
+            for j in range(3*self.N):
+                print("j = ", j)
+                J_OMEGAs_i.append(J_OMEGA_ij(i, j))
+            J_OMEGAs.append(sy.Matrix([J_OMEGAs_i]))
+        
+        self.J_OMEGAs = J_OMEGAs
 
 
 
@@ -225,7 +247,8 @@ if __name__ == "__main__":
         # sy.Matrix(xi_large),
         N
     )
-    print(hoge.Phi_s[2])
+    print(hoge.J_OMEGAs)
+    
     
     # print(
     #     hoge.Phi_s[2].subs([
