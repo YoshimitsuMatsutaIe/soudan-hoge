@@ -32,6 +32,7 @@ class Base:
     sq3 = sqrt(3)
     
     
+    
     def calc_P(self, q, xi):
         """線形化されたアクチュエータ空間からタスク空間への写像
         
@@ -244,32 +245,14 @@ class OneSection(Base):
     def __init__(self, n, n_step):
         
         self.n = n  # セクション番号
-        self.xis = np.linspace(0, 1, n_step)
         
         self.J_OMEGAs = None
         self.J_omegas = None
         self.J_vs = None
+    
+    
+    def P()
 
-
-    def update_local_state(self, q):
-        self.q = q  # アクチュエータベクトル
-        self.Ps = [self.calc_P(self.q, xi) for xi in self.xis]
-        self.Rs = [self.calc_R(self.q, xi) for xi in self.xis]
-        self.MHTMs = [self.calc_MHTM(self.q, xi) for xi in self.xis]
-        self.dPdls = [
-            [
-                self.calc_dPdl1(self.q, xi),
-                self.calc_dPdl2(self.q, xi),
-                self.calc_dPdl3(self.q, xi), 
-            ] for xi in self.xis
-        ]
-        self.dRdls = [
-            [
-                self.calc_dRdl1(self.q, xi),
-                self.calc_dRdl2(self.q, xi),
-                self.calc_dRdl3(self.q, xi), 
-            ] for xi in self.xis
-        ]
 
 
 
