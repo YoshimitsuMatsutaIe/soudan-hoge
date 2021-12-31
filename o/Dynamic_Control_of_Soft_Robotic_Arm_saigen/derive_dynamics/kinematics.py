@@ -207,7 +207,7 @@ class Global(Local):
 
 
     def set_J_OMEGA(self,):
-        
+        """J_OMEGAを計算"""
         
         def J_OMEGA_ij(i, j):
             if j <= 3*i-1:
@@ -233,14 +233,9 @@ class Global(Local):
         
         def J_v_ij(i, j):
             if j < i:
-                # print(type(J_v_s[i-1][:, 3*j:3*j+1]))
-                # print(type(self.J_OMEGA_s[i][:, 3*j:3*j+3]))
-                
-                #print(J_v_s[i-1][:, 3*j:3*j+1])
                 return self.R_s[i].T * \
                     (J_v_s[i-1][:, j:j+1] + (self.J_OMEGA_s[i][:, 3*j:3*j+3] * self.P_s[i]))
             elif i == j:
-                #print(self.R_s[i].T * sy.diff(self.P_s[i], self.q_large[j, 0]))
                 return self.R_s[i].T * sy.diff(self.P_s[i], self.q_large[j, 0])
             else:
                 return sy.zeros(3, 1)
@@ -252,12 +247,24 @@ class Global(Local):
             for j in range(self.N):
                 #print("j = ", j)
                 J_v_s_i.append(J_v_ij(i, j))
-                
-                #if j == 3: print(J_v_ij(i, j)[:, 9:10])
             J_v_s.append(sy.Matrix([J_v_s_i]))
         
         self.J_v_s = J_v_s
+    
+    
+    def set_H_OMEGA(self,):
         
+        
+        
+        
+        pass
+    
+    
+    def set_H_v(self,):
+        
+        
+        
+        pass
 
 
 if __name__ == "__main__":
