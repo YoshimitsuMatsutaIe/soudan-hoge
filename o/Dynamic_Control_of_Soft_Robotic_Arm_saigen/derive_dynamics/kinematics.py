@@ -2,7 +2,7 @@ import sympy as sy
 from sympy import sqrt
 
 
-class Base:
+class Local:
     """ベース"""
 
     # モーダル同時変換行列のパラメータ
@@ -66,7 +66,7 @@ class Base:
     
     
     
-    def local_P(self, q, xi):
+    def P(self, q, xi):
         """線形化されたアクチュエータ空間からタスク空間への写像
         
         順運動学
@@ -132,7 +132,7 @@ class Base:
                     (2 * xi**8 * A1**4) / (self.c15 * self.r**8) - \
                         (4 * xi**10 * A1**5) / (self.c1 * self.r**10)
 
-    def local_R(self, q, xi):
+    def R(self, q, xi):
         """線形化された回転行列"""
         
         A1, A2, A3, A4 = self.As(q)
@@ -144,7 +144,7 @@ class Base:
         ])
 
 
-    def local_MHTM(self, q, xi):
+    def MHTM(self, q, xi):
         """モーダル同時変換行列
         
         線形化されたHomogeneous Transformation Matrix
@@ -160,13 +160,59 @@ class Base:
 
 
 
+class Global(Local):
+    
+    
+    
+    def __init__(self, q_large, xi_large, N):
+        
+        self.N = N
+        self.q_large = q_large
+        self.xi_large = xi_large
+        self.set_local()
+        self.set_global()
+    
+    
+    def set_local(self,):
+        
+        self.P_s = []
+        self.R_s = []
+        for i in range(self.N):
+            q = self.q_large[i:i+3, :]
+            xi = self.xi_large[i, 0]
+            self.P_s.append(self.P(q, xi))
+            self.R_s.append(self.R(q, xi))
+    
+    
+    def set_global(self,):
+        
+        self.Theta_s = []
+        self.Phi_s = []
+        for i in range(self.N):
+            if i == 0:
+                self.Theta_s.append(self.R_s[0])
+                self.Phi_s.append(self.P_s[0])
+            else:
+                self.Theta_s.append(
+                    self.Theta_s[i-1] * self.R_s[i]
+                )
+                self.Phi_s.append(
+                    self.Phi_s[i-1] + self.Theta_s[i-1] * self.P_s[i]
+                )
+
+
+
 
 if __name__ == "__main__":
     
-    l1, l2, l3 = sy.symbols("l1, l2, l3")
-    xi = sy.Symbol("xi")
+    # l1_1, l2_1, l3_1 = sy.symbols("l1_1, l2_1, l3_1")
+    # l1_2, l2_2, l3_2 = sy.symbols("l1_2, l2_2, l3_2")
+    # l1_3, l2_3, l3_3 = sy.symbols("l1_3, l2_3, l3_3")
+    # xi = sy.Symbol("xi")
     
-    q = sy.Matrix([[l1, l2, l3]]).T
+    N = 3
+    q_large = sy.MatrixSymbol('q_large', 3*N, 1)
+    xi_large = sy.MatrixSymbol('xi_large', N, 1)
     
-    hoge = Base()
-    print(hoge.local_MHTM(q, xi))
+    hoge = Global(q_large, xi_large, N)
+    
