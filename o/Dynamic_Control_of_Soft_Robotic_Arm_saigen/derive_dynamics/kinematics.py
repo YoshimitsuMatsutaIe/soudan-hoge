@@ -164,11 +164,14 @@ class Global(Local):
     
     
     
-    def __init__(self, q_large, xi_large, N):
+    def __init__(self, N):
         
         self.N = N
-        self.q_large = q_large
-        self.xi_large = xi_large
+        # self.q_large = q_large
+        # self.xi_large = xi_large
+        
+        self.q_large = sy.Matrix(sy.MatrixSymbol('q_large', 3*N, 1))
+        self.xi_large = sy.Matrix(sy.MatrixSymbol('xi_large', N, 1))
         self.set_local()
         self.set_global()
     
@@ -193,12 +196,14 @@ class Global(Local):
                 self.Theta_s.append(self.R_s[0])
                 self.Phi_s.append(self.P_s[0])
             else:
-                self.Theta_s.append(
-                    self.Theta_s[i-1] * self.R_s[i]
-                )
-                self.Phi_s.append(
-                    self.Phi_s[i-1] + self.Theta_s[i-1] * self.P_s[i]
-                )
+                Theta = self.Theta_s[i-1] * self.R_s[i]
+                self.Theta_s.append(Theta.subs(self.xi_large[i-1, 0], 1))
+                
+                Phi = self.Phi_s[i-1] + self.Theta_s[i-1] * self.P_s[i]
+                self.Phi_s.append(Phi.subs(self.xi_large[i-1, 0], 1))
+
+
+
 
 
 
@@ -211,8 +216,30 @@ if __name__ == "__main__":
     # xi = sy.Symbol("xi")
     
     N = 3
-    q_large = sy.MatrixSymbol('q_large', 3*N, 1)
-    xi_large = sy.MatrixSymbol('xi_large', N, 1)
     
-    hoge = Global(q_large, xi_large, N)
+    # q_large = sy.MatrixSymbol('q_large', 3*N, 1)
+    # xi_large = sy.MatrixSymbol('xi_large', N, 1)
     
+    hoge = Global(
+        # sy.Matrix(q_large), 
+        # sy.Matrix(xi_large),
+        N
+    )
+    print(hoge.Phi_s[2])
+    
+    # print(
+    #     hoge.Phi_s[2].subs([
+    #         (xi_large[0,0], 1),
+    #         (xi_large[1,0], 1),
+    #         (xi_large[2,0], 0.5),
+    #         (q_large[0,0], 0.01),
+    #         (q_large[1,0], 0.02),
+    #         (q_large[2,0], 0.01),
+    #         (q_large[3,0], 0.01),
+    #         (q_large[4,0], 0.02),
+    #         (q_large[5,0], 0.01),
+    #         (q_large[6,0], 0.01),
+    #         (q_large[7,0], 0.02),
+    #         (q_large[8,0], 0.01),
+    #     ])
+    # )
