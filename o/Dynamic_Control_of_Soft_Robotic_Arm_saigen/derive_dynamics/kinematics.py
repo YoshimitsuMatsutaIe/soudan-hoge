@@ -175,6 +175,7 @@ class Global(Local):
         self.set_local()
         self.set_global()
         self.set_J_OMEGA()
+        self.set_J_v()
     
     
     def set_local(self,):
@@ -210,59 +211,65 @@ class Global(Local):
         
         def J_OMEGA_ij(i, j):
             if j <= 3*i-1:
-                return self.R_s[i].T * J_OMEGAs[i-1][j] * self.R_s[i]
+                return self.R_s[i].T * J_OMEGA_s[i-1][:, 3*j:3*j+3] * self.R_s[i]
             elif 3*i <= j <= 3*i+2:
                 return self.R_s[i].T * sy.diff(self.R_s[i], self.q_large[j, 0])
             else:
                 return sy.zeros(3, 3)
         
-        J_OMEGAs = []
+        J_OMEGA_s = []
         for i in range(self.N):
-            print("i = ", i)
+            #print("i = ", i)
             J_OMEGAs_i = []
             for j in range(3*self.N):
-                print("j = ", j)
+                #print("j = ", j)
                 J_OMEGAs_i.append(J_OMEGA_ij(i, j))
-            J_OMEGAs.append(sy.Matrix([J_OMEGAs_i]))
+            J_OMEGA_s.append(sy.Matrix([J_OMEGAs_i]))
         
-        self.J_OMEGAs = J_OMEGAs
+        self.J_OMEGA_s = J_OMEGA_s
 
 
+    def set_J_v(self,):
+        
+        def J_v_ij(i, j):
+            if j < i:
+                # print(type(J_v_s[i-1][:, 3*j:3*j+1]))
+                # print(type(self.J_OMEGA_s[i][:, 3*j:3*j+3]))
+                
+                #print(J_v_s[i-1][:, 3*j:3*j+1])
+                return self.R_s[i].T * \
+                    (J_v_s[i-1][:, j:j+1] + (self.J_OMEGA_s[i][:, 3*j:3*j+3] * self.P_s[i]))
+            elif i == j:
+                #print(self.R_s[i].T * sy.diff(self.P_s[i], self.q_large[j, 0]))
+                return self.R_s[i].T * sy.diff(self.P_s[i], self.q_large[j, 0])
+            else:
+                return sy.zeros(3, 1)
+        
+        J_v_s = []
+        for i in range(self.N):
+            #print("i = ", i)
+            J_v_s_i = []
+            for j in range(self.N):
+                #print("j = ", j)
+                J_v_s_i.append(J_v_ij(i, j))
+                
+                #if j == 3: print(J_v_ij(i, j)[:, 9:10])
+            J_v_s.append(sy.Matrix([J_v_s_i]))
+        
+        self.J_v_s = J_v_s
+        
 
 
 if __name__ == "__main__":
     
-    # l1_1, l2_1, l3_1 = sy.symbols("l1_1, l2_1, l3_1")
-    # l1_2, l2_2, l3_2 = sy.symbols("l1_2, l2_2, l3_2")
-    # l1_3, l2_3, l3_3 = sy.symbols("l1_3, l2_3, l3_3")
-    # xi = sy.Symbol("xi")
-    
+
     N = 3
-    
-    # q_large = sy.MatrixSymbol('q_large', 3*N, 1)
-    # xi_large = sy.MatrixSymbol('xi_large', N, 1)
+
     
     hoge = Global(
         # sy.Matrix(q_large), 
         # sy.Matrix(xi_large),
         N
     )
-    print(hoge.J_OMEGAs)
+    #print(hoge.J_v_s)
     
-    
-    # print(
-    #     hoge.Phi_s[2].subs([
-    #         (xi_large[0,0], 1),
-    #         (xi_large[1,0], 1),
-    #         (xi_large[2,0], 0.5),
-    #         (q_large[0,0], 0.01),
-    #         (q_large[1,0], 0.02),
-    #         (q_large[2,0], 0.01),
-    #         (q_large[3,0], 0.01),
-    #         (q_large[4,0], 0.02),
-    #         (q_large[5,0], 0.01),
-    #         (q_large[6,0], 0.01),
-    #         (q_large[7,0], 0.02),
-    #         (q_large[8,0], 0.01),
-    #     ])
-    # )
