@@ -2,6 +2,8 @@ import sympy as sy
 from sympy import sqrt
 
 
+
+
 class Local:
     """ベース"""
 
@@ -208,7 +210,7 @@ class Global(Local):
 
 
     def set_J_OMEGA(self,):
-        """J_OMEGAを計算"""
+        """角速度ヤコビアンのハット変換を計算"""
         
         def J_OMEGA_ij(i, j):
             if j <= 3*i-1:
@@ -231,6 +233,7 @@ class Global(Local):
 
 
     def set_J_v(self,):
+        """線速度ヤコビアンをセット"""
         
         def J_v_ij(i, j):
             if j < i:
@@ -254,13 +257,17 @@ class Global(Local):
     
     
     def set_H_OMEGA(self,):
-        """角速度ヘッシアンをセット"""
+        """角速度ヘッシアンをセット
+        
+        ※テンソルです  
+        """
         
         
         def H_OMEGA_ijk(i, j, k):
             if j < i and k < i:
+                H_OMEGA_prev = H_OMEGA_s[i-1][j, 3*k:3*k+3, :].tomatrix()  # テンソルから1枚剥がして持ってくる
                 print(H_OMEGA_s[i-1].shape)
-                return self.R_s[i].T * H_OMEGA_s[i-1][3*j:3*j+3, 3*k:3*k+3] * self.R_s[i]
+                return self.R_s[i].T * H_OMEGA_prev * self.R_s[i]
             elif j < i and k == i:
                 R_i_diff_k = sy.diff(self.R_s[i], self.q_large[k, 0])
                 return R_i_diff_k.T * self.J_OMEGA_s[i-1][:, 3*j:3*j+3] * self.R_s[i] +\
@@ -279,15 +286,22 @@ class Global(Local):
             print("i = ", i)
             H_OMEGA_s_i = []
             
-            for j in range(self.N):
+            for j in range(3):
                 print("j = ", j)
                 H_OMEGA_s_ij = []
                 
-                for k in range(self.N):
+                for k in range(3*self.N):
                     print("k = ", k)
                     H_OMEGA_s_ij.append(H_OMEGA_ijk(i, j, k))
-                H_OMEGA_s_i.append([sy.Matrix([H_OMEGA_s_ij])])
-            H_OMEGA_s.append(sy.Matrix(H_OMEGA_s_i))
+                H_OMEGA_s_i.append([sy.Matrix(H_OMEGA_s_ij)])
+            
+            
+            H_OMEGA_s_i_tensor = sy.tensor.Array(
+                H_OMEGA_s_i,
+                (3, 3*3*self.N, 3*self.N)
+            )  # 3階のテンソル
+            
+            H_OMEGA_s.append(sy.Matrix(H_OMEGA_s_i_tensor))
         
         
         self.H_OMEGA_s = H_OMEGA_s
