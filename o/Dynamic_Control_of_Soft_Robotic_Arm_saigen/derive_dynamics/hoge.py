@@ -3,11 +3,11 @@ import concurrent.futures
 
 import numpy as np
 
-
-N = 10
+M = 10000000000000
+N = 1000
 
 def func1():
-    for i in range(100):
+    for i in range(M):
         print("func1")
         A = np.random.rand(N, N)
         B = np.random.rand(N, N)
@@ -15,7 +15,7 @@ def func1():
 
 
 def func2():
-    for i in range(100):
+    for i in range(M):
         print("func2")
         A = np.random.rand(10*N, 10*N)
         B = np.random.rand(10*N, 10*N)
