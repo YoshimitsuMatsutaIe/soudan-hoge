@@ -1,3 +1,5 @@
+"""運動学関係"""
+
 import sympy as sy
 from sympy import sqrt
 
@@ -163,7 +165,7 @@ class Local:
 
 
 class Global(Local):
-    
+    """位置，回転行列，ヤコビアン，ヘッシアン等のグローバル表現"""
     
     
     def __init__(self, N):
@@ -330,15 +332,15 @@ class Global(Local):
         
         H_v_s = []
         for i in range(self.N):
-            print("i = ", i)
+            #print("i = ", i)
             H_v_s_i = []
             
             for j in range(self.N):
-                print("j = ", j)
+                #print("j = ", j)
                 H_v_s_ij = []
                 
                 for k in range(self.N):
-                    print("k = ", k)
+                    #print("k = ", k)
                     H_v_s_ij.append(H_v_ijk(i, j, k))
                 H_v_s_i.append([sy.Matrix([H_v_s_ij])])
             
