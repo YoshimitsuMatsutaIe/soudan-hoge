@@ -176,6 +176,7 @@ class Global(Local):
         self.set_global()
         self.set_J_OMEGA()
         self.set_J_v()
+        self.set_H_OMEGA()
     
     
     def set_local(self,):
@@ -253,15 +254,47 @@ class Global(Local):
     
     
     def set_H_OMEGA(self,):
+        """角速度ヘッシアンをセット"""
         
         
+        def H_OMEGA_ijk(i, j, k):
+            if j < i and k < i:
+                print(H_OMEGA_s[i-1].shape)
+                return self.R_s[i].T * H_OMEGA_s[i-1][3*j:3*j+3, 3*k:3*k+3] * self.R_s[i]
+            elif j < i and k == i:
+                R_i_diff_k = sy.diff(self.R_s[i], self.q_large[k, 0])
+                return R_i_diff_k.T * self.J_OMEGA_s[i-1][:, 3*j:3*j+3] * self.R_s[i] +\
+                    self.R_s[i].T * self.J_OMEGA_s[i-1][:, 3*j:3*j+3] * R_i_diff_k
+            elif j == i and k < i:
+                return sy.zeros(3, 3)
+            else:
+                R_i_diff_k = sy.diff(self.R_s[i], self.q_large[k, 0])
+                R_i_diff_j = sy.diff(self.R_s[i], self.q_large[j, 0])
+                R_i_diff_j_diff_k = sy.diff(R_i_diff_j, self.q_large[k, 0])
+                return R_i_diff_k.T * R_i_diff_j + self.R_s[i].T * R_i_diff_j_diff_k
         
         
-        pass
+        H_OMEGA_s = []
+        for i in range(self.N):
+            print("i = ", i)
+            H_OMEGA_s_i = []
+            
+            for j in range(self.N):
+                print("j = ", j)
+                H_OMEGA_s_ij = []
+                
+                for k in range(self.N):
+                    print("k = ", k)
+                    H_OMEGA_s_ij.append(H_OMEGA_ijk(i, j, k))
+                H_OMEGA_s_i.append([sy.Matrix([H_OMEGA_s_ij])])
+            H_OMEGA_s.append(sy.Matrix(H_OMEGA_s_i))
+        
+        
+        self.H_OMEGA_s = H_OMEGA_s
     
     
     def set_H_v(self,):
-        
+        """線速度ヘッシアンをセット"""
         
         
         pass
