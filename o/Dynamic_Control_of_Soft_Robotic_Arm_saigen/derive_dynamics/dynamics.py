@@ -35,7 +35,7 @@ class Dynamics(kinematics.Global):
     m = 0.13
     Ixx = 1.0
     g = sy.Matrix([[0, 0, -9.81]]).T
-    
+    k_e = 1700  # 弾性係数
     
     def __init__(self, N):
         """
@@ -54,6 +54,12 @@ class Dynamics(kinematics.Global):
         self.set_M_omega_dot()
         self.set_M_v()
         self.set_M_v_dot()
+        self.set_M()
+        
+        
+        self.set_G_g()
+        self.set_G_e()
+        self.set_G()
 
 
 
@@ -310,7 +316,7 @@ class Dynamics(kinematics.Global):
             M_v_s.append(sy.Matrix(M_v_s_i))
         
         
-        self.M_omega_s = M_v_s
+        self.M_v_s = M_v_s
         
         print("computing M_v done!")
 
@@ -504,6 +510,79 @@ class Dynamics(kinematics.Global):
         
         print("M_v_dot done!")
 
+
+    def set_M(self,):
+        """慣性行列をセット"""
+        
+        M = sy.zeros(3*self.N, 3*self.N)
+        for i in range(self.N):
+            M  += self.M_v_s[i] + self.M_omega_s[i]
+        
+        self.M = M
+
+
+    def set_G_g(self,):
+        """一般化重力ベクトルをセット"""
+        
+        def G_g(i, j):
+            if j < 3*i:
+                integrated_Pi = sy.integrate(
+                    self.P_s[i],
+                    (self.xi_large[i, 0], 0, 1)
+                )
+                Z = self.m *\
+                    (self.J_v_s[i-1][:, j:j+1] +\
+                        self.J_OMEGA_s[i-1][:, 3*j:3*j+3] * integrated_Pi).T *\
+                            self.Theta_s[i-1].T *\
+                                self.g
+                
+                return Z.subs(self.xi_large[i, 0], 1)
+            
+            elif 3*i <= j <= 3*i*2:
+                Pi_T_diff_j = sy.diff(
+                    self.P_s[i].T,
+                    self.q_large(j, 0)
+                )
+                integrated = sy.integrate(
+                    Pi_T_diff_j,
+                    (self.xi_large[i, 0], 0, 1)
+                )
+                
+                Z = self.m * integrated * self.Theta_s[i-1].T * self.g
+                return Z.subs(self.xi_large[i, 0], 1)
+            
+            else:
+                return 0
+        
+        
+        G_g_s = []
+        for i in range(self.M):
+            
+            G_g_s_i = []
+            for j in range(3*self.N):
+                G_g_s_i.append([G_g(i, j)])
+            G_g_s.append(sy.Matrix([G_g_s_i]))
+        
+        self.G_g_s = G_g_s
+
+
+    def set_G_e(self,):
+        """弾性ポテンシャルエネルギーに関する力をセット"""
+        
+        self.G_e = sy.diag([self.k_e for _ in range(self.N)]) * self.q_large
+
+
+    def set_G(self,):
+        """G行列をセット"""
+        
+        G = sy.zeros(3*self.N, 1)
+        
+        for i in range(self.N):
+            G += self.G_g_s[i]
+        
+        G += self.G_e
+        
+        self.G = G
 
 
 if __name__ == "__main__":
