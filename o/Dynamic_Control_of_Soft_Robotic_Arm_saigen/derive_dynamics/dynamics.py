@@ -22,7 +22,7 @@ class Dynamics(kinematics.Global):
         """回転方向の慣性行列をセット"""
         
         
-        
+        print(Q)
         pass
 
 
