@@ -18,7 +18,7 @@ def operate_V(A):
 
 
 def operate_tilde(A):
-    """行列の最後の列を0にする"""
+    """行列の最後の列を0埋め"""
     m, _ = A.shape
     tilde_A = A
     for i in range(m):
@@ -32,7 +32,7 @@ class Dynamics(kinematics.Global):
     全セクションで同一のパラメータであると仮定  
     """
     
-    m = 1.0
+    m = 0.13
     Ixx = 1.0
     g = sy.Matrix([[0, 0, -9.81]]).T
     
@@ -52,7 +52,7 @@ class Dynamics(kinematics.Global):
         
         def M_omega(i, j, k):
             
-            if j < i and k < i:
+            if j < 3*i and k < 3*i:
                 Mijk = self.Ixx * \
                     operate_T2(
                         self.J_OMEGA_s[i-1][:, 3*j:3*j+3].T *\
@@ -60,20 +60,42 @@ class Dynamics(kinematics.Global):
                     )
                 return Mijk.subs(self.xi_large[i, 0], 1)
             
-            elif j < i and k == i:
+            elif j < 3*i and 3*i <= k <= 3*i+2:
+                Ri = self.R_s[i]
+                Ri_diff_k = sy.diff(Ri, self.q_large[k, 0])
+                z = operate_tilde(Ri) * operate_tilde(Ri_diff_k).T
+                A = sy.integrate(z, self.xi_large[i, 0])
+                A = operate_V(A).T
                 
-        
+                B = operate_V(self.J_OMEGA_s[i-1][:, 3*j:3*j+3].T)
+                B.subs(self.xi_large[i, 0], 1)
+                
+                return self.Ixx * A * B
+            
+            elif 3*i <= j <= 3*i+2 and 3*i <= k <= 3*i+2:
+                Ri = self.R_s[i]
+                Ri_diff_j = sy.diff(Ri, self.q_large[j, 0])
+                Ri_diff_k = sy.diff(Ri, self.q_large[k, 0])
+                z = Ri_diff_j.T * Ri_diff_k
+                A = sy.integrate(z, self.xi_large[i, 0])
+                A = operate_T2(A)
+                
+                return self.Ixx * A
+            
+            else:
+                return 0
+
         
         M_omega_s = []
         for i in range(self.N):
             print("i = ", i)
             M_omega_s_i = []
             
-            for j in range(self.N):
+            for j in range(3*self.N):
                 print("j = ", j)
                 M_omega_s_ij = []
                 
-                for k in range(self.N):
+                for k in range(3*self.N):
                     print("k = ", k)
                     
                     M_omega_s_ij.append(M_omega(i, j, k))

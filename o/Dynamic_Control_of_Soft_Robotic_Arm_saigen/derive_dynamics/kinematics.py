@@ -283,10 +283,10 @@ class Global(Local):
         """線速度ヤコビアンをセット"""
         
         def J_v_ij(i, j):
-            if j < i:
+            if j < 3*i:
                 return self.R_s[i].T * \
                     (J_v_s[i-1][:, j:j+1] + (self.J_OMEGA_s[i][:, 3*j:3*j+3] * self.P_s[i]))
-            elif i == j:
+            elif 3*i <= j <= 3*i+2:
                 return self.R_s[i].T * sy.diff(self.P_s[i], self.q_large[j, 0])
             else:
                 return sy.zeros(3, 1)
@@ -295,7 +295,7 @@ class Global(Local):
         for i in range(self.N):
             #print("i = ", i)
             J_v_s_i = []
-            for j in range(self.N):
+            for j in range(3*self.N):
                 #print("j = ", j)
                 J_v_s_i.append(J_v_ij(i, j))
             J_v_s.append(sy.Matrix([J_v_s_i]))
@@ -311,21 +311,27 @@ class Global(Local):
         
         
         def H_OMEGA_ijk(i, j, k):
-            if j < i and k < i:
+            if j < 3*i and k < 3*i:
                 H_OMEGA_prev = H_OMEGA_s[i-1][3*j:3*j+3, 3*k:3*k+3]  # テンソルから1枚剥がして持ってくる
                 #print(H_OMEGA_prev.shape)
                 return self.R_s[i].T * H_OMEGA_prev * self.R_s[i]
-            elif j < i and k == i:
+
+            elif j < 3*i and 3*i <= k <= 3*i+2:
                 R_i_diff_k = sy.diff(self.R_s[i], self.q_large[k, 0])
                 return R_i_diff_k.T * self.J_OMEGA_s[i-1][:, 3*j:3*j+3] * self.R_s[i] +\
                     self.R_s[i].T * self.J_OMEGA_s[i-1][:, 3*j:3*j+3] * R_i_diff_k
-            elif j == i and k < i:
+            
+            elif 3*i <= j <= 3*i+2 and k < 3*i:
                 return sy.zeros(3, 3)
-            else:
+            
+            elif 3*i <= j <= 3*i+2 and 3*i <= k <= 3*i+2:
                 R_i_diff_k = sy.diff(self.R_s[i], self.q_large[k, 0])
                 R_i_diff_j = sy.diff(self.R_s[i], self.q_large[j, 0])
                 R_i_diff_j_diff_k = sy.diff(R_i_diff_j, self.q_large[k, 0])
                 return R_i_diff_k.T * R_i_diff_j + self.R_s[i].T * R_i_diff_j_diff_k
+            
+            else:
+                return sy.zeros(3, 3)
         
         
         H_OMEGA_s = []
@@ -333,11 +339,11 @@ class Global(Local):
             #print("i = ", i)
             H_OMEGA_s_i = []
             
-            for j in range(self.N):
+            for j in range(3*self.N):
                 #print("j = ", j)
                 H_OMEGA_s_ij = []
                 
-                for k in range(self.N):
+                for k in range(3*self.N):
                     #print("k = ", k)
                     H_OMEGA_s_ij.append(H_OMEGA_ijk(i, j, k))
                 H_OMEGA_s_i.append([sy.Matrix([H_OMEGA_s_ij])])
@@ -356,22 +362,28 @@ class Global(Local):
         """
         
         def H_v_ijk(i, j, k):
-            if j < i and k < i:
+            if j < 3*i and k < 3*i:
                 return self.R_s[i].T * \
                     (H_v_s[i-1][3*j:3*j+3, k:k+1] + self.H_OMEGA_s[i-1][3*j:3*j+3, 3*k:3*k+3] * self.P_s[i])
-            elif j < i and k == i:
+            
+            elif j < 3*i and 3*i <= k <= 3*i+2:
                 R_i_diff_k = sy.diff(self.R_s[i], self.q_large[k, 0])
                 P_i_diff_k = sy.diff(self.P_s[i], self.q_large[k, 0])
                 return R_i_diff_k.T *\
                     (self.J_v_s[i-1][:, j:j+1] + self.J_OMEGA_s[i-1][:, 3*j:3*j+3] * self.P_s[i]) +\
                         self.R_s[i].T * self.J_OMEGA_s[i][:, 3*j:3*j+3] * P_i_diff_k
-            elif j == i and k < i:
+            
+            elif 3*i <= j <= 3*i+2 and k < 3*i:
                 return sy.zeros(3, 1)
-            else:
+            
+            elif 3*i <= j <= 3*i+2 and 3*i <= k <= 3*i+2:
                 R_i_diff_k = sy.diff(self.R_s[i], self.q_large[k, 0])
                 P_i_diff_j = sy.diff(self.P_s[i], self.q_large[j, 0])
                 P_i_diff_j_diff_k = sy.diff(P_i_diff_j, self.q_large[k, 0])
                 return R_i_diff_k.T * P_i_diff_j + self.R_s[i].T * P_i_diff_j_diff_k
+            
+            else:
+                return sy.zeros(3, 1)
         
         
         H_v_s = []
@@ -379,11 +391,11 @@ class Global(Local):
             #print("i = ", i)
             H_v_s_i = []
             
-            for j in range(self.N):
+            for j in range(3*self.N):
                 #print("j = ", j)
                 H_v_s_ij = []
                 
-                for k in range(self.N):
+                for k in range(3*self.N):
                     #print("k = ", k)
                     H_v_s_ij.append(H_v_ijk(i, j, k))
                 H_v_s_i.append([sy.Matrix([H_v_s_ij])])
