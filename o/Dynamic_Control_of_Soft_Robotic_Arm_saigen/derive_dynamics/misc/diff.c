@@ -16,3 +16,7 @@ void diff(double a, double b, double c, double x, double *out_845688311551656132
    out_8456883115516561320[3] = c;
 
 }
+
+int main(){
+   printf("ok");
+}
