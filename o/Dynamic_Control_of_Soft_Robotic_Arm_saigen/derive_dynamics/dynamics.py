@@ -52,6 +52,7 @@ class Dynamics(kinematics.Global):
         
         self.set_M_omega()
         self.set_M_omega_dot()
+        self.set_M_v()
 
 
 
@@ -75,7 +76,7 @@ class Dynamics(kinematics.Global):
                 Ri = self.R_s[i]
                 Ri_diff_k = sy.diff(Ri, self.q_large[k, 0])
                 z = operate_tilde(Ri) * operate_tilde(Ri_diff_k).T
-                A = sy.integrate(z, self.xi_large[i, 0])
+                A = sy.integrate(z, (self.xi_large[i, 0], 0, 1))
                 A = operate_V(A).T
                 
                 B = operate_V(self.J_OMEGA_s[i-1][:, 3*j:3*j+3].T)
@@ -88,7 +89,7 @@ class Dynamics(kinematics.Global):
                 Ri_diff_j = sy.diff(Ri, self.q_large[j, 0])
                 Ri_diff_k = sy.diff(Ri, self.q_large[k, 0])
                 z = Ri_diff_j.T * Ri_diff_k
-                A = sy.integrate(z, self.xi_large[i, 0])
+                A = sy.integrate(z, (self.xi_large[i, 0], 0, 1))
                 A = operate_T2(A)
                 
                 return self.Ixx * A
@@ -148,7 +149,7 @@ class Dynamics(kinematics.Global):
                 RR_T = operate_tilde(Ri) * operate_tilde(Ri_diff_k).T
                 
                 if s < 3*i:
-                    A = sy.integrate(RR_T, self.xi_large[i, 0])
+                    A = sy.integrate(RR_T, (self.xi_large[i, 0], 0, 1))
                     A = operate_V(A).T
                     
                     B = operate_V(self.H_OMEGA_s[i-1][3*j:3*j+3, 3*s:3*s+3].T)
@@ -158,7 +159,7 @@ class Dynamics(kinematics.Global):
                 
                 elif 3*i <= s <= 3*i+2:
                     RR_T_diff_s = sy.diff(RR_T, self.q_large[s, 0])
-                    A = sy.integrate(RR_T_diff_s, self.xi_large[i, 0])
+                    A = sy.integrate(RR_T_diff_s, (self.xi_large[i, 0], 0, 1))
                     A = operate_V(A).T
                     
                     B = operate_V(self.J_OMEGA_s[i-1][:, 3*j:3*j+3].T)
@@ -178,7 +179,7 @@ class Dynamics(kinematics.Global):
                     Ri_diff_j = sy.diff(Ri, self.q_large[j, 0])
                     Ri_diff_k = sy.diff(Ri, self.q_large[k, 0])
                     z = Ri_diff_j.T * Ri_diff_k
-                    A = sy.integrate(z, self.xi_large[i, 0])
+                    A = sy.integrate(z, (self.xi_large[i, 0], 0, 1))
                     A = operate_T2(A)
                     A = sy.diff(A, self.q_large[s, 0])
                     return self.Ixx * A
@@ -216,13 +217,105 @@ class Dynamics(kinematics.Global):
         self.M_omega_dot_s = M_omega_dot_s
         
         
-        
-        
-        
-        
         print("M_omega_dot done!")
 
 
+    def set_M_v(self,):
+        """並進運動の慣性行列をセット"""
+        print("computing M_v ...")
+        
+        def M_v(i, j, k):
+            if j < 3*i and k < 3*i:
+                integrated_Pi = sy.integrate(
+                    self.P_s[i],
+                    (self.xi_large[i, 0], 0, 1)
+                )
+                
+                A = self.m * self.J_v_s[i-1][:, j:j+1] *\
+                    (self.J_v_s[i-1][:, k:k+1] +\
+                        self.J_OMEGA_s[i-1][:, 3*k:3*k+3] * integrated_Pi)
+                
+                B = self.m * integrated_Pi.T *\
+                    self.J_OMEGA_s[i-1][:, 3*j:3*j+3].T *\
+                        self.J_v_s[i-1][:, k:k+1]
+                
+                integrated_PiPi_T = sy.integrate(
+                    self.P_s[i] * self.P_s[i].T,
+                    (self.xi_large[i, 0], 0, 1)
+                )
+                
+                C = self.m *\
+                    operate_V(integrated_PiPi_T).T *\
+                        operate_V(
+                            self.J_OMEGA_s[i-1][:, 3*j:3*j+3].T * self.J_OMEGA_s[i-1][:, 3*k:3*k+3]
+                        )
+                
+                return (A + B + C).subs(self.xi_large[i, 0], 1)
+            
+            
+            elif j < 3*i and 3*i <= k <= 3*i+2:
+                
+                Pi_diff_k = sy.diff(self.P_s[i], self.q_large[k, 0])
+                
+                integrated_Pi_diff_k = sy.integrate(
+                    Pi_diff_k,
+                    (self.xi_large[i, 0], 0, 1)
+                )
+                
+                A = self.m * self.J_v_s[i-1][:, j:j+1].T *\
+                    integrated_Pi_diff_k
+                
+                integrated_PiPi_diff_k_T = sy.integrate(
+                    self.P_s[i] *  Pi_diff_k.T,
+                    (self.xi_large[i, 0], 0, 1)
+                )
+                
+                B = self.m *\
+                    operate_V(integrated_PiPi_diff_k_T).T *\
+                        operate_V(self.J_OMEGA_s[i-1][:, 3*j:3*j+3].T)
+                
+                return (A + B).subs(self.xi_large[i, 0], 1)
+            
+            
+            elif 3*i <= j <= 3*i+2 and 3*i <= k <= 3*i+2:
+                Pi_diff_j = sy.diff(self.P_s[i], self.xi_large[j, 0])
+                Pi_diff_k = sy.diff(self.P_s[i], self.xi_large[k, 0])
+                
+                integrated = sy.integrate(
+                    Pi_diff_j.T * Pi_diff_k,
+                    (self.xi_large[i, 0], 0, 1)
+                )
+                A = self.m * integrated
+
+                return A.subs(self.xi_large[i, 0], 1)
+            
+            else:
+                return 0
+
+        
+        M_v_s = []
+        for i in range(self.N):
+            #print("i = ", i)
+            M_v_s_i = []
+            
+            for j in range(3*self.N):
+                #print("j = ", j)
+                M_v_s_ij = []
+                
+                for k in range(3*self.N):
+                    #print("k = ", k)
+                    
+                    M_v_s_ij.append(M_v(i, j, k))
+                M_v_s_i.append(M_v_s_ij)
+            M_v_s.append(sy.Matrix(M_v_s_i))
+        
+        
+        self.M_omega_s = M_v_s
+        
+        print("computing M_v done!")
+    
+    
+    
 
 if __name__ == "__main__":
     
