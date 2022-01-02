@@ -2,7 +2,7 @@
 
 import sympy as sy
 from sympy import sqrt
-
+import tqdm
 
 import kinematics
 
@@ -55,7 +55,9 @@ class Dynamics(kinematics.Global):
         self.set_M_v()
         self.set_M_v_dot()
         self.set_M()
+        self.set_M_dot()
         
+        self.set_C()
         
         self.set_G_g()
         self.set_G_e()
@@ -106,15 +108,15 @@ class Dynamics(kinematics.Global):
 
         
         M_omega_s = []
-        for i in range(self.N):
+        for i in tqdm.tqdm(range(self.N)):
             #print("i = ", i)
             M_omega_s_i = []
             
-            for j in range(3*self.N):
+            for j in tqdm.tqdm(range(3*self.N), leave=False):
                 #print("j = ", j)
                 M_omega_s_ij = []
                 
-                for k in range(3*self.N):
+                for k in tqdm.tqdm(range(3*self.N), leave=False):
                     #print("k = ", k)
                     
                     M_omega_s_ij.append(M_omega(i, j, k))
@@ -200,19 +202,19 @@ class Dynamics(kinematics.Global):
         
         M_omega_dot_s = []
         
-        for s in range(3*self.N):
+        for s in tqdm.tqdm(range(3*self.N)):
             print("s = ", s)
             M_omega_dot_s_diff_by_s = []
             
-            for i in range(self.N):
+            for i in tqdm.tqdm(range(self.N), leave=False):
                 print(" i = ", i)
                 M_omega_dot_s_i = []
                 
-                for j in range(3*self.N):
+                for j in tqdm.tqdm(range(3*self.N), leave=False):
                     print("  j = ", j)
                     M_omega_dot_s_ij = []
                     
-                    for k in range(3*self.N):
+                    for k in tqdm.tqdm(range(3*self.N), leave=False):
                         print("   k = ", k)
                         
                         M_omega_dot_s_ij.append(M_omega_dot(i, j, k, s))
@@ -301,16 +303,16 @@ class Dynamics(kinematics.Global):
 
         
         M_v_s = []
-        for i in range(self.N):
-            print("i = ", i)
+        for i in tqdm.tqdm(range(self.N)):
+            #print("i = ", i)
             M_v_s_i = []
             
-            for j in range(3*self.N):
-                print(" j = ", j)
+            for j in tqdm.tqdm(range(3*self.N), leave=False):
+                #print(" j = ", j)
                 M_v_s_ij = []
                 
-                for k in range(3*self.N):
-                    print("  k = ", k)
+                for k in tqdm.tqdm(range(3*self.N), leave=False):
+                    #print("  k = ", k)
                     M_v_s_ij.append(M_v(i, j, k))
                 M_v_s_i.append(M_v_s_ij)
             M_v_s.append(sy.Matrix(M_v_s_i))
@@ -318,7 +320,7 @@ class Dynamics(kinematics.Global):
         
         self.M_v_s = M_v_s
         
-        print("computing M_v done!")
+        print("done computing M_v!")
 
 
     def set_M_v_dot(self,):
@@ -484,20 +486,20 @@ class Dynamics(kinematics.Global):
         
         M_v_dot_s = []
         
-        for s in range(3*self.N):
-            print("s = ", s)
+        for s in tqdm.tqdm(range(3*self.N)):
+            #print("s = ", s)
             M_v_dot_s_diff_by_s = []
             
-            for i in range(self.N):
-                print(" i = ", i)
+            for i in tqdm.tqdm(range(self.N), leave=False):
+                #print(" i = ", i)
                 M_v_dot_s_i = []
                 
-                for j in range(3*self.N):
-                    print("  j = ", j)
+                for j in tqdm.tqdm(range(3*self.N), leave=False):
+                    #print("  j = ", j)
                     M_v_dot_s_ij = []
                     
-                    for k in range(3*self.N):
-                        print("   k = ", k)
+                    for k in tqdm.tqdm(range(3*self.N), leave=False):
+                        #print("   k = ", k)
                         
                         M_v_dot_s_ij.append(M_v_dot(i, j, k, s))
                     M_v_dot_s_i.append(M_v_dot_s_ij)
@@ -508,21 +510,75 @@ class Dynamics(kinematics.Global):
         self.M_v_dot_s = M_v_dot_s
         
         
-        print("M_v_dot done!")
+        print("done computing M_v_dot!")
 
 
     def set_M(self,):
         """慣性行列をセット"""
+        print("computing M...")
         
         M = sy.zeros(3*self.N, 3*self.N)
-        for i in range(self.N):
+        for i in tqdm.tqdm(range(self.N)):
             M  += self.M_v_s[i] + self.M_omega_s[i]
         
         self.M = M
 
+        print("done computing N!")
+
+
+    def set_M_dot(self,):
+        """慣性行列の各微分値をセット"""
+        print("computing M_dot...")
+        
+        M_dot_s = []
+        for s in tqdm.tqdm(range(3*self.N)):
+            M_dot_s_s = sy.zeros(3*self.N, 3*self.N)
+            for i in tqdm.tqdm(range(self.N), leave=False):
+                M_dot_s_s += self.M_omega_dot_s[s][i] + self.M_v_dot_s[s][i]
+            M_dot_s.append(M_dot_s_s)
+        
+        self.M_dot_s = M_dot_s
+        print("done computing M_dot!")
+
+
+    def christoffel_M(self, k, j, h):
+        """Mのクリストッフェル記号???"""
+        
+        return 1/2 *\
+            self.M_dot_s[h][k, j] +\
+                self.M_dot_s[j][k, h] +\
+                    self.M_dot_s[k][h, j]
+
+
+    def set_C(self,):
+        """コリオリ・遠心力をセット"""
+        print("computing C...")
+        
+        
+        def C_ikj(i, k, j):
+            w = 3 * i
+            
+            c = 0
+            for h in range(w):
+                c += self.christoffel_M(k, j, h) * self.q_dot_large[h, 0]
+            
+            return c
+        
+        
+        C = sy.zeros(3*self.N, 3*self.N)
+        
+        for i in tqdm.tqdm(range(self.N)):
+            for k in tqdm.tqdm(range(3*self.N), leave=False):
+                for j in tqdm.tqdm(range(3*self.N), leave=False):
+                    C[k, j] += C_ikj(i, k, j)
+
+        self.C = C
+        print("done computing C !")
+
 
     def set_G_g(self,):
         """一般化重力ベクトルをセット"""
+        print("computing G_g ...")
         
         def G_g(i, j):
             if j < 3*i:
@@ -556,33 +612,37 @@ class Dynamics(kinematics.Global):
         
         
         G_g_s = []
-        for i in range(self.M):
+        for i in tqdm.tqdm(range(self.M)):
             
             G_g_s_i = []
-            for j in range(3*self.N):
+            for j in tqdm.tqdm(range(3*self.N), leave=False):
                 G_g_s_i.append([G_g(i, j)])
             G_g_s.append(sy.Matrix([G_g_s_i]))
         
         self.G_g_s = G_g_s
+        print("done computing G_g !")
 
 
     def set_G_e(self,):
         """弾性ポテンシャルエネルギーに関する力をセット"""
-        
+        print("computing G_e...")
         self.G_e = sy.diag([self.k_e for _ in range(self.N)]) * self.q_large
+        print("done computing G_e!")
 
 
     def set_G(self,):
         """G行列をセット"""
+        print("computing G...")
         
         G = sy.zeros(3*self.N, 1)
         
-        for i in range(self.N):
+        for i in tqdm.tqdm(range(self.N)):
             G += self.G_g_s[i]
         
         G += self.G_e
         
         self.G = G
+        print("done computing G!")
 
 
 if __name__ == "__main__":

@@ -215,14 +215,16 @@ class Global(Local):
         """
         
         
-        print("運動学計算中...")
+        print("computing kinematics...")
         
         self.N = N
         # self.q_large = q_large
         # self.xi_large = xi_large
         
-        self.q_large = sy.Matrix(sy.MatrixSymbol('q_large', 3*N, 1))
-        self.xi_large = sy.Matrix(sy.MatrixSymbol('xi_large', N, 1))
+        self.q_large = sy.Matrix(sy.MatrixSymbol('q_large', 3*N, 1))  # 完全な関節角度ベクトル
+        self.q_dot_large = sy.Matrix(sy.MatrixSymbol('q_dot_large', 3*N, 1))  # 完全な関節角速度ベクトル
+        self.xi_large = sy.Matrix(sy.MatrixSymbol('xi_large', N, 1))  # 完全なスカラξベクトル
+        
         self.set_local()
         self.set_global()
         self.set_J_OMEGA()
@@ -230,7 +232,7 @@ class Global(Local):
         self.set_H_OMEGA()
         self.set_H_v()
         
-        print("運動学計算完了!")
+        print("done computing kinematics!")
     
     
     def set_local(self,):
