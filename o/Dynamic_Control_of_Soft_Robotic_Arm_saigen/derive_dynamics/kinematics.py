@@ -214,6 +214,9 @@ class Global(Local):
             セクションの数
         """
         
+        
+        print("運動学計算中...")
+        
         self.N = N
         # self.q_large = q_large
         # self.xi_large = xi_large
@@ -226,6 +229,8 @@ class Global(Local):
         self.set_J_v()
         self.set_H_OMEGA()
         self.set_H_v()
+        
+        print("運動学計算完了!")
     
     
     def set_local(self,):
