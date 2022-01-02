@@ -7,7 +7,10 @@ from sympy import sqrt
 
 
 class Local:
-    """ベース"""
+    """ローカル座標系関連  
+    
+    全セクションで同一のパラメータであると仮定  
+    """
 
     # モーダル同時変換行列のパラメータ
     c1 = 837019575
@@ -142,9 +145,21 @@ class Local:
         A1, A2, A3, A4 = self.As(q)
         
         return sy.Matrix([
-            [self._R11(A1, A2, A3, A4, xi), self._R12(A1, A2, A3, A4, xi), self._R13(A1, A2, A3, A4, xi)],
-            [self._R21(A1, A2, A3, A4, xi), self._R22(A1, A2, A3, A4, xi), self._R23(A1, A2, A3, A4, xi)],
-            [self._R31(A1, A2, A3, A4, xi), self._R32(A1, A2, A3, A4, xi), self._R33(A1, A2, A3, A4, xi)],
+            [
+                self._R11(A1, A2, A3, A4, xi),
+                self._R12(A1, A2, A3, A4, xi),
+                self._R13(A1, A2, A3, A4, xi)
+            ],
+            [
+                self._R21(A1, A2, A3, A4, xi),
+                self._R22(A1, A2, A3, A4, xi),
+                self._R23(A1, A2, A3, A4, xi)
+            ],
+            [
+                self._R31(A1, A2, A3, A4, xi),
+                self._R32(A1, A2, A3, A4, xi),
+                self._R33(A1, A2, A3, A4, xi)
+            ],
         ])
 
 
@@ -156,19 +171,48 @@ class Local:
         A1, A2, A3, A4 = self.As(q)
         
         return sy.Matrix([
-            [self._R11(A1, A2, A3, A4, xi), self._R12(A1, A2, A3, A4, xi), self._R13(A1, A2, A3, A4, xi), self._P1(A1, A2, A3, A4, xi)],
-            [self._R21(A1, A2, A3, A4, xi), self._R22(A1, A2, A3, A4, xi), self._R23(A1, A2, A3, A4, xi), self._P2(A1, A2, A3, A4, xi)],
-            [self._R31(A1, A2, A3, A4, xi), self._R32(A1, A2, A3, A4, xi), self._R33(A1, A2, A3, A4, xi), self._P3(A1, A2, A3, A4, xi)],
-            [0, 0, 0, 1]
+            [
+                self._R11(A1, A2, A3, A4, xi),
+                self._R12(A1, A2, A3, A4, xi),
+                self._R13(A1, A2, A3, A4, xi),
+                self._P1(A1, A2, A3, A4, xi)
+            ],
+            [
+                self._R21(A1, A2, A3, A4, xi),
+                self._R22(A1, A2, A3, A4, xi),
+                self._R23(A1, A2, A3, A4, xi),
+                self._P2(A1, A2, A3, A4, xi)
+            ],
+            [
+                self._R31(A1, A2, A3, A4, xi),
+                self._R32(A1, A2, A3, A4, xi),
+                self._R33(A1, A2, A3, A4, xi),
+                self._P3(A1, A2, A3, A4, xi)
+            ],
+            [
+                0,
+                0,
+                0,
+                1
+            ]
         ])
 
 
 
 class Global(Local):
-    """位置，回転行列，ヤコビアン，ヘッシアン等のグローバル表現"""
+    """位置，回転行列，ヤコビアン，ヘッシアン等のグローバル表現
+    
+    全セクションで同一のパラメータであると仮定  
+    """
     
     
     def __init__(self, N):
+        """
+        Parameters  
+        ---
+        N : int
+            セクションの数
+        """
         
         self.N = N
         # self.q_large = q_large
