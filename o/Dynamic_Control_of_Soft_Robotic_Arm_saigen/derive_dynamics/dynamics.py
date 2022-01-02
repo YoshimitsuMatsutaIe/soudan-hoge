@@ -648,4 +648,4 @@ class Dynamics(kinematics.Global):
 if __name__ == "__main__":
     
     
-    hoge = Dynamics(3)
+    hoge = Dynamics(1)
