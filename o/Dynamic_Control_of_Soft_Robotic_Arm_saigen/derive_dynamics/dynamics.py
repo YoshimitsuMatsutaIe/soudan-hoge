@@ -38,7 +38,7 @@ class Dynamics(kinematics.Global):
     g = sy.Matrix([[0, 0, -9.81]]).T
     k_e = 1700  # 弾性係数
     
-    def __init__(self, N, tx_file_path, bi_file_path):
+    def __init__(self, N,):
         """
         
         Parameters

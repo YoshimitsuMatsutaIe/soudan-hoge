@@ -9,7 +9,7 @@ import os
 def make_function():
     """シミュレーションに必要な式を生成"""
     
-    N = 2  # セクションの数
+    N = 3  # セクションの数
     
     
     cwd = os.path.dirname(__file__)
@@ -24,7 +24,7 @@ def make_function():
     
     
     hoge = dynamics.Dynamics(N)
-    hoge = utils.save_obj_by_picke(hoge, dir_name, "/until_kinematics",)
+    utils.save_obj_by_picke(hoge, dir_name, "/until_kinematics",)
     
     
     hoge = utils.load_obj_from_picle(dir_name, "/until_kinematics",)
