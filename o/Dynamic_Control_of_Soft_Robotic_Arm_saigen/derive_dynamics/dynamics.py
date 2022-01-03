@@ -1,10 +1,11 @@
 """ダイナミクスを導出"""
 
 import sympy as sy
-from sympy import sqrt
+#from sympy import sqrt
 import tqdm
 
 import kinematics
+import utils
 
 def operate_T2(A):
     """T2演算"""
@@ -37,7 +38,7 @@ class Dynamics(kinematics.Global):
     g = sy.Matrix([[0, 0, -9.81]]).T
     k_e = 1700  # 弾性係数
     
-    def __init__(self, N):
+    def __init__(self, N, tx_file_path, bi_file_path):
         """
         
         Parameters
@@ -50,18 +51,25 @@ class Dynamics(kinematics.Global):
         
         super().__init__(N)
         
-        self.set_M_omega()
-        self.set_M_omega_dot()
-        self.set_M_v()
-        self.set_M_v_dot()
-        self.set_M()
-        self.set_M_dot()
+        # self.set_M_omega()
         
-        self.set_C()
+        # self.set_M_omega_dot()
         
-        self.set_G_g()
-        self.set_G_e()
-        self.set_G()
+        # self.set_M_v()
+        
+        # self.set_M_v_dot()
+        
+        # self.set_M()
+        
+        # self.set_M_dot()
+        
+        # self.set_C()
+        
+        # self.set_G_g()
+        
+        # self.set_G_e()
+        
+        # self.set_G()
 
 
 
@@ -203,19 +211,19 @@ class Dynamics(kinematics.Global):
         M_omega_dot_s = []
         
         for s in tqdm.tqdm(range(3*self.N)):
-            print("s = ", s)
+            #print("s = ", s)
             M_omega_dot_s_diff_by_s = []
             
             for i in tqdm.tqdm(range(self.N), leave=False):
-                print(" i = ", i)
+                #print(" i = ", i)
                 M_omega_dot_s_i = []
                 
                 for j in tqdm.tqdm(range(3*self.N), leave=False):
-                    print("  j = ", j)
+                    #print("  j = ", j)
                     M_omega_dot_s_ij = []
                     
                     for k in tqdm.tqdm(range(3*self.N), leave=False):
-                        print("   k = ", k)
+                        #print("   k = ", k)
                         
                         M_omega_dot_s_ij.append(M_omega_dot(i, j, k, s))
                     M_omega_dot_s_i.append(M_omega_dot_s_ij)
@@ -240,7 +248,7 @@ class Dynamics(kinematics.Global):
                     (self.xi_large[i, 0], 0, 1)
                 )
                 
-                A = self.m * self.J_v_s[i-1][:, j:j+1] *\
+                A = self.m * self.J_v_s[i-1][:, j:j+1].T *\
                     (self.J_v_s[i-1][:, k:k+1] +\
                         self.J_OMEGA_s[i-1][:, 3*k:3*k+3] * integrated_Pi)
                 

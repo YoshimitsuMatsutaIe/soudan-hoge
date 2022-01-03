@@ -3,6 +3,7 @@
 import sympy as sy
 from sympy import sqrt
 
+#import utils
 
 
 
@@ -200,9 +201,10 @@ class Local:
 
 
 class Global(Local):
-    """位置，回転行列，ヤコビアン，ヘッシアン等のグローバル表現
+    """位置，回転行列，ヤコビアン，ヘッシアン等のグローバル表現  
     
-    全セクションで同一のパラメータであると仮定  
+    全セクションで同一のパラメータであると仮定.   
+    すぐ終わる.   
     """
     
     
