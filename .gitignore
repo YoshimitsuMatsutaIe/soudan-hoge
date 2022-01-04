@@ -129,3 +129,10 @@ dmypy.json
 .pyre/
 
 
+# vscode
+.vscode/
+
+
+# 実行?
+*.out
+*.gch

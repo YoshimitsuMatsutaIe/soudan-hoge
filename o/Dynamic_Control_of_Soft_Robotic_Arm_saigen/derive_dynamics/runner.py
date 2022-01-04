@@ -1,4 +1,6 @@
 import sympy as sy
+from sympy.printing.numpy import NumPyPrinter
+from sympy.utilities.codegen import codegen
 
 import dynamics
 import utils
@@ -107,8 +109,77 @@ def make_function():
     f = open(dir_name + "/G.txt", 'w')
     f.write(str(hoge.G))
     f.close()
+    
+    
+    # numpyスタイルの数式を生成
+    dir_name = base + '/eqs/numpy_style'
+    os.makedirs(dir_name, exist_ok=True)
+    
+    
+    for i, Phi in enumerate(hoge.Phi_s):
+        name = dir_name + "/Phi" + str(i) + ".py"
+        f = open(name, 'w')
+        f.write(NumPyPrinter().doprint(Phi))
+        f.close()
+    
+    for i, Theta in enumerate(hoge.Theta_s):
+        name = dir_name + "/Theta" + str(i) + ".py"
+        f = open(name, 'w')
+        f.write(NumPyPrinter().doprint(Theta))
+        f.close()
+    
+    
+    f = open(dir_name + "/M.py", 'w')
+    f.write(NumPyPrinter().doprint(hoge.M))
+    f.close()
+
+    f = open(dir_name + "/C.py", 'w')
+    f.write(NumPyPrinter().doprint(hoge.C))
+    f.close()
+    
+    f = open(dir_name + "/G.py", 'w')
+    f.write(NumPyPrinter().doprint(hoge.G))
+    f.close()
 
 
+
+    # おまけでCのコード生成
+    
+
+    
+    dir_name = base + '/eqs/c_src'
+    os.makedirs(dir_name, exist_ok=True)
+    
+    
+    def gen_c(f, name):
+        [(c_name, c_code), (h_name, c_header)] = codegen(
+            name_expr=(name, f),
+            language="C",
+            project= name + "project",
+            to_files=False
+        )
+        
+        f = open(dir_name + c_name, 'w')
+        f.write(c_code)
+        f.close()
+
+        f = open(dir_name + h_name, 'w')
+        f.write(c_header)
+        f.close()
+    
+    
+    for i, Phi in enumerate(hoge.Phi_s):
+        name = "/Phi" + str(i) + ".py"
+        gen_c(Phi, name)
+    
+    for i, Theta in enumerate(hoge.Theta_s):
+        name = "/Theta" + str(i) + ".py"
+        gen_c(Theta, name)
+    
+    
+    gen_c(hoge.M, "M")
+    gen_c(hoge.C, "C")
+    gen_c(hoge.G, "G")
 
 
 if __name__ == ("__main__"):

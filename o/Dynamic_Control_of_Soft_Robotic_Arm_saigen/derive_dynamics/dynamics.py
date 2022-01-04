@@ -564,7 +564,7 @@ class Dynamics(kinematics.Global):
         
         
         def C_ikj(i, k, j):
-            w = 3 * i
+            w = 3 * (i+1)
             
             c = 0
             for h in range(w):
@@ -605,7 +605,7 @@ class Dynamics(kinematics.Global):
             elif 3*i <= j <= 3*i*2:
                 Pi_T_diff_j = sy.diff(
                     self.P_s[i].T,
-                    self.q_large(j, 0)
+                    self.q_large[j, 0]
                 )
                 integrated = sy.integrate(
                     Pi_T_diff_j,
@@ -620,12 +620,12 @@ class Dynamics(kinematics.Global):
         
         
         G_g_s = []
-        for i in tqdm.tqdm(range(self.M)):
+        for i in tqdm.tqdm(range(self.N)):
             
             G_g_s_i = []
             for j in tqdm.tqdm(range(3*self.N), leave=False):
                 G_g_s_i.append([G_g(i, j)])
-            G_g_s.append(sy.Matrix([G_g_s_i]))
+            G_g_s.append(sy.Matrix(G_g_s_i))
         
         self.G_g_s = G_g_s
         print("done computing G_g !")
@@ -634,7 +634,7 @@ class Dynamics(kinematics.Global):
     def set_G_e(self,):
         """弾性ポテンシャルエネルギーに関する力をセット"""
         print("computing G_e...")
-        self.G_e = sy.diag([self.k_e for _ in range(self.N)]) * self.q_large
+        self.G_e = sy.diag([self.k_e for _ in range(3*self.N)], unpack=True) * self.q_large
         print("done computing G_e!")
 
 
