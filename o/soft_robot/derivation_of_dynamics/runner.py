@@ -15,7 +15,7 @@ def make_function():
     
     
     cwd = os.path.dirname(__file__)
-    base = cwd + "/result/N_is_" + str(N)
+    base = cwd + "../derived/N_is_" + str(N)
     
     
     # 時間がかかるので細かくセーブしながら実行
@@ -25,61 +25,71 @@ def make_function():
     os.makedirs(dir_name, exist_ok=True)
     
     
-    hoge = dynamics.Dynamics(N)
-    utils.save_obj_by_picke(hoge, dir_name, "/until_kinematics",)
+    if not os.path.isfile(dir_name + "/until_kinematics" + ".binaryfile"):
+        hoge = dynamics.Dynamics(N)
+        utils.save_obj_by_picke(hoge, dir_name, "/until_kinematics",)
     
     
-    hoge = utils.load_obj_from_picle(dir_name, "/until_kinematics",)
-    hoge.set_M_omega()
-    utils.save_obj_by_picke(hoge, dir_name, "/until_M_omega")
+    if not os.path.isfile(dir_name + "/until_M_omega" + ".binaryfile"):
+        hoge = utils.load_obj_from_picle(dir_name, "/until_kinematics",)
+        hoge.set_M_omega()
+        utils.save_obj_by_picke(hoge, dir_name, "/until_M_omega")
     
     
-    hoge = utils.load_obj_from_picle(dir_name, "/until_M_omega",)
-    hoge.set_M_omega_dot()
-    utils.save_obj_by_picke(hoge, dir_name, "/until_M_omega_dot")
+    if not os.path.isfile(dir_name + "/until_M_omega_dot" + ".binaryfile"):
+        hoge = utils.load_obj_from_picle(dir_name, "/until_M_omega",)
+        hoge.set_M_omega_dot()
+        utils.save_obj_by_picke(hoge, dir_name, "/until_M_omega_dot")
     
     
-    hoge = utils.load_obj_from_picle(dir_name, "/until_M_omega_dot",)
-    hoge.set_M_v()
-    utils.save_obj_by_picke(hoge, dir_name, "/until_M_v")
+    if not os.path.isfile(dir_name + "/until_M_v" + ".binaryfile"):
+        hoge = utils.load_obj_from_picle(dir_name, "/until_M_omega_dot",)
+        hoge.set_M_v()
+        utils.save_obj_by_picke(hoge, dir_name, "/until_M_v")
     
     
-    hoge = utils.load_obj_from_picle(dir_name, "/until_M_v",)
-    hoge.set_M_v_dot()
-    utils.save_obj_by_picke(hoge, dir_name, "/until_M_v_dot")
+    if not os.path.isfile(dir_name + "/until_M_v_dot" + ".binaryfile"):
+        hoge = utils.load_obj_from_picle(dir_name, "/until_M_v",)
+        hoge.set_M_v_dot()
+        utils.save_obj_by_picke(hoge, dir_name, "/until_M_v_dot")
     
     
-    hoge = utils.load_obj_from_picle(dir_name, "/until_M_v_dot",)
-    hoge.set_M()
-    utils.save_obj_by_picke(hoge, dir_name, "/until_M")
+    if not os.path.isfile(dir_name + "/until_M" + ".binaryfile"):
+        hoge = utils.load_obj_from_picle(dir_name, "/until_M_v_dot",)
+        hoge.set_M()
+        utils.save_obj_by_picke(hoge, dir_name, "/until_M")
     
     
-    hoge = utils.load_obj_from_picle(dir_name, "/until_M",)
-    hoge.set_M_dot()
-    utils.save_obj_by_picke(hoge, dir_name, "/until_M_dot")
+    if not os.path.isfile(dir_name + "/until_M_dot" + ".binaryfile"):
+        hoge = utils.load_obj_from_picle(dir_name, "/until_M",)
+        hoge.set_M_dot()
+        utils.save_obj_by_picke(hoge, dir_name, "/until_M_dot")
     
     
-    hoge = utils.load_obj_from_picle(dir_name, "/until_M_dot",)
-    hoge.set_C()
-    utils.save_obj_by_picke(hoge, dir_name, "/until_C")
+    if not os.path.isfile(dir_name + "/until_C" + ".binaryfile"):
+        hoge = utils.load_obj_from_picle(dir_name, "/until_M_dot",)
+        hoge.set_C()
+        utils.save_obj_by_picke(hoge, dir_name, "/until_C")
     
     
-    hoge = utils.load_obj_from_picle(dir_name, "/until_C",)
-    hoge.set_G_g()
-    utils.save_obj_by_picke(hoge, dir_name, "/until_G_g")
+    if not os.path.isfile(dir_name + "/until_G_g" + ".binaryfile"):
+        hoge = utils.load_obj_from_picle(dir_name, "/until_C",)
+        hoge.set_G_g()
+        utils.save_obj_by_picke(hoge, dir_name, "/until_G_g")
     
     
-    hoge = utils.load_obj_from_picle(dir_name, "/until_G_g",)
-    hoge.set_G_e()
-    utils.save_obj_by_picke(hoge, dir_name, "/until_G_e")
+    if not os.path.isfile(dir_name + "/until_G_e" + ".binaryfile"):
+        hoge = utils.load_obj_from_picle(dir_name, "/until_G_g",)
+        hoge.set_G_e()
+        utils.save_obj_by_picke(hoge, dir_name, "/until_G_e")
     
     
-    hoge = utils.load_obj_from_picle(dir_name, "/until_G_e",)
-    hoge.set_G()
-    utils.save_obj_by_picke(hoge, dir_name, "/until_G")
-    
-    
-    hoge = utils.load_obj_from_picle(dir_name, "/until_G",)
+    if not os.path.isfile(dir_name + "/until_G" + ".binaryfile"):
+        hoge = utils.load_obj_from_picle(dir_name, "/until_G_e",)
+        hoge.set_G()
+        utils.save_obj_by_picke(hoge, dir_name, "/until_G")
+    else:
+        hoge = utils.load_obj_from_picle(dir_name, "/until_G",)
 
 
     # 数式を生成
