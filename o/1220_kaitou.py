@@ -42,7 +42,7 @@ class Kinematics:
             (A2 * A1**3 * A4 * xi**8) / (self.c2 * self.r**7) - \
                 (A2 * A1**2 * A4 * xi**6) / (self.c3 * self.r**5) + \
                     (A2 * A1 * A4 * xi**4) / (self.c4 * self.r**3) - \
-                        (A2 * A4 * xi**2) / (self.c5 * self.r)
+                        (A2 * A4 * xi**2) / (self.c5 * self.r) 
         
         y = -(sqrt(3) * A4 * A3 * A1**4 * xi**10) / (self.c1 * self.r**9) + \
             (sqrt(3) * A4 * A3 * A1**3 * xi**8) / (self.c2 * self.r**7) - \
@@ -125,9 +125,9 @@ class Simulator:
     def xd(self, t):
         """タスク空間上の所望の位置"""
         return np.array([
-            [0.1 * sin(3*t)],
-            [0.1 * cos(3*t)],
-            [0.147],
+            [0.1 * sin(3*t) -0.099],
+            [0.1 * cos(3*t) -0.0017],
+            [0.147 + 0.1067],
         ])
 
 
