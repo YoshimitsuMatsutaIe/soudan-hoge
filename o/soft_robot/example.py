@@ -5,47 +5,75 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.animation as anm
 
-import sys
-sys.path.append("/N_is1")
 
-import N_is_1.Theta0 as Theta0
-import N_is_1.Phi0 as Phi0
 
-import N_is_1.M0_0
-import N_is_1.M0_1
-import N_is_1.M0_2
-import N_is_1.M1_0
-import N_is_1.M1_1
-import N_is_1.M1_2
-import N_is_1.M2_0
-import N_is_1.M2_1
-import N_is_1.M2_2
+# import N_is_1.Theta0 as Theta0
+# import N_is_1.Phi0 as Phi0
 
-import N_is_1.G0
-import N_is_1.G1
-import N_is_1.G2
+# import N_is_1.M0_0 as M0_0
+# import N_is_1.M0_1 as M0_1
+# import N_is_1.M0_2 as M0_2
+# import N_is_1.M1_0 as M1_0
+# import N_is_1.M1_1 as M1_1
+# import N_is_1.M1_2 as M1_2
+# import N_is_1.M2_0 as M2_0
+# import N_is_1.M2_1 as M2_1
+# import N_is_1.M2_2 as M2_2
 
-import N_is_1.C0_0
-import N_is_1.C0_1
-import N_is_1.C0_2
-import N_is_1.C1_0
-import N_is_1.C1_1
-import N_is_1.C1_2
-import N_is_1.C2_0
-import N_is_1.C2_1
-import N_is_1.C2_2
+# import N_is_1.G0 as G0
+# import N_is_1.G1 as G1
+# import N_is_1.G2 as G2
+
+# import N_is_1.C0_0 as C0_0
+# import N_is_1.C0_1 as C0_1
+# import N_is_1.C0_2 as C0_2
+# import N_is_1.C1_0 as C1_0
+# import N_is_1.C1_1 as C1_1
+# import N_is_1.C1_2 as C1_2
+# import N_is_1.C2_0 as C2_0
+# import N_is_1.C2_1 as C2_1
+# import N_is_1.C2_2 as C2_2
+
+
+import derived.ikko_dake.eqs.numpy_style.Theta as Theta0
+import derived.ikko_dake.eqs.numpy_style.Phi as Phi0
+
+import derived.ikko_dake.eqs.numpy_style.M0_0 as M0_0
+import derived.ikko_dake.eqs.numpy_style.M0_1 as M0_1
+import derived.ikko_dake.eqs.numpy_style.M0_2 as M0_2
+import derived.ikko_dake.eqs.numpy_style.M1_0 as M1_0
+import derived.ikko_dake.eqs.numpy_style.M1_1 as M1_1
+import derived.ikko_dake.eqs.numpy_style.M1_2 as M1_2
+import derived.ikko_dake.eqs.numpy_style.M2_0 as M2_0
+import derived.ikko_dake.eqs.numpy_style.M2_1 as M2_1
+import derived.ikko_dake.eqs.numpy_style.M2_2 as M2_2
+
+import derived.ikko_dake.eqs.numpy_style.G0 as G0
+import derived.ikko_dake.eqs.numpy_style.G1 as G1
+import derived.ikko_dake.eqs.numpy_style.G2 as G2
+
+import derived.ikko_dake.eqs.numpy_style.C0_0 as C0_0
+import derived.ikko_dake.eqs.numpy_style.C0_1 as C0_1
+import derived.ikko_dake.eqs.numpy_style.C0_2 as C0_2
+import derived.ikko_dake.eqs.numpy_style.C1_0 as C1_0
+import derived.ikko_dake.eqs.numpy_style.C1_1 as C1_1
+import derived.ikko_dake.eqs.numpy_style.C1_2 as C1_2
+import derived.ikko_dake.eqs.numpy_style.C2_0 as C2_0
+import derived.ikko_dake.eqs.numpy_style.C2_1 as C2_1
+import derived.ikko_dake.eqs.numpy_style.C2_2 as C2_2
+
 
 
 def C(q_large, xi_large, q_dot_large):
-    m_0_0 = N_is_1.C0_0.f(q_large, xi_large, q_dot_large)
-    m_0_1 = N_is_1.C0_1.f(q_large, xi_large, q_dot_large)
-    m_0_2 = N_is_1.C0_2.f(q_large, xi_large, q_dot_large)
-    m_1_0 = N_is_1.C1_0.f(q_large, xi_large, q_dot_large)
-    m_1_1 = N_is_1.C1_1.f(q_large, xi_large, q_dot_large)
-    m_1_2 = N_is_1.C1_2.f(q_large, xi_large, q_dot_large)
-    m_2_0 = N_is_1.C2_0.f(q_large, xi_large, q_dot_large)
-    m_2_1 = N_is_1.C2_1.f(q_large, xi_large, q_dot_large)
-    m_2_2 = N_is_1.C2_2.f(q_large, xi_large, q_dot_large)
+    m_0_0 = C0_0.f(q_large, xi_large, q_dot_large)
+    m_0_1 = C0_1.f(q_large, xi_large, q_dot_large)
+    m_0_2 = C0_2.f(q_large, xi_large, q_dot_large)
+    m_1_0 = C1_0.f(q_large, xi_large, q_dot_large)
+    m_1_1 = C1_1.f(q_large, xi_large, q_dot_large)
+    m_1_2 = C1_2.f(q_large, xi_large, q_dot_large)
+    m_2_0 = C2_0.f(q_large, xi_large, q_dot_large)
+    m_2_1 = C2_1.f(q_large, xi_large, q_dot_large)
+    m_2_2 = C2_2.f(q_large, xi_large, q_dot_large)
     
     return np.array([
         [m_0_0, m_0_1, m_0_2],
@@ -58,15 +86,15 @@ def C(q_large, xi_large, q_dot_large):
 
 def M(q_large, xi_large, q_dot_large):
     """wow"""
-    m_0_0 = N_is_1.M0_0.f(q_large, xi_large, q_dot_large)
-    m_0_1 = N_is_1.M0_1.f(q_large, xi_large, q_dot_large)
-    m_0_2 = N_is_1.M0_2.f(q_large, xi_large, q_dot_large)
-    m_1_0 = N_is_1.M1_0.f(q_large, xi_large, q_dot_large)
-    m_1_1 = N_is_1.M1_1.f(q_large, xi_large, q_dot_large)
-    m_1_2 = N_is_1.M1_2.f(q_large, xi_large, q_dot_large)
-    m_2_0 = N_is_1.M2_0.f(q_large, xi_large, q_dot_large)
-    m_2_1 = N_is_1.M2_1.f(q_large, xi_large, q_dot_large)
-    m_2_2 = N_is_1.M2_2.f(q_large, xi_large, q_dot_large)
+    m_0_0 = M0_0.f(q_large, xi_large, q_dot_large)
+    m_0_1 = M0_1.f(q_large, xi_large, q_dot_large)
+    m_0_2 = M0_2.f(q_large, xi_large, q_dot_large)
+    m_1_0 = M1_0.f(q_large, xi_large, q_dot_large)
+    m_1_1 = M1_1.f(q_large, xi_large, q_dot_large)
+    m_1_2 = M1_2.f(q_large, xi_large, q_dot_large)
+    m_2_0 = M2_0.f(q_large, xi_large, q_dot_large)
+    m_2_1 = M2_1.f(q_large, xi_large, q_dot_large)
+    m_2_2 = M2_2.f(q_large, xi_large, q_dot_large)
     
     return np.array([
         [m_0_0, m_0_1, m_0_2],
@@ -77,9 +105,9 @@ def M(q_large, xi_large, q_dot_large):
 
 
 def G(q_large, xi_large, q_dot_large):
-    g0 = N_is_1.G0.f(q_large, xi_large, q_dot_large)
-    g1 = N_is_1.G1.f(q_large, xi_large, q_dot_large)
-    g2 = N_is_1.G2.f(q_large, xi_large, q_dot_large)
+    g0 = G0.f(q_large, xi_large, q_dot_large)
+    g1 = G1.f(q_large, xi_large, q_dot_large)
+    g2 = G2.f(q_large, xi_large, q_dot_large)
     
     return np.array([
         [g0],
