@@ -154,6 +154,7 @@ function X_dot(X::Vector{T}) where T
     x2_dot = -inv_M * C(q, xi, q_dot) * q_dot .+
     inv_M * (τ .- G(q, xi, q_dot))
 
+    println([x1_dot; x2_dot])
     return [x1_dot; x2_dot]
 
 end
@@ -161,31 +162,39 @@ end
 
 function test()
 
-    q_large = [0.0, 0.0, 0.0]
+    TIME_SPAN = 10.0
+
+    q_large = [0.01, 0.02, 0.0]
     xi_large = [1.0, 1.0, 1.0]
     q_dot_large = [0.0, 0.0, 0.0]
 
     t, X = solve_RungeKutta(
         X_dot,
         [q_large; q_dot_large],
-        (0, 10.0),
-        0.01
+        (0.0, TIME_SPAN),
+        0.001
     )
 
     l1, l2, l3, l1_dot, l2_dot, l3_dot = split_vec_of_arrays(X)
-    fig = plot()
+    fig = plot(xlim=(0, TIME_SPAN))
     plot!(fig, t, l1, label="l1")
     plot!(fig, t, l2, label="l2")
     plot!(fig, t, l3, label="l3")
     
 
-    fig2 = plot()
-    plot!(fig2, t, l1_dot, label="l1")
-    plot!(fig2, t, l2_dot, label="l2")
-    plot!(fig2, t, l3_dot, label="l3")
+    fig2 = plot(xlim=(0, TIME_SPAN))
+    plot!(fig2, t, l1_dot, label="l1_dot")
+    plot!(fig2, t, l2_dot, label="l2_dot")
+    plot!(fig2, t, l3_dot, label="l3_dot")
 
-    fig_I = plot(fig, fig2, layout=(2, 1))
-    savefig(fig, "julia.png")
+    fig_I = plot(fig, fig2, layout=(1, 2), size=(800, 400))
+    savefig(fig_I, "julia.png")
+
+
+
+    # アニメ制作
+
+
 
 end
 
