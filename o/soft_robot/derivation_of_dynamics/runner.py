@@ -15,7 +15,7 @@ def make_function():
     
     
     cwd = os.path.dirname(__file__)
-    base = cwd + "../derived/N_is_" + str(N)
+    base = cwd + "/../derived/N_is_" + str(N)
     
     
     # 時間がかかるので細かくセーブしながら実行
@@ -92,6 +92,16 @@ def make_function():
         hoge = utils.load_obj_from_picle(dir_name, "/until_G",)
 
 
+    # # 数式を整理（やばいくらい時間かかる）
+    # print("数式整理中...")
+    # for i, Phi in enumerate(hoge.Phi_s):
+    #     hoge.Phi_s[i] = sy.simplify(Phi)
+    # for i, Theta in enumerate(hoge.Theta_s):
+    #     hoge.Theta_s[i] = sy.simplify(Theta)
+    # hoge.M = sy.simplify(hoge.M)
+    # hoge.C = sy.simplify(hoge.C)
+    # hoge.G = sy.simplify(hoge.G)
+
     # 数式を生成
     dir_name = base + '/eqs/txt_style'
     os.makedirs(dir_name, exist_ok=True)
@@ -109,51 +119,64 @@ def make_function():
         f.write(str(Theta))
         f.close()
     
-    
-    f = open(dir_name + "/M.txt", 'w')
-    f.write(str(hoge.M))
-    f.close()
+    for i in range(3*N):
+        for j in range(3*N):
+            f = open(dir_name + "/M" + str(i) + "_" + str(j) + ".txt", 'w')
+            f.write(str(hoge.M[i, j]))
+            f.close()
 
-    f = open(dir_name + "/C.txt", 'w')
-    f.write(str(hoge.C))
-    f.close()
+    for i in range(3*N):
+        for j in range(3*N):
+            f = open(dir_name + "/C" + str(i) + "_" + str(j) + ".txt", 'w')
+            f.write(str(hoge.C[i, j]))
+            f.close()
     
-    f = open(dir_name + "/G.txt", 'w')
-    f.write(str(hoge.G))
-    f.close()
-    
+    for i in range(3*N):
+        f = open(dir_name + "/G" + str(i) + ".txt", 'w')
+        f.write(str(hoge.G[i, :]))
+        f.close()
+
     
     # numpyスタイルの数式を生成
     dir_name = base + '/eqs/numpy_style'
     os.makedirs(dir_name, exist_ok=True)
     
+    numpy_word = "import numpy\ndef f(q_large, xi_large, q_dot_large):\n    return "
     
     for i, Phi in enumerate(hoge.Phi_s):
         name = dir_name + "/Phi" + str(i) + ".py"
         f = open(name, 'w')
+        f.write(numpy_word)
         f.write(NumPyPrinter().doprint(Phi))
         f.close()
     
     for i, Theta in enumerate(hoge.Theta_s):
         name = dir_name + "/Theta" + str(i) + ".py"
         f = open(name, 'w')
+        f.write(numpy_word)
         f.write(NumPyPrinter().doprint(Theta))
         f.close()
     
+    for i in range(3*N):
+        for j in range(3*N):
+            f = open(dir_name + "/M" + str(i) + "_" + str(j) + ".py", 'w')
+            f.write(numpy_word)
+            f.write(NumPyPrinter().doprint(hoge.M[i, j]))
+            f.close()
+
+    for i in range(3*N):
+        for j in range(3*N):
+            f = open(dir_name + "/C" + str(i) + "_" + str(j) + ".py", 'w')
+            f.write(numpy_word)
+            f.write(NumPyPrinter().doprint(hoge.C[i, j]))
+            f.close()
     
-    f = open(dir_name + "/M.py", 'w')
-    f.write(NumPyPrinter().doprint(hoge.M))
-    f.close()
-
-    f = open(dir_name + "/C.py", 'w')
-    f.write(NumPyPrinter().doprint(hoge.C))
-    f.close()
+    for i in range(3*N):
+        f = open(dir_name + "/G" + str(i) + ".py", 'w')
+        f.write(numpy_word)
+        f.write(NumPyPrinter().doprint(hoge.G[i, 0]))
+        f.close()
     
-    f = open(dir_name + "/G.py", 'w')
-    f.write(NumPyPrinter().doprint(hoge.G))
-    f.close()
-
-
 
     # おまけでCのコード生成
     

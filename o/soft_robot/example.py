@@ -5,8 +5,12 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import matplotlib.animation as anm
 
+import sys
+sys.path.append("/N_is1")
+
 import N_is_1.Theta0 as Theta0
 import N_is_1.Phi0 as Phi0
+import N_is_1.M0_0
 import N_is_1.M as M
 import N_is_1.C as C
 import N_is_1.G as G

@@ -554,7 +554,7 @@ class Dynamics(kinematics.Global):
         
         return 1/2 *\
             self.M_dot_s[h][k, j] +\
-                self.M_dot_s[j][k, h] +\
+                self.M_dot_s[j][k, h] -\
                     self.M_dot_s[k][h, j]
 
 
