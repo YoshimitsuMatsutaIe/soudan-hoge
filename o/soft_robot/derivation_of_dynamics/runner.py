@@ -1,5 +1,7 @@
 import sympy as sy
 from sympy.printing.numpy import NumPyPrinter
+from sympy import julia_code
+
 from sympy.utilities.codegen import codegen
 
 import dynamics
@@ -177,6 +179,58 @@ def make_function():
         f.write(NumPyPrinter().doprint(hoge.G[i, 0]))
         f.close()
     
+
+    # じゅりあのコード生成
+    dir_name = base + '/eqs/julia_style'
+    os.makedirs(dir_name, exist_ok=True)
+    
+    julia_word = "function f(q_large::Vector{T}, xi_large::Vector{T}, q_dot_large::Vector{T}) where T\n    "
+    
+    for i, Phi in enumerate(hoge.Phi_s):
+        name = dir_name + "/Phi" + str(i) + ".jl"
+        f = open(name, 'w')
+        f.write("module " + "Phi" + str(i) + "\n")
+        f.write(julia_word)
+        f.write(julia_code(Phi))
+        f.write("\nend\nend")
+        f.close()
+    
+    for i, Theta in enumerate(hoge.Theta_s):
+        name = dir_name + "/Theta" + str(i) + ".jl"
+        f = open(name, 'w')
+        f.write("module " + "Theta" + str(i) + "\n")
+        f.write(julia_word)
+        f.write(julia_code(Theta))
+        f.write("\nend\nend")
+        f.close()
+    
+    for i in range(3*N):
+        for j in range(3*N):
+            f = open(dir_name + "/M" + str(i) + "_" + str(j) + ".jl", 'w')
+            f.write("module " + "M" + str(i) + "_" + str(j) + "\n")
+            f.write(julia_word)
+            f.write(julia_code(hoge.M[i, j]))
+            f.write("\nend\nend")
+            f.close()
+
+    for i in range(3*N):
+        for j in range(3*N):
+            f = open(dir_name + "/C" + str(i) + "_" + str(j) + ".jl", 'w')
+            f.write("module " + "C" + str(i) + "_" + str(j) + "\n")
+            f.write(julia_word)
+            f.write(julia_code(hoge.C[i, j]))
+            f.write("\nend\nend")
+            f.close()
+    
+    for i in range(3*N):
+        f = open(dir_name + "/G" + str(i) + ".jl", 'w')
+        f.write("module " + "G" + str(i) + "\n")
+        f.write(julia_word)
+        f.write(julia_code(hoge.G[i, 0]))
+        f.write("\nend\nend")
+        f.close()
+    
+
 
     # おまけでCのコード生成
     

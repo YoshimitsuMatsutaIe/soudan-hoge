@@ -10,10 +10,84 @@ sys.path.append("/N_is1")
 
 import N_is_1.Theta0 as Theta0
 import N_is_1.Phi0 as Phi0
+
 import N_is_1.M0_0
-import N_is_1.M as M
-import N_is_1.C as C
-import N_is_1.G as G
+import N_is_1.M0_1
+import N_is_1.M0_2
+import N_is_1.M1_0
+import N_is_1.M1_1
+import N_is_1.M1_2
+import N_is_1.M2_0
+import N_is_1.M2_1
+import N_is_1.M2_2
+
+import N_is_1.G0
+import N_is_1.G1
+import N_is_1.G2
+
+import N_is_1.C0_0
+import N_is_1.C0_1
+import N_is_1.C0_2
+import N_is_1.C1_0
+import N_is_1.C1_1
+import N_is_1.C1_2
+import N_is_1.C2_0
+import N_is_1.C2_1
+import N_is_1.C2_2
+
+
+def C(q_large, xi_large, q_dot_large):
+    m_0_0 = N_is_1.C0_0.f(q_large, xi_large, q_dot_large)
+    m_0_1 = N_is_1.C0_1.f(q_large, xi_large, q_dot_large)
+    m_0_2 = N_is_1.C0_2.f(q_large, xi_large, q_dot_large)
+    m_1_0 = N_is_1.C1_0.f(q_large, xi_large, q_dot_large)
+    m_1_1 = N_is_1.C1_1.f(q_large, xi_large, q_dot_large)
+    m_1_2 = N_is_1.C1_2.f(q_large, xi_large, q_dot_large)
+    m_2_0 = N_is_1.C2_0.f(q_large, xi_large, q_dot_large)
+    m_2_1 = N_is_1.C2_1.f(q_large, xi_large, q_dot_large)
+    m_2_2 = N_is_1.C2_2.f(q_large, xi_large, q_dot_large)
+    
+    return np.array([
+        [m_0_0, m_0_1, m_0_2],
+        [m_1_0, m_1_1, m_1_2],
+        [m_2_0, m_2_1, m_2_2],
+    ])
+
+
+
+
+def M(q_large, xi_large, q_dot_large):
+    """wow"""
+    m_0_0 = N_is_1.M0_0.f(q_large, xi_large, q_dot_large)
+    m_0_1 = N_is_1.M0_1.f(q_large, xi_large, q_dot_large)
+    m_0_2 = N_is_1.M0_2.f(q_large, xi_large, q_dot_large)
+    m_1_0 = N_is_1.M1_0.f(q_large, xi_large, q_dot_large)
+    m_1_1 = N_is_1.M1_1.f(q_large, xi_large, q_dot_large)
+    m_1_2 = N_is_1.M1_2.f(q_large, xi_large, q_dot_large)
+    m_2_0 = N_is_1.M2_0.f(q_large, xi_large, q_dot_large)
+    m_2_1 = N_is_1.M2_1.f(q_large, xi_large, q_dot_large)
+    m_2_2 = N_is_1.M2_2.f(q_large, xi_large, q_dot_large)
+    
+    return np.array([
+        [m_0_0, m_0_1, m_0_2],
+        [m_1_0, m_1_1, m_1_2],
+        [m_2_0, m_2_1, m_2_2],
+    ])
+
+
+
+def G(q_large, xi_large, q_dot_large):
+    g0 = N_is_1.G0.f(q_large, xi_large, q_dot_large)
+    g1 = N_is_1.G1.f(q_large, xi_large, q_dot_large)
+    g2 = N_is_1.G2.f(q_large, xi_large, q_dot_large)
+    
+    return np.array([
+        [g0],
+        [g1],
+        [g2],
+    ])
+
+
 
 
 def X_dot(t, X):
@@ -28,11 +102,11 @@ def X_dot(t, X):
     
     xi = np.array([[1,1,1]]).T
     
-    inv_M = np.linalg.inv(M.f(q, q_dot, xi))
+    inv_M = np.linalg.inv(M(q, q_dot, xi))
     
     x1_dot = q_dot
-    x2_dot = - inv_M @ C.f(q, q_dot, xi) @ q_dot +\
-        inv_M @ (tau - G.f(q, q_dot, xi))
+    x2_dot = -inv_M @ C(q, q_dot, xi) @ q_dot +\
+        inv_M @ (tau - G(q, q_dot, xi))
     #print(np.ravel(np.concatenate([x1_dot, x2_dot])))
     #print(t)
     return np.ravel(np.concatenate([x1_dot, x2_dot]))
