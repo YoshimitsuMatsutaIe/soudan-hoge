@@ -1,4 +1,7 @@
-"""juliaでやる"""
+"""juliaでやる
+
+単一セクション
+"""
 
 
 using Plots
@@ -34,32 +37,35 @@ function solve_RungeKutta(dx, x₀::Vector{T}, t_span, Δt::T) where T
     t, x
 end
 
-include("derived/N_is_1/eqs/julia_style/C0_0.jl")
-include("derived/N_is_1/eqs/julia_style/C0_1.jl")
-include("derived/N_is_1/eqs/julia_style/C0_2.jl")
-include("derived/N_is_1/eqs/julia_style/C1_0.jl")
-include("derived/N_is_1/eqs/julia_style/C1_1.jl")
-include("derived/N_is_1/eqs/julia_style/C1_2.jl")
-include("derived/N_is_1/eqs/julia_style/C2_0.jl")
-include("derived/N_is_1/eqs/julia_style/C2_1.jl")
-include("derived/N_is_1/eqs/julia_style/C2_2.jl")
 
-include("derived/N_is_1/eqs/julia_style/M0_0.jl")
-include("derived/N_is_1/eqs/julia_style/M0_1.jl")
-include("derived/N_is_1/eqs/julia_style/M0_2.jl")
-include("derived/N_is_1/eqs/julia_style/M1_0.jl")
-include("derived/N_is_1/eqs/julia_style/M1_1.jl")
-include("derived/N_is_1/eqs/julia_style/M1_2.jl")
-include("derived/N_is_1/eqs/julia_style/M2_0.jl")
-include("derived/N_is_1/eqs/julia_style/M2_1.jl")
-include("derived/N_is_1/eqs/julia_style/M2_2.jl")
+name = "ikko_dake"
 
-include("derived/N_is_1/eqs/julia_style/G0.jl")
-include("derived/N_is_1/eqs/julia_style/G1.jl")
-include("derived/N_is_1/eqs/julia_style/G2.jl")
+include("derived/" * name * "/eqs/julia_style/C0_0.jl")
+include("derived/" * name * "/eqs/julia_style/C0_1.jl")
+include("derived/" * name * "/eqs/julia_style/C0_2.jl")
+include("derived/" * name * "/eqs/julia_style/C1_0.jl")
+include("derived/" * name * "/eqs/julia_style/C1_1.jl")
+include("derived/" * name * "/eqs/julia_style/C1_2.jl")
+include("derived/" * name * "/eqs/julia_style/C2_0.jl")
+include("derived/" * name * "/eqs/julia_style/C2_1.jl")
+include("derived/" * name * "/eqs/julia_style/C2_2.jl")
 
-include("derived/N_is_1/eqs/julia_style/Phi0.jl")
-include("derived/N_is_1/eqs/julia_style/Theta0.jl")
+include("derived/" * name * "/eqs/julia_style/M0_0.jl")
+include("derived/" * name * "/eqs/julia_style/M0_1.jl")
+include("derived/" * name * "/eqs/julia_style/M0_2.jl")
+include("derived/" * name * "/eqs/julia_style/M1_0.jl")
+include("derived/" * name * "/eqs/julia_style/M1_1.jl")
+include("derived/" * name * "/eqs/julia_style/M1_2.jl")
+include("derived/" * name * "/eqs/julia_style/M2_0.jl")
+include("derived/" * name * "/eqs/julia_style/M2_1.jl")
+include("derived/" * name * "/eqs/julia_style/M2_2.jl")
+
+include("derived/" * name * "/eqs/julia_style/G0.jl")
+include("derived/" * name * "/eqs/julia_style/G1.jl")
+include("derived/" * name * "/eqs/julia_style/G2.jl")
+
+include("derived/" * name * "/eqs/julia_style/Phi0.jl")
+include("derived/" * name * "/eqs/julia_style/Theta0.jl")
 
 
 using .C0_0
@@ -93,48 +99,48 @@ const N = 1  # セクションの数
 
 
 """慣性行列"""
-function M(q_large::Vector{T}, xi_large::Vector{T}, q_dot_large::Vector{T}) where T
+function M(q::Vector{T}, q_dot::Vector{T}, xi::T) where T
     Z = Matrix{T}(undef, 3*N, 3*N)
 
-    Z[1,1] = M0_0.f(q_large, xi_large, q_dot_large)
-    Z[1,2] = M0_1.f(q_large, xi_large, q_dot_large)
-    Z[1,3] = M0_2.f(q_large, xi_large, q_dot_large)
-    Z[2,1] = M1_0.f(q_large, xi_large, q_dot_large)
-    Z[2,2] = M1_1.f(q_large, xi_large, q_dot_large)
-    Z[2,3] = M1_2.f(q_large, xi_large, q_dot_large)
-    Z[3,1] = M2_0.f(q_large, xi_large, q_dot_large)
-    Z[3,2] = M2_1.f(q_large, xi_large, q_dot_large)
-    Z[3,3] = M2_2.f(q_large, xi_large, q_dot_large)
+    Z[1,1] = M0_0.f(q, q_dot, xi)
+    Z[1,2] = M0_1.f(q, q_dot, xi)
+    Z[1,3] = M0_2.f(q, q_dot, xi)
+    Z[2,1] = M1_0.f(q, q_dot, xi)
+    Z[2,2] = M1_1.f(q, q_dot, xi)
+    Z[2,3] = M1_2.f(q, q_dot, xi)
+    Z[3,1] = M2_0.f(q, q_dot, xi)
+    Z[3,2] = M2_1.f(q, q_dot, xi)
+    Z[3,3] = M2_2.f(q, q_dot, xi)
 
     return Z
 end
 
 
 """コリオリ＋遠心力行列"""
-function C(q_large::Vector{T}, xi_large::Vector{T}, q_dot_large::Vector{T}) where T
+function C(q::Vector{T}, q_dot::Vector{T}, xi::T) where T
     Z = Matrix{T}(undef, 3*N, 3*N)
 
-    Z[1,1] = C0_0.f(q_large, xi_large, q_dot_large)
-    Z[1,2] = C0_1.f(q_large, xi_large, q_dot_large)
-    Z[1,3] = C0_2.f(q_large, xi_large, q_dot_large)
-    Z[2,1] = C1_0.f(q_large, xi_large, q_dot_large)
-    Z[2,2] = C1_1.f(q_large, xi_large, q_dot_large)
-    Z[2,3] = C1_2.f(q_large, xi_large, q_dot_large)
-    Z[3,1] = C2_0.f(q_large, xi_large, q_dot_large)
-    Z[3,2] = C2_1.f(q_large, xi_large, q_dot_large)
-    Z[3,3] = C2_2.f(q_large, xi_large, q_dot_large)
+    Z[1,1] = C0_0.f(q, q_dot, xi)
+    Z[1,2] = C0_1.f(q, q_dot, xi)
+    Z[1,3] = C0_2.f(q, q_dot, xi)
+    Z[2,1] = C1_0.f(q, q_dot, xi)
+    Z[2,2] = C1_1.f(q, q_dot, xi)
+    Z[2,3] = C1_2.f(q, q_dot, xi)
+    Z[3,1] = C2_0.f(q, q_dot, xi)
+    Z[3,2] = C2_1.f(q, q_dot, xi)
+    Z[3,3] = C2_2.f(q, q_dot, xi)
 
     return Z
 end
 
 
 """重力行列"""
-function G(q_large::Vector{T}, xi_large::Vector{T}, q_dot_large::Vector{T}) where T
+function G(q::Vector{T}, q_dot::Vector{T}, xi::T) where T
     Z = Vector{T}(undef, 3*N)
 
-    Z[1] = G0.f(q_large, xi_large, q_dot_large)
-    Z[2] = G1.f(q_large, xi_large, q_dot_large)
-    Z[3] = G2.f(q_large, xi_large, q_dot_large)
+    Z[1] = G0.f(q, q_dot, xi)
+    Z[2] = G1.f(q, q_dot, xi)
+    Z[3] = G2.f(q, q_dot, xi)
 
     return Z
 end
@@ -144,15 +150,15 @@ end
 function X_dot(X::Vector{T}) where T
     q = X[1:3]
     q_dot = X[4:6]
-    xi = [1.0, 1.0, 1.0]
+    xi = 1.0
 
     τ = [0.0, 0.0, 0.0]
 
-    inv_M = inv(M(q, xi, q_dot))
+    inv_M = inv(M(q, q_dot, xi))
 
     x1_dot = q_dot
-    x2_dot = -inv_M * C(q, xi, q_dot) * q_dot .+
-    inv_M * (τ .- G(q, xi, q_dot))
+    x2_dot = -inv_M * C(q, q_dot, xi) * q_dot .+
+    inv_M * (τ .- G(q, q_dot, xi))
 
     println([x1_dot; x2_dot])
     return [x1_dot; x2_dot]
@@ -162,17 +168,18 @@ end
 
 function test()
 
-    TIME_SPAN = 10.0
+    TIME_SPAN = 1.0
+    TIME_INTERVAL = 0.0001
 
-    q_large = [0.01, 0.02, 0.0]
-    xi_large = [1.0, 1.0, 1.0]
-    q_dot_large = [0.0, 0.0, 0.0]
+    q = [0.01, 0.02, 0.0]
+    xi = 1.0
+    q_dot = [0.0, 0.0, 0.0]
 
     t, X = solve_RungeKutta(
         X_dot,
-        [q_large; q_dot_large],
+        [q; q_dot],
         (0.0, TIME_SPAN),
-        0.001
+        TIME_INTERVAL
     )
 
     l1, l2, l3, l1_dot, l2_dot, l3_dot = split_vec_of_arrays(X)
