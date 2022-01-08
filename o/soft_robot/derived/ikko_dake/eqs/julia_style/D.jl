@@ -10,3 +10,5 @@ function f(q::Vector{T}, q_dot::Vector{T}, xi::T) where T
     [110   0   0;
 0 110   0;
 0   0 110]
+end
+end

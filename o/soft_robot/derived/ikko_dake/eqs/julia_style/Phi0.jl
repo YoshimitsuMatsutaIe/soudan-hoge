@@ -1,4 +1,4 @@
-module Phi0
+module Phi
 function f(q::Vector{T}, q_dot::Vector{T}, xi::T) where T
     l1 = q[1]
     l2 = q[2]

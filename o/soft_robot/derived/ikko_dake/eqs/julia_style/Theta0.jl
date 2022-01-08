@@ -1,4 +1,4 @@
-module Theta0
+module Theta
 function f(q::Vector{T}, q_dot::Vector{T}, xi::T) where T
     l1 = q[1]
     l2 = q[2]
