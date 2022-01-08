@@ -166,10 +166,11 @@ function X_dot(X::Vector{T}) where T
 end
 
 
+"""合ってるかテスト"""
 function test()
-
+    println("計算中...")
     TIME_SPAN = 6.0
-    TIME_INTERVAL = 0.00001
+    TIME_INTERVAL = 0.01
 
     q = [0.01, 0.02, 0.0]
     xi = 1.0

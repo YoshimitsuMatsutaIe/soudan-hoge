@@ -118,6 +118,8 @@ def G(q_large, xi_large, q_dot_large):
 
 
 
+
+
 def X_dot(t, X):
     """状態方程式"""
     
@@ -136,7 +138,7 @@ def X_dot(t, X):
     x2_dot = -inv_M @ C(q, q_dot, xi) @ q_dot +\
         inv_M @ (tau - G(q, q_dot, xi))
     #print(np.ravel(np.concatenate([x1_dot, x2_dot])))
-    #print(t)
+    print(t)
     return np.ravel(np.concatenate([x1_dot, x2_dot]))
 
 
