@@ -160,7 +160,7 @@ function X_dot(X::Vector{T}) where T
     x2_dot = -inv_M * C(q, q_dot, xi) * q_dot .+
     inv_M * (τ .- G(q, q_dot, xi))
 
-    println([x1_dot; x2_dot])
+    #println(norm([x1_dot; x2_dot]))
     return [x1_dot; x2_dot]
 
 end
@@ -168,8 +168,8 @@ end
 
 function test()
 
-    TIME_SPAN = 1.0
-    TIME_INTERVAL = 0.0001
+    TIME_SPAN = 6.0
+    TIME_INTERVAL = 0.00001
 
     q = [0.01, 0.02, 0.0]
     xi = 1.0
