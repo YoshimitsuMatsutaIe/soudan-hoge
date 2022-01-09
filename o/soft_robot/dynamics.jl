@@ -17,7 +17,7 @@ end
 
 """慣性行列"""
 function M(q::Vector{Float64})
-    Z = Matrix{Float64}(undef, 3*N, 3*N)
+    Z = Matrix{Float64}(undef, 3, 3)
     M!(q, Z)
     return Z
 end
@@ -35,7 +35,7 @@ end
 
 """コリオリ＋遠心力行列"""
 function C(q::Vector{Float64}, q_dot::Vector{Float64})
-    Z = Matrix{Float64}(undef, 3*N, 3*N)
+    Z = Matrix{Float64}(undef, 3, 3)
 
     C!(q, q_dot, Z)
 
@@ -55,7 +55,7 @@ end
 
 """重力行列"""
 function G(q::Vector{Float64})
-    Z = Vector{Float64}(undef, 3*N)
+    Z = Vector{Float64}(undef, 3)
 
     G!(q, Z)
 
@@ -89,7 +89,7 @@ end
 """加速度"""
 function calc_q_dot_dot(
     τ::Vector{T}, q::Vector{T}, q_dot::Vector{T},
-    H::Matrix{T}, 
+    H::Vector{T}, 
     ) where T
     inv(M(q)) * (τ .- (C(q, q_dot) .+ D)*q_dot .- K*q .- G(q) .- H) |> vec
 end

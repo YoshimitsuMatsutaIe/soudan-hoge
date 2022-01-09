@@ -52,7 +52,7 @@ end
     qd_dot::Vector{Vector{T}}
     qd_dot_dot::Vector{Vector{T}}
     τ::Vector{Vector{T}}
-    error::Vector{T}
+    error::Vector{Vector{T}}
 end
 
 const R = 0.01
@@ -88,24 +88,25 @@ end
 
 
 """状態方程式"""
-function X_dot(X::Vector{T}) where T
+function X_dot(X::Vector{T}, τ::Vector{T}) where T
     q = X[1:3]
     q_dot = X[4:6]
+    H = X[7:9]
 
-    τ = [10.0, 0.0, 0.0]
 
     x1_dot = q_dot
-    x2_dot = inv(M(q)) * (τ .- G(q) .- (C(q, q_dot) .+ D)*q_dot .- K*q)
-    #x2_dot = M(q) \ (τ .- G(q) .- (C(q, q_dot) .+ D)*q_dot .- K*q)
+    x2_dot = calc_q_dot_dot(τ, q, q_dot, H)
+    x3_dot = H_dot(H, q, q_dot)
+
 
     #println(norm([x1_dot; x2_dot]))
-    return [x1_dot; x2_dot]
+    return [x1_dot; x2_dot; x3_dot]
 
 end
 
 
 """シミュレーション実行"""
-function run_simulation(TIME_SPAN::T=1.0, TIME_INTERVAL::T=0.0001) where T
+function run_simulation(TIME_SPAN::T=1.0, Δt::T=0.0001) where T
 
 
     # 制御器のパラメータ
@@ -123,8 +124,9 @@ function run_simulation(TIME_SPAN::T=1.0, TIME_INTERVAL::T=0.0001) where T
 
     q₀ = zeros(T, 3)
     q_dot₀ = zeros(T, 3)
+    H₀ = zeros(T, 3)  # ヒステリシスベクトル
 
-    t = Vector(0.0:TIME_INTERVAL:TIME_SPAN)
+    t = Vector(0.0:Δt:TIME_SPAN)
 
     data = Data(
         t = t,
@@ -135,10 +137,49 @@ function run_simulation(TIME_SPAN::T=1.0, TIME_INTERVAL::T=0.0001) where T
         qd_dot = Vector{typeof(q₀)}(undef, length(t)),
         qd_dot_dot = Vector{typeof(q₀)}(undef, length(t)),
         τ = Vector{typeof(q₀)}(undef, length(t)),
-        error = Vector{T}(undef, length(t)),
+        error = Vector{typeof(q₀)}(undef, length(t)),
     )
 
+    # 初期値代入
+    data.q[1] = q₀
+    data.q_dot[1] = q_dot₀
+    data.q_dot_dot[1] = zeros(T, 3)
+    data.qd[1] = calc_qd(t[1])
+    data.qd_dot[1] = calc_qd_dot(t[1])
+    data.qd_dot_dot[1] = calc_qd_dot_dot(t[1])
+    data.τ[1] = zeros(T, 3)
+    data.error[1] = data.qd[1] .- data.q[1]
+    H = H₀
 
+
+    # メインループ
+    for i in tqdm(1:length(t)-1)
+
+        # ルンゲクッタの部分
+        X = [data.q[i]; data.q_dot[i]; H]
+        k₁ = X_dot(X, data.τ[i])
+        k₂ = X_dot(X.+k₁.*Δt/2, data.τ[i])
+        k₃ = X_dot(X.+k₂.*Δt/2, data.τ[i])
+        k₄ = X_dot(X.+k₃.*Δt, data.τ[i])
+        @. X += (k₁ + 2k₂ + 2k₃ +k₄) * Δt/6
+
+        data.q[i+1] = X[1:3]
+        data.q_dot[i+1] = X[4:6]
+        H = X[7:9]
+
+        data.q_dot_dot[i+1] = calc_q_dot_dot(
+            data.τ[i], data.q[i+1], data.q_dot[i+1], H
+        )
+
+        
+        data.qd[i+1] = calc_qd(t[i+1])
+        data.qd_dot[i+1] = calc_qd_dot(t[i+1])
+        data.qd_dot_dot[i+1] = calc_qd_dot_dot(t[i+1])
+        data.error[i+1] = data.qd[i+1] .- data.q[i+1]
+        data.τ[i+1] = calc_torque(P, data.q[i+1], data.qd[i+1])
+    end
+
+    data
 end
 
 
