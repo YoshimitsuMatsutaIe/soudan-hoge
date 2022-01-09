@@ -82,7 +82,7 @@ end
 
 
 """シミュレーション実行"""
-function run_simulation(TIME_SPAN::T=1.0, Δt::T=0.0001) where T
+function run_simulation(;TIME_SPAN::T=1.0, Δt::T=0.0001) where T
 
 
     # 制御器のパラメータ
