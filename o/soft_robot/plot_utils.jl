@@ -125,9 +125,13 @@ function make_animation(data)
         zl = z_mid-max_range, zu = z_mid+max_range,
     )
 
+    xd_all = [Phi0(q, 1.0) for q in data.qd]
+    x, y, z = split_vec_of_arrays(xd_all)
+
     anim = Animation()
     @gif for i in tqdm(1:step:length(data.t))
         _fig = draw_frame(data.t[i], data.q[i], data.qd[i], fig_shape)
+        plot!(_fig, x, y, z, label="xd",)
         frame(anim, _fig)
     end
 

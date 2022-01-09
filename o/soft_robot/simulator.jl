@@ -82,16 +82,16 @@ end
 
 
 """シミュレーション実行"""
-function run_simulation(;TIME_SPAN::T=1.0, Δt::T=0.0001) where T
+function run_simulation(;TIME_SPAN::T=2.2π/3, Δt::T=0.0001) where T
 
 
     # 制御器のパラメータ
     kinematic = KinematicController(Dynamics.K)
     PDandFL = PDandFBController(
-        Matrix{Float64}(I, 3, 3)*200, Matrix{Float64}(I, 3, 3)*1e4
+        Matrix{Float64}(I, 3, 3)*200, Matrix{Float64}(I, 3, 3)*1500
     )
     passivity = PassiveController(
-        Matrix{Float64}(I, 3, 3)*100, [10.0, 10.0, 10.0],
+        Matrix{Float64}(I, 3, 3)*100, Matrix{Float64}(I, 3, 3)*10,
     )
 
 
@@ -152,7 +152,10 @@ function run_simulation(;TIME_SPAN::T=1.0, Δt::T=0.0001) where T
         data.qd_dot[i+1] = calc_qd_dot(t[i+1])
         data.qd_dot_dot[i+1] = calc_qd_dot_dot(t[i+1])
         data.error[i+1] = data.qd[i+1] .- data.q[i+1]
-        data.τ[i+1] = calc_torque(P, data.q[i+1], data.qd[i+1])
+        
+        #data.τ[i+1] = calc_torque(kinematic, data.q[i+1], data.qd[i+1])
+        #data.τ[i+1] = calc_torque(PDandFL, data.q[i+1], data.q_dot[i+1], data.qd[i+1], data.qd_dot[i+1], data.qd_dot_dot[i+1])
+        data.τ[i+1] = calc_torque(passivity, data.q[i+1], data.q_dot[i+1], data.qd[i+1], data.qd_dot[i+1], data.qd_dot_dot[i+1])
     end
 
     data
@@ -160,6 +163,6 @@ end
 
 
 
-@time data = run_simulation()
+@time data = run_simulation(TIME_SPAN=0.01)
 @time make_plot_basic(data)
 @time make_animation(data)

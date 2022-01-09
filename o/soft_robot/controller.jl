@@ -55,7 +55,7 @@ end
 """受動性に基づく制御器"""
 struct PassiveController{T}
     Λ::Matrix{T}
-    KG::Vector{T}
+    KG::Matrix{T}
 end
 
 
