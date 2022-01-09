@@ -130,7 +130,7 @@ function X_dot(X::Vector{T}) where T
     q = X[1:3]
     q_dot = X[4:6]
 
-    τ = [1.0, 0.0, 0.0]
+    τ = [10.0, 0.0, 0.0]
 
     x1_dot = q_dot
     x2_dot = inv(M(q)) * (τ .- G(q) .- (C(q, q_dot) .+ D)*q_dot .- K*q)
@@ -238,7 +238,7 @@ end
 """合ってるかテスト"""
 function test()
     println("計算中...")
-    TIME_SPAN = 1.0
+    TIME_SPAN = 10.0
     TIME_INTERVAL = 0.0001  # これより大きいと発散．方程式が硬すぎる?
 
     q = [0.0, 0.0, 0.0]
