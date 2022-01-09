@@ -1,6 +1,6 @@
 using Plots
 using LinearAlgebra
-
+using ProgressBars
 using StaticArrays
 using ArraysOfArrays
 
@@ -20,7 +20,7 @@ function solve_RungeKutta(dx, x₀::Vector{T}, t_span, Δt::T) where T
     x = Vector{typeof(x₀)}(undef, length(t))  # 解を格納する1次元配列
 
     x[1] = x₀  # 初期値
-    for i in 1:length(x)-1
+    for i in tqdm(1:length(x)-1)
         k₁ = dx(x[i])
         k₂ = dx(x[i]+k₁*Δt/2)
         k₃ = dx(x[i]+k₂*Δt/2)
@@ -94,6 +94,8 @@ function G(q::Vector{Float64})
     return Z
 end
 
+const K = diagm([1700.0, 1700.0, 1700.0])
+const D = diagm([110.0, 110.0, 110.0])
 
 """状態方程式"""
 function X_dot(X::Vector{T}) where T
@@ -103,11 +105,9 @@ function X_dot(X::Vector{T}) where T
 
     τ = [0.0, 0.0, 0.0]
 
-    inv_M = inv(M(q))
-
     x1_dot = q_dot
-    x2_dot = -inv_M * C(q, q_dot) * q_dot .+
-    inv_M * (τ .- G(q))
+    x2_dot = inv(M(q)) * (τ .- G(q) .- (C(q, q_dot) .+ D)*q_dot .- K*q)
+    #x2_dot = M(q) \ (τ .- G(q) .- (C(q, q_dot) .+ D)*q_dot .- K*q)
 
     #println(norm([x1_dot; x2_dot]))
     return [x1_dot; x2_dot]
@@ -118,10 +118,10 @@ end
 """合ってるかテスト"""
 function test()
     println("計算中...")
-    TIME_SPAN = 1.0
-    TIME_INTERVAL = 0.00001
+    TIME_SPAN = 5.0
+    TIME_INTERVAL = 0.0001  # これより大きいと発散．方程式が硬すぎる?
 
-    q = [0.01, 0.02, 0.0]
+    q = [0.0, 0.0, 0.0]
     xi = 1.0
     q_dot = [0.0, 0.0, 0.0]
 
