@@ -1,13 +1,58 @@
 """視覚化"""
 
 using Plots
+using ProgressBars
+
+
+include("utils.jl")
+include("kinematics.jl")
+
+using .Kinematics: Phi0, Arm
+
+
+function make_plot_basic(data)
+    x, y, z = split_vec_of_arrays(data.q)
+    fig = plot(xlim=(0, data.t[end]))
+    plot!(fig, data.t, x, label="l1")
+    plot!(fig, data.t, y, label="l2")
+    plot!(fig, data.t, z, label="l3")
+
+    x, y, z = split_vec_of_arrays(data.q_dot)
+    fig2 = plot(xlim=(0, data.t[end]))
+    plot!(fig2, data.t, x, label="l1_dot")
+    plot!(fig2, data.t, y, label="l2_dot")
+    plot!(fig2, data.t, z, label="l3_dot")
+
+    x, y, z = split_vec_of_arrays(data.error)
+    fig3 = plot(xlim=(0, data.t[end]))
+    plot!(fig3, data.t, x, label="e1")
+    plot!(fig3, data.t, y, label="e2")
+    plot!(fig3, data.t, z, label="e3")
+
+    x, y, z = split_vec_of_arrays(data.τ)
+    fig4 = plot(xlim=(0, data.t[end]))
+    plot!(fig4, data.t, x, label="τ1")
+    plot!(fig4, data.t, y, label="τ2")
+    plot!(fig4, data.t, z, label="τ3")
+
+    fig_I = plot(
+        fig, fig2, fig3, fig4,
+        layout=(4, 1), size=(500, 800))
+    savefig(fig_I, "julia.png")
+
+end
+
+
+
+
+
 
 
 """1フレームを描写"""
-function draw_frame(t::T, q::Vector{T}, q_dot::Vector{T}, fig_shape) where T
+function draw_frame(t::T, q::Vector{T}, qd::Vector{T}, fig_shape) where T
     
 
-    arm = Arm(q, Ξ)
+    arm = Arm(q)
 
     x, y, z = split_vec_of_arrays(arm)
     fig = plot(
@@ -19,12 +64,13 @@ function draw_frame(t::T, q::Vector{T}, q_dot::Vector{T}, fig_shape) where T
         xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
     )
 
-    # scatter!(
-    #     fig,
-    #     [xd_true[1]], [xd_true[2]],
-    #     label="xd_true",
-    #     markershape=:star6,
-    # )
+    xd = Phi0(qd, 1.0)
+    scatter!(
+        fig,
+        [xd[1]], [xd[2]], [xd[3]],
+        label="qd",
+        markershape=:star6,
+    )
 
     # scatter!(
     #     fig,
@@ -49,12 +95,12 @@ end
 
 
 """アニメ作成"""
-function make_animation(t, x)
+function make_animation(data)
     println("アニメ作成中...")
     # 枚数決める
     #println(data.t)
     epoch_max = 100
-    epoch = length(t)
+    epoch = length(data.t)
     if epoch < epoch_max
         step = 1
     else
@@ -63,10 +109,10 @@ function make_animation(t, x)
 
     #println(step)
 
-    x_max = 0.18
-    x_min = -0.18
-    y_max = 0.18
-    y_min = -0.18
+    x_max = 0.1
+    x_min = -0.1
+    y_max = 0.1
+    y_min = -0.1
     z_max = 0.15
     z_min = 0.0
     max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
@@ -80,8 +126,8 @@ function make_animation(t, x)
     )
 
     anim = Animation()
-    @gif for i in tqdm(1:step:length(t))
-        _fig = draw_frame(t[i], x[i][1:3], x[i][4:6], fig_shape)
+    @gif for i in tqdm(1:step:length(data.t))
+        _fig = draw_frame(data.t[i], data.q[i], data.qd[i], fig_shape)
         frame(anim, _fig)
     end
 

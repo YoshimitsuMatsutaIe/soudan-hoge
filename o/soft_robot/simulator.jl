@@ -9,37 +9,13 @@ using Parameters
 include("kinematics.jl")
 include("dynamics.jl")
 include("controller.jl")
+include("plot_utils.jl")
 
 using .Kinematics: Phi0, Arm
 using .Dynamics: H_dot, calc_q_dot_dot
 using .Controller
 
 
-function split_vec_of_arrays(u)
-    vec.(u) |>
-    x ->
-    VectorOfSimilarVectors(x).data |>
-    transpose |>
-    VectorOfSimilarVectors
-end
-
-
-"""ルンゲクッタ法（4次）"""
-function solve_RungeKutta(dx, x₀::Vector{T}, t_span, Δt::T) where T
-    t = range(t_span..., step = Δt)  # 時間軸
-    x = Vector{typeof(x₀)}(undef, length(t))  # 解を格納する1次元配列
-
-    x[1] = x₀  # 初期値
-    for i in tqdm(1:length(x)-1)
-        k₁ = dx(x[i])
-        k₂ = dx(x[i]+k₁*Δt/2)
-        k₃ = dx(x[i]+k₂*Δt/2)
-        k₄ = dx(x[i]+k₃*Δt)
-        x[i+1] = x[i] .+ (k₁ .+ 2k₂ .+ 2k₃ .+k₄) .* Δt/6
-    end
-
-    t, x
-end
 
 
 """シミュレーションのデータを格納"""
@@ -184,4 +160,6 @@ end
 
 
 
-@time run_simulation()
+@time data = run_simulation()
+@time make_plot_basic(data)
+@time make_animation(data)

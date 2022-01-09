@@ -16,7 +16,7 @@ end
 
 """グローバル位置"""
 function Phi0(q::Vector{Float64}, ξ)
-    Z = Vector{Float64}(undef, 3*N)
+    Z = Vector{Float64}(undef, 3)
     Phi0!(q, ξ, Z)
     return Z
 end
@@ -24,7 +24,7 @@ end
 const Ξ = Vector(0:0.01:1)
 
 """アームのディスク位置を計算"""
-function Arm(q::Vector{T}, Ξ::Vector{T}) where T
+function Arm(q::Vector{T},) where T
     Phis = Vector{typeof(q)}(undef, length(Ξ))
     for (i, ξ) in enumerate(Ξ)
         Phis[i] = Phi0(q, ξ)
@@ -35,3 +35,7 @@ end
 
 
 end
+
+
+# using .Kinematics: Phi0
+# println(Phi0([0.0, 0.0, 0.0], 1.0))
