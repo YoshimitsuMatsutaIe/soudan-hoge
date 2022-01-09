@@ -64,20 +64,24 @@ end
 
 
 const K = diagm([1700.0, 1700.0, 1700.0])  # 剛性行列
+
 const D = diagm([110.0, 110.0, 110.0])  # 減衰行列
 
+const αh = 23.705
+const βh = 1.7267
+const γh = -42.593
 
-function h_dot(h::T, q::T, q_dot::T, αh::T, βh::T, γh::T) where T
+function h_dot(h::T, q::T, q_dot::T) where T
     q * (αh - (βh * sign(q_dot*h) + γh)*abs(h))
 end
 
 
 """ヒステリシスベクトルの更新式"""
-function H_dot(H::Vector{T}, q::Vector{T}, q_dot::Vector{T}, αh::T, βh::T, γh::T) where T
+function H_dot(H::Vector{T}, q::Vector{T}, q_dot::Vector{T}) where T
     [
-        h_dot(H[1], q[1], q_dot[1], αh, βh, γh),
-        h_dot(H[2], q[2], q_dot[2], αh, βh, γh),
-        h_dot(H[3], q[3], q_dot[3], αh, βh, γh),
+        h_dot(H[1], q[1], q_dot[1]),
+        h_dot(H[2], q[2], q_dot[2]),
+        h_dot(H[3], q[3], q_dot[3]),
     ]
 end
 

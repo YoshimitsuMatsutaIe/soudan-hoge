@@ -251,7 +251,8 @@ class OneSection(Base):
         self.J_vs = None
     
     
-    def P()
+    def P():
+        pass
 
 
 

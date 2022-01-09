@@ -21,6 +21,7 @@ function Phi0(q::Vector{Float64}, ξ)
     return Z
 end
 
+const Ξ = Vector(0:0.01:1)
 
 """アームのディスク位置を計算"""
 function Arm(q::Vector{T}, Ξ::Vector{T}) where T

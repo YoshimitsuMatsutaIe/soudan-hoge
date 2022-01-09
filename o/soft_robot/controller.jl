@@ -1,9 +1,18 @@
-"""制御器のまとめ"""
+"""制御器のまとめ
+"""
+module Controller
 
 using LinearAlgebra
 
 include("dynamics.jl")
 using .Dynamics: M, C, G, K, D
+
+
+export KinematicController
+export PDandFBController
+export PassiveController
+export calc_torque
+
 
 """運動学制御器"""
 struct KinematicController{T}
@@ -82,12 +91,11 @@ function calc_torque(
     qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T}
     ) where T
 
-    q̃ = q .- qd
-    q̃_dot = q_dot .- qd_dot
+    return 
 
-    v = qd_dot .- p.Λ*q̃
-    a = qd_dot_dot .- p.Λ*q̃_dot
-    r = q̃_dot .+ p.Λ*q̃
+
+end
+
 
 
 end
