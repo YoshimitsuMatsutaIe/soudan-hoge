@@ -5,6 +5,8 @@ using LinearAlgebra
 using Plots
 using ProgressBars
 using Parameters
+using DifferentialEquations
+
 
 include("kinematics.jl")
 include("dynamics.jl")
@@ -81,7 +83,10 @@ function X_dot(X::Vector{T}, τ::Vector{T}) where T
 end
 
 
-"""シミュレーション実行"""
+"""シミュレーション実行
+
+自分で書いたオイラー法．遅い.
+"""
 function run_simulation(;TIME_SPAN::T=2.2π/3, Δt::T=0.0001) where T
 
 
@@ -95,7 +100,6 @@ function run_simulation(;TIME_SPAN::T=2.2π/3, Δt::T=0.0001) where T
     )
 
 
-    P = kinematic
 
 
     q₀ = zeros(T, 3)
@@ -162,7 +166,47 @@ function run_simulation(;TIME_SPAN::T=2.2π/3, Δt::T=0.0001) where T
 end
 
 
+"""ソルバで使うやつ"""
+function state_eq!(X_dot::Vector{T}, X::Vector{T}, p, t::T) where T
+    q = X[1:3]
+    q_dot = X[4:6]
+    H = X[7:9]
 
-@time data = run_simulation(TIME_SPAN=0.01)
-@time make_plot_basic(data)
-@time make_animation(data)
+    τ = calc_torque(
+    p, q, q_dot,
+        calc_qd(t), calc_qd_dot(t), calc_qd_dot_dot(t)
+    )
+
+    X_dot[1:3] = q_dot
+    X_dot[4:6] = calc_q_dot_dot(τ, q, q_dot, H)
+    X_dot[7:9] = H_dot(H, q, q_dot)
+
+end
+
+
+"""ソルバ使用"""
+function run_simulation(;TIME_SPAN::T=1.0, method) where T
+
+    X₀ = zeros(T, 9)
+    t_span = (0.0, TIME_SPAN)
+    p = PDandFBController(
+        Matrix{Float64}(I, 3, 3)*200, Matrix{Float64}(I, 3, 3)*1500
+    )
+    prob = ODEProblem(state_eq!, X₀, t_span, p)
+    sol = solve(prob)
+    
+    plot(
+        sol,
+        label=["l1" "l2" "l3" "l1_dot" "l2_dot" "l3_dot" "h1" "h2" "h3"],
+        )
+
+end
+
+
+# @time data = run_simulation(TIME_SPAN=0.01)
+# @time make_plot_basic(data)
+# @time make_animation(data)
+
+
+
+@time run_simulation(TIME_SPAN=2.2π/3, method=nothing)
