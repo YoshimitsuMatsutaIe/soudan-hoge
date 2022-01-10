@@ -213,7 +213,7 @@ function run_simulation(;TIME_SPAN::T=1.0, method) where T
         (
             name = "psiv",
             p = PassiveController(
-                Matrix{Float64}(I, 3, 3)*100,
+                Matrix{Float64}(I, 3, 3)*10,
                 Matrix{Float64}(I, 3, 3)*10,
             ),
             marker = :dot
@@ -222,7 +222,7 @@ function run_simulation(;TIME_SPAN::T=1.0, method) where T
 
     sols = []
     fig0 = plot(xlims=(0.0, TIME_SPAN))
-    fig_tau = plot(xlims=(0.0, TIME_SPAN), ylims=(-10.0, 150.0))
+    fig_tau = plot(xlims=(0.0, TIME_SPAN), ylims=(-50.0, 150.0))
     fig1 = plot(xlims=(0.0, TIME_SPAN))
     fig2 = plot(xlims=(0.0, TIME_SPAN))
     fig3 = plot(xlims=(0.0, TIME_SPAN))
@@ -252,10 +252,10 @@ function run_simulation(;TIME_SPAN::T=1.0, method) where T
         )
 
         x, y, z = split_vec_of_arrays(τ)
-        plot!(fig_tau, sol.t, x, label=param.name*"-"*"τ1_")
-        plot!(fig_tau, sol.t, y, label=param.name*"-"*"τ2_")
-        plot!(fig_tau, sol.t, z, label=param.name*"-"*"τ3_")
-        plot!(fig_tau,legend=:outerright, linestyle=param.marker)
+        plot!(fig_tau, sol.t, x, label=param.name*"-"*"τ1_", linestyle=param.marker)
+        plot!(fig_tau, sol.t, y, label=param.name*"-"*"τ2_", linestyle=param.marker)
+        plot!(fig_tau, sol.t, z, label=param.name*"-"*"τ3_", linestyle=param.marker)
+        plot!(fig_tau,legend=:outerright)
     
         plot!(
             fig1,
@@ -295,4 +295,4 @@ end
 
 
 
-@time sol = run_simulation(TIME_SPAN=0.5, method=nothing)
+@time sol = run_simulation(TIME_SPAN=1.0, method=nothing)
