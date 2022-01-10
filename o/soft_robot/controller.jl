@@ -14,13 +14,19 @@ export PassiveController
 export calc_torque
 
 
+
+
 """運動学制御器"""
 struct KinematicController{T}
     K_kin::Matrix{T}
 end
 
 
-function calc_torque(p::KinematicController{T}, q::Vector{T}, qd::Vector{T}) where T
+function calc_torque(
+    p::KinematicController{T},
+    q::Vector{T}, q_dot::Vector{T},
+    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T}
+    ) where T
     ek = qd .- q
     return p.K_kin * ek
 end
