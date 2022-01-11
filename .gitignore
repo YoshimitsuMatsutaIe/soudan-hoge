@@ -136,3 +136,8 @@ dmypy.json
 # 実行?
 *.out
 *.gch
+
+
+
+
+*.png
