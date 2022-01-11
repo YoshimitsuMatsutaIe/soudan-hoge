@@ -1,5 +1,5 @@
 /******************************************************************************
- *                       Code generated with sympy 1.9                        *
+ *                       Code generated with sympy 1.8                        *
  *                                                                            *
  *              See http://www.sympy.org/ for more information.               *
  *                                                                            *
@@ -10,7 +10,7 @@
 #ifndef CPROJECT__C__H
 #define CPROJECT__C__H
 
-void C(double l1, double l1_dot, double l2, double l2_dot, double l3, double l3_dot, double *out_5641084629667552501);
+void C(double l1, double l1_dot, double l2, double l2_dot, double l3, double l3_dot, double *out_4150184526278195790);
 
 #endif
 
