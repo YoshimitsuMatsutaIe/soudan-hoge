@@ -20,7 +20,7 @@ using .Controller
 
 
 
-const R = 0.01
+const R = 0.015
 
 """適当な目標アクチュエータ変位"""
 function calc_qd(t::T) where T

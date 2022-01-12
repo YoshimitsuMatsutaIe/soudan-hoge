@@ -101,17 +101,29 @@ end
 """受動性に基づく適応制御"""
 struct PassiveAdaptiveController{T}
     Γ::Matrix{T}
+    Λ::Matrix{T}
     KG::Matrix{T}
 end
 
 
-
+"""入力を計算"""
 function calc_torque(
     p::PassiveAdaptiveController{T},
     q::Vector{T}, q_dot::Vector{T},
     qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
     isUncertainty::Bool
     ) where T
+
+
+    q̃ = q .- qd
+    q̃_dot = q_dot .- qd_dot
+
+    v = qd_dot .- p.Λ*q̃
+    a = qd_dot_dot .- p.Λ*q̃_dot
+    r = q̃_dot .+ p.Λ*q̃
+
+    Y = [diagm(q); diagm(v)]
+    
 
     return 
 
