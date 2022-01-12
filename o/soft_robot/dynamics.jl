@@ -63,9 +63,11 @@ function G(q::Vector{Float64})
 end
 
 
-const K = diagm([1700.0, 1700.0, 1700.0])  # 剛性行列
+const K = diagm([1700.0, 1700.0, 1700.0])  # 剛性行列の真値
+const D = diagm([110.0, 110.0, 110.0])  # 減衰行列の真値
 
-const D = diagm([110.0, 110.0, 110.0])  # 減衰行列
+const uncertain_K = diagm([1020.0, 1020.0, 1020.0])  # 不確かな剛性行列
+const uncertain_D = diagm([77.0, 77.0, 77.0])  # 不確かな減衰行列
 
 const αh = 23.705
 const βh = 1.7267

@@ -5,7 +5,7 @@ module Controller
 using LinearAlgebra
 
 include("dynamics.jl")
-using .Dynamics: M, C, G, K, D
+using .Dynamics: M, C, G, K, D, uncertain_K, uncertain_D
 
 
 export KinematicController
@@ -22,14 +22,18 @@ struct KinematicController{T}
 end
 
 
+"""入力を計算"""
 function calc_torque(
     p::KinematicController{T},
     q::Vector{T}, q_dot::Vector{T},
-    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T}
+    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
+    isUncertainty::Bool
     ) where T
     ek = qd .- q
     return p.K_kin * ek
 end
+
+
 
 
 
@@ -40,21 +44,27 @@ struct PDandFBController{T}
 end
 
 
+"""入力を計算"""
 function calc_torque(
     p::PDandFBController{T},
     q::Vector{T}, q_dot::Vector{T},
-    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T}
+    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
+    isUncertainty::Bool
     ) where T
-
+    
     α = M(q)
-    β = C(q, q_dot)*q_dot .+ D*q_dot .+ K*q .+ G(q)
-
     q̃ = q .- qd
     q̃_dot = q_dot .- qd_dot
-
-    τ_dash = qd_dot_dot .- p.Kd*q̃_dot .- p.Kp*q̃
-
-    return α*τ_dash .+ β
+    
+    if isUncertainty  # 不確かさあり
+        β = C(q, q_dot)*q_dot .+ uncertain_D*q_dot .+ uncertain_K*q .+ G(q)
+        τ_dash = qd_dot_dot .- p.Kd*q̃_dot .- p.Kp*q̃
+        return α*τ_dash .+ β
+    else
+        β = C(q, q_dot)*q_dot .+ D*q_dot .+ K*q .+ G(q)
+        τ_dash = qd_dot_dot .- p.Kd*q̃_dot .- p.Kp*q̃
+        return α*τ_dash .+ β
+    end
 end
 
 
@@ -65,11 +75,12 @@ struct PassiveController{T}
 end
 
 
-
+"""入力を計算"""
 function calc_torque(
     p::PassiveController{T},
     q::Vector{T}, q_dot::Vector{T},
-    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T}
+    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
+    isUncertainty::Bool
     ) where T
 
     q̃ = q .- qd
@@ -79,7 +90,11 @@ function calc_torque(
     a = qd_dot_dot .- p.Λ*q̃_dot
     r = q̃_dot .+ p.Λ*q̃
     
-    return M(q)*a .+ C(q, q_dot)*v .+ G(q) .+ K*q .+ D*v .- p.KG*r
+    if isUncertainty  # 不確かさあり
+        return M(q)*a .+ C(q, q_dot)*v .+ G(q) .+ uncertain_K*q .+ uncertain_D*v .- p.KG*r
+    else
+        return M(q)*a .+ C(q, q_dot)*v .+ G(q) .+ K*q .+ D*v .- p.KG*r
+    end
 end
 
 
@@ -94,13 +109,15 @@ end
 function calc_torque(
     p::PassiveAdaptiveController{T},
     q::Vector{T}, q_dot::Vector{T},
-    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T}
+    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
+    isUncertainty::Bool
     ) where T
 
     return 
 
 
 end
+
 
 
 

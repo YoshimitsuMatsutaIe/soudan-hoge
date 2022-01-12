@@ -60,8 +60,9 @@ function state_eq!(X_dot::Vector{T}, X::Vector{T}, p, t::T) where T
     H = X[7:9]
     #println(t)
     τ = calc_torque(
-    p, q, q_dot,
-    calc_qd(t), calc_qd_dot(t), calc_qd_dot_dot(t)
+    p.method, q, q_dot,
+    calc_qd(t), calc_qd_dot(t), calc_qd_dot_dot(t),
+    p.isUn
     )
 
     X_dot[1:3] = q_dot
@@ -75,12 +76,28 @@ end
 
 硬い微分方程式でも正確に解いてくれる
 """
-function run_simulation(;TIME_SPAN::T=1.0, method) where T
+function run_simulation(TIME_SPAN::T, method, isUncertainty::Bool) where T
 
     X₀ = zeros(T, 9)
     t_span = (0.0, TIME_SPAN)
+    p = (method=method.p, isUn=isUncertainty)
+    println(method.name * " now...")
+    prob = ODEProblem(state_eq!, X₀, t_span, p)
+    sol = solve(prob)
     
-    parames = (
+    return sol
+end
+
+
+
+"""実行"""
+function exmample()
+
+    TIME_SPAN = 0.01
+
+    isUncertainty = true
+
+    params = (
         (
             name = "kine",
             p = KinematicController(Dynamics.K),
@@ -103,75 +120,75 @@ function run_simulation(;TIME_SPAN::T=1.0, method) where T
             marker = :dot
         )
     )
-
     sols = []
     fig0 = plot(xlims=(0.0, TIME_SPAN))
-    fig_tau = plot(xlims=(0.0, TIME_SPAN), ylims=(-50.0, 150.0))
+    fig_tau = plot(xlims=(0.0, TIME_SPAN), ylims=(-150.0, 150.0))
     fig1 = plot(xlims=(0.0, TIME_SPAN))
     fig2 = plot(xlims=(0.0, TIME_SPAN))
     fig3 = plot(xlims=(0.0, TIME_SPAN))
     
-    for param in parames
-        println(param.name * " now...")
-        prob = ODEProblem(state_eq!, X₀, t_span, param.p)
-        sol = solve(prob)
+
+    for method in params
+        sol = run_simulation(TIME_SPAN, method, isUncertainty)
         push!(sols, sol)
 
-        error = Vector{Vector{T}}(undef, length(sol.t))
-        τ = Vector{Vector{T}}(undef, length(sol.t))
+        error = Vector{Vector{Float64}}(undef, length(sol.t))
+        τ = Vector{Vector{Float64}}(undef, length(sol.t))
         for (i, t) in enumerate(sol.t)
             error[i] = calc_qd(t) .- sol.u[i][1:3]
             τ[i] = calc_torque(
-                param.p, sol.u[i][1:3], sol.u[i][4:6],
-                calc_qd(t), calc_qd_dot(t), calc_qd_dot_dot(t)
+                method.p, sol.u[i][1:3], sol.u[i][4:6],
+                calc_qd(t), calc_qd_dot(t), calc_qd_dot_dot(t),
+                isUncertainty
             )
         end
         L2_error = norm.(error)
         plot!(
             fig0,
             sol.t, L2_error,
-            label=(param.name * "-") * "err",
+            label=(method.name * "-") * "err",
             legend=:outerright,
-            linestyle=param.marker
+            linestyle=method.marker
         )
 
         x, y, z = split_vec_of_arrays(τ)
-        plot!(fig_tau, sol.t, x, label=param.name*"-"*"τ1_", linestyle=param.marker)
-        plot!(fig_tau, sol.t, y, label=param.name*"-"*"τ2_", linestyle=param.marker)
-        plot!(fig_tau, sol.t, z, label=param.name*"-"*"τ3_", linestyle=param.marker)
+        plot!(fig_tau, sol.t, x, label=method.name*"-"*"τ1_", linestyle=method.marker)
+        plot!(fig_tau, sol.t, y, label=method.name*"-"*"τ2_", linestyle=method.marker)
+        plot!(fig_tau, sol.t, z, label=method.name*"-"*"τ3_", linestyle=method.marker)
         plot!(fig_tau,legend=:outerright)
-    
+
         plot!(
             fig1,
             sol, vars=[(0,1), (0,2), (0,3)],
-            label=(param.name * "-") .* ["l1_" "l2_" "l3_"],
+            label=(method.name * "-") .* ["l1_" "l2_" "l3_"],
             legend=:outerright,
-            linestyle=param.marker
+            linestyle=method.marker
         )
         plot!(
             fig2,
             sol, vars=[(0,4), (0,5), (0,6)],
-            label=(param.name * "-") .* ["dl1" "dl2" "dl3"],
+            label=(method.name * "-") .* ["dl1" "dl2" "dl3"],
             legend=:outerright,
-            linestyle=param.marker
+            linestyle=method.marker
         )
         plot!(
             fig3,
             sol, vars=[(0,7), (0,8), (0,9)],
-            label=(param.name * "-") .* ["h1_" "h2_" "h3_"],
+            label=(method.name * "-") .* ["h1_" "h2_" "h3_"],
             legend=:outerright,
-            linestyle=param.marker
+            linestyle=method.marker
         )
-
+    
     end
+
     fig_I = plot(
         fig0, fig_tau, fig1, fig2, fig3,
         layout=(5,1), size=(500, 1200)
     )
     savefig(fig_I, "solve.png")
     sols
+    println("done!")
 end
 
 
-
-@time sol = run_simulation(TIME_SPAN=1.0, method=nothing)
+@time sol = exmample()
