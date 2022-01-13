@@ -64,11 +64,9 @@ function state_eq!(X_dot::Vector{T}, X::Vector{T}, p, t::T) where T
     calc_qd(t), calc_qd_dot(t), calc_qd_dot_dot(t),
     p.isUn
     )
-
     X_dot[1:3] = q_dot
     X_dot[4:6] = calc_q_dot_dot(τ, q, q_dot, H)
     X_dot[7:9] = H_dot(H, q, q_dot)
-
 end
 
 

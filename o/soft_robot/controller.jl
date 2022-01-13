@@ -111,7 +111,8 @@ function calc_torque(
     p::PassiveAdaptiveController{T},
     q::Vector{T}, q_dot::Vector{T},
     qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
-    isUncertainty::Bool
+    isUncertainty::Bool,
+    θp::Vector{T}
     ) where T
 
 
@@ -125,7 +126,7 @@ function calc_torque(
     Y = [diagm(q); diagm(v)]
     
 
-    return 
+    return Y * θp .- p.KG*r
 
 
 end
