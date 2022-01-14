@@ -4,6 +4,8 @@ module Controller
 
 using LinearAlgebra
 using Parameters  # 構造体にキーワード引数をつけるためのモジュール
+using MatrixEquations  #　行列方程式ソルバー
+
 
 include("dynamics.jl")
 using .Dynamics: M, C, G, K, D, uncertain_K, uncertain_D
@@ -13,6 +15,7 @@ export KinematicController
 export PDandFBController
 export PassivityBasedController
 export PassivityBasedAdaptiveController
+export SDREController
 export calc_torque
 export θp_dot
 
@@ -30,6 +33,7 @@ function calc_torque(
     p::KinematicController{T},
     q::Vector{T}, q_dot::Vector{T},
     qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
+
     ) where T
     ek = qd .- q
     return p.K_kin * ek
@@ -150,6 +154,51 @@ function calc_torque(
 
 
 end
+
+
+
+"""SDRE法"""
+@with_kw struct SDREController{T}
+    Q::Matrix{T}
+    R::Matrix{T}
+    isUncertainty::Bool
+end
+
+
+"""SDRE法の入力を計算"""
+function calc_torque(
+    p::SDREController{T},
+    q::Vector{T}, q_dot::Vector{T},
+    qd::Vector{T}, qd_dot::Vector{T},
+    H::VectorT
+    ) where T
+
+    x = [
+        qd .- q
+        qs_dot .- q_dot
+    ]
+    invM = inv(M(q))
+
+    if p.isUncertainty  # 不確かさありのとき
+        println("hoge")
+    else  # 不確かさ無し
+        A = [
+            zeros(T, 3, 3) Matrix{T}(I, 3, 3)
+            -invM*K -insM*(C(q, q_dot) .+ D)
+        ]
+        B = [
+            zeros(T, 3, 3)
+            invM
+        ]
+
+
+    S = zero(B)  # 何か不明
+    P, _, _ = arec(A, B, p.R, p.Q, S)  # リカッチ方程式を解く
+    K = inv(p.R) * B' * P  # 最適フィードバックゲイン
+    
+    return -K*x .- G(q) .- H
+end
+
 
 
 
