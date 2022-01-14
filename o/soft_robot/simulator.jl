@@ -6,7 +6,7 @@ using Plots  # グラフ作成
 #using ProgressBars
 #using Parameters
 using DifferentialEquations  # 微分方程式のソルバ
-#using LaTeXStrings
+using LaTeXStrings
 
 
 include("kinematics.jl")
@@ -154,19 +154,19 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 2.0
+    TIME_SPAN = 0.03
 
     hutashikasa = true
 
     params = (
-        # (
-        #     name = "kine",
-        #     p = KinematicController(
-        #         K_kin = Dynamics.K,
-        #         isUncertainty = hutashikasa,
-        #     ),
-        #     marker = :solid,
-        # ),
+        (
+            name = "kine",
+            p = KinematicController(
+                K_kin = Dynamics.K,
+                isUncertainty = hutashikasa,
+            ),
+            color = :red
+        ),
         (
             name = "pdfb",
             p = PDandFBController(
@@ -174,17 +174,17 @@ function exmample()
                 Kp = Matrix{Float64}(I, 3, 3)*10000,#1500
                 isUncertainty = hutashikasa,
             ),
-            marker = :dash,
+            color = :blue,
         ),
-        # (
-        #     name = "psiv",
-        #     p = PassivityBasedController(
-        #         Λ = Matrix{Float64}(I, 3, 3)*10,
-        #         KG = Matrix{Float64}(I, 3, 3)*10,
-        #         isUncertainty = hutashikasa,
-        #     ),
-        #     marker = :dot,
-        # ),
+        (
+            name = "psiv",
+            p = PassivityBasedController(
+                Λ = Matrix{Float64}(I, 3, 3)*10,
+                KG = Matrix{Float64}(I, 3, 3)*10,
+                isUncertainty = hutashikasa,
+            ),
+            color = :magenta
+        ),
         (
             name = "psad",
             p = PassivityBasedAdaptiveController(
@@ -193,11 +193,11 @@ function exmample()
                 KG = Matrix{Float64}(I, 3, 3)*10,
                 isUncertainty = hutashikasa,
             ),
-            marker = :dashdot,
+            color = :black
         )
     )
     sols = []
-    fig0 = plot(xlims=(0.0, TIME_SPAN))
+    fig0 = plot(xlims=(0.0, TIME_SPAN), ylims=(0,0.015))
     fig_tau = plot(xlims=(0.0, TIME_SPAN), ylims=(-150.0, 150.0))
     fig1 = plot(xlims=(0.0, TIME_SPAN))
     fig2 = plot(xlims=(0.0, TIME_SPAN))
@@ -205,7 +205,7 @@ function exmample()
     
 
     for param in params
-        sol = run_simulation(TIME_SPAN, param.name, param.p)
+        @time sol = run_simulation(TIME_SPAN, param.name, param.p)
         push!(sols, sol)
 
         error = Vector{Vector{Float64}}(undef, length(sol.t))
@@ -218,81 +218,88 @@ function exmample()
         plot!(
             fig0,
             sol.t, L2_error,
-            label=(param.name * "-") * "err",
+            label=(param.name * "-") * "e",
             legend=:outerright,
-            linestyle=param.marker
+            c=param.color,
+            ylabel=L"error [m]"
         )
 
         x, y, z = split_vec_of_arrays(τ)
-        plot!(fig_tau, sol.t, x, label=param.name*"-"*"τ1_", linestyle=param.marker)
-        plot!(fig_tau, sol.t, y, label=param.name*"-"*"τ2_", linestyle=param.marker)
-        plot!(fig_tau, sol.t, z, label=param.name*"-"*"τ3_", linestyle=param.marker)
-        plot!(fig_tau,legend=:outerright)
+        plot!(fig_tau, sol.t, x, label=param.name*"-"*"1", c=param.color, linestyl=:solid)
+        plot!(fig_tau, sol.t, y, label=param.name*"-"*"2", c=param.color, linestyle=:dash)
+        plot!(fig_tau, sol.t, z, label=param.name*"-"*"3", c=param.color, linestyle=:dot)
+        plot!(fig_tau,legend=:outerright, ylabel=L"τ [N/rad]")
 
         plot!(
             fig1,
             sol, vars=[(0,1), (0,2), (0,3)],
-            label=(param.name * "-") .* ["l1_" "l2_" "l3_"],
+            label=(param.name * "-") .* ["1" "2" "3"],
             legend=:outerright,
-            linestyle=param.marker
+            c=param.color,
+            linestyle=[:solid :dash :dot],
+            ylabel=L"l [m]"
         )
         plot!(
             fig2,
             sol, vars=[(0,4), (0,5), (0,6)],
-            label=(param.name * "-") .* ["dl1" "dl2" "dl3"],
+            label=(param.name * "-") .* ["1" "2" "3"],
             legend=:outerright,
-            linestyle=param.marker
+            c=param.color,
+            linestyle=[:solid :dash :dot],
+            ylabel=L"\dot{l}  [m/s]"
         )
         plot!(
             fig3,
             sol, vars=[(0,7), (0,8), (0,9)],
-            label=(param.name * "-") .* ["h1_" "h2_" "h3_"],
+            label=(param.name * "-") .* ["1" "2" "3"],
             legend=:outerright,
-            linestyle=param.marker
+            c=param.color,
+            linestyle=[:solid :dash :dot],
+            ylabel=L"h  ${[N/rad]}$"
         )
     
     end
 
     fig_I = plot(
         fig0, fig_tau, fig1, fig2, fig3,
-        layout=(5,1), size=(500, 1200)
+        layout=(5,1), size=(800, 1200)
     )
     savefig(fig_I, "solve.png")
 
-    fig_param_K = plot(xlims=(0.0, TIME_SPAN))
-    plot!(
-        fig_param_K,
-        sols[2], vars=[(0,10), (0,11), (0,12)],
-        label=["K1" "K2" "K3"],
-        legend=:outerright,
-    )
+    # fig_param_K = plot(xlims=(0.0, TIME_SPAN))
     # plot!(
     #     fig_param_K,
-    #     [sols[2].t[1], sols[2].t[end]], [Dynamics.K[1], Dynamics.K[1],],
-    #     label="real_K"
+    #     sols[2], vars=[(0,10), (0,11), (0,12)],
+    #     label=["K1" "K2" "K3"],
+    #     legend=:outerright,
     # )
+    # # plot!(
+    # #     fig_param_K,
+    # #     [sols[2].t[1], sols[2].t[end]], [Dynamics.K[1], Dynamics.K[1],],
+    # #     label="real_K"
+    # # )
 
-    fig_param_D = plot(xlims=(0.0, TIME_SPAN))
-    plot!(
-        fig_param_D,
-        sols[2], vars=[(0,13), (0,14), (0,15)],
-        label=["D1" "D2" "D3"],
-        legend=:outerright,
-    )
+    # fig_param_D = plot(xlims=(0.0, TIME_SPAN))
     # plot!(
     #     fig_param_D,
-    #     [sols[2].t[1], sols[2].t[end]], [Dynamics.D[1], Dynamics.D[1],],
-    #     label="real_D"
+    #     sols[2], vars=[(0,13), (0,14), (0,15)],
+    #     label=["D1" "D2" "D3"],
+    #     legend=:outerright,
     # )
-    fig_hog = plot(
-        fig_param_K, fig_param_D,
-        layout=(2,1),
-    )
-    savefig(fig_hog, "param.png")
+    # # plot!(
+    # #     fig_param_D,
+    # #     [sols[2].t[1], sols[2].t[end]], [Dynamics.D[1], Dynamics.D[1],],
+    # #     label="real_D"
+    # # )
+    # fig_hog = plot(
+    #     fig_param_K, fig_param_D,
+    #     layout=(2,1),
+    # )
+    # savefig(fig_hog, "param.png")
 
     sols
     println("done!")
 end
 
 
-@time sol = exmample()
+@time sols = exmample()

@@ -3,7 +3,7 @@
 module Controller
 
 using LinearAlgebra
-using Parameters
+using Parameters  # 構造体にキーワード引数をつけるためのモジュール
 
 include("dynamics.jl")
 using .Dynamics: M, C, G, K, D, uncertain_K, uncertain_D
