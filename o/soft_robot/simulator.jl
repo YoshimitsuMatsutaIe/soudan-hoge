@@ -154,9 +154,9 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 0.03
+    TIME_SPAN = 0.1
 
-    hutashikasa = true
+    hutashikasa = false
 
     params = (
         (
@@ -194,6 +194,15 @@ function exmample()
                 isUncertainty = hutashikasa,
             ),
             color = :black
+        ),
+        (
+            name = "sdre",
+            p = SDREController(
+                Q = Matrix{Float64}(I, 6, 6)*1,
+                R = Matrix{Float64}(I, 3, 3)*1,
+                isUncertainty = hutashikasa,
+            ),
+            color = :green
         )
     )
     sols = []

@@ -169,34 +169,41 @@ end
 function calc_torque(
     p::SDREController{T},
     q::Vector{T}, q_dot::Vector{T},
-    qd::Vector{T}, qd_dot::Vector{T},
-    H::VectorT
+    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
     ) where T
 
     x = [
         qd .- q
-        qs_dot .- q_dot
+        qd_dot .- q_dot
     ]
     invM = inv(M(q))
 
     if p.isUncertainty  # 不確かさありのとき
-        println("hoge")
-    else  # 不確かさ無し
         A = [
             zeros(T, 3, 3) Matrix{T}(I, 3, 3)
-            -invM*K -insM*(C(q, q_dot) .+ D)
+            -invM*uncertain_K -invM*(C(q, q_dot) .+ uncertain_D)
         ]
         B = [
             zeros(T, 3, 3)
             invM
         ]
+    else  # 不確かさ無し
+        A = [
+            zeros(T, 3, 3) Matrix{T}(I, 3, 3)
+            -invM*K -invM*(C(q, q_dot) .+ D)
+        ]
+        B = [
+            zeros(T, 3, 3)
+            invM
+        ]
+    end
 
 
     S = zero(B)  # 何か不明
     P, _, _ = arec(A, B, p.R, p.Q, S)  # リカッチ方程式を解く
     K = inv(p.R) * B' * P  # 最適フィードバックゲイン
     
-    return -K*x .- G(q) .- H
+    return -K*x .- G(q)
 end
 
 
