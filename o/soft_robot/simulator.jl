@@ -154,7 +154,7 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 0.1
+    TIME_SPAN = 1.0
 
     hutashikasa = false
 
@@ -171,7 +171,7 @@ function exmample()
             name = "pdfb",
             p = PDandFBController(
                 Kd = Matrix{Float64}(I, 3, 3)*200,
-                Kp = Matrix{Float64}(I, 3, 3)*10000,#1500
+                Kp = Matrix{Float64}(I, 3, 3)*10000,
                 isUncertainty = hutashikasa,
             ),
             color = :blue,
@@ -198,15 +198,15 @@ function exmample()
         (
             name = "sdre",
             p = SDREController(
-                Q = Matrix{Float64}(I, 6, 6)*1,
-                R = Matrix{Float64}(I, 3, 3)*1,
+                Q = Matrix{Float64}(I, 6, 6)*2000,
+                R = Matrix{Float64}(I, 3, 3)*0.1,
                 isUncertainty = hutashikasa,
             ),
             color = :green
         )
     )
     sols = []
-    fig0 = plot(xlims=(0.0, TIME_SPAN), ylims=(0,0.015))
+    fig0 = plot(xlims=(0.0, TIME_SPAN), ylims=(0,0.02))
     fig_tau = plot(xlims=(0.0, TIME_SPAN), ylims=(-150.0, 150.0))
     fig1 = plot(xlims=(0.0, TIME_SPAN))
     fig2 = plot(xlims=(0.0, TIME_SPAN))
@@ -230,14 +230,17 @@ function exmample()
             label=(param.name * "-") * "e",
             legend=:outerright,
             c=param.color,
-            ylabel=L"error [m]"
+            ylabel="error [m]"
         )
 
         x, y, z = split_vec_of_arrays(τ)
         plot!(fig_tau, sol.t, x, label=param.name*"-"*"1", c=param.color, linestyl=:solid)
         plot!(fig_tau, sol.t, y, label=param.name*"-"*"2", c=param.color, linestyle=:dash)
         plot!(fig_tau, sol.t, z, label=param.name*"-"*"3", c=param.color, linestyle=:dot)
-        plot!(fig_tau,legend=:outerright, ylabel=L"τ [N/rad]")
+        plot!(
+            fig_tau, legend=:outerright,
+            ylabel="τ [N/rad]"
+        )
 
         plot!(
             fig1,
@@ -246,7 +249,7 @@ function exmample()
             legend=:outerright,
             c=param.color,
             linestyle=[:solid :dash :dot],
-            ylabel=L"l [m]"
+            ylabel="l [m]"
         )
         plot!(
             fig2,
@@ -255,7 +258,7 @@ function exmample()
             legend=:outerright,
             c=param.color,
             linestyle=[:solid :dash :dot],
-            ylabel=L"\dot{l}  [m/s]"
+            ylabel="l_dot  [m/s]"
         )
         plot!(
             fig3,
@@ -264,14 +267,15 @@ function exmample()
             legend=:outerright,
             c=param.color,
             linestyle=[:solid :dash :dot],
-            ylabel=L"h  ${[N/rad]}$"
+            ylabel="h  [N/rad]"
         )
     
     end
 
     fig_I = plot(
         fig0, fig_tau, fig1, fig2, fig3,
-        layout=(5,1), size=(800, 1200)
+        layout=(5,1), size=(800, 1600),
+        margin = 1.2Plots.cm,
     )
     savefig(fig_I, "solve.png")
 

@@ -5,7 +5,7 @@ module Controller
 using LinearAlgebra
 using Parameters  # 構造体にキーワード引数をつけるためのモジュール
 using MatrixEquations  #　行列方程式ソルバー
-
+using ControlSystems  # 制御関係
 
 include("dynamics.jl")
 using .Dynamics: M, C, G, K, D, uncertain_K, uncertain_D
@@ -165,13 +165,26 @@ end
 end
 
 
+"""可制御性判定"""
+function isControllable(A, B)
+    n, _ = size(A)
+    _, m = size(B)
+    #println(n, m)
+    Co = Matrix{T}(undef, n, n*m)
+    for i in 1:n
+        Co[:, m*(i-1)+1:m*i] = (A^(i-1))*B
+    end
+    return rank(Co) == n
+end
+
+
 """SDRE法の入力を計算"""
 function calc_torque(
     p::SDREController{T},
     q::Vector{T}, q_dot::Vector{T},
     qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
     ) where T
-
+    #println(uncertain_K)
     x = [
         qd .- q
         qd_dot .- q_dot
@@ -188,6 +201,7 @@ function calc_torque(
             invM
         ]
     else  # 不確かさ無し
+        #println(K)
         A = [
             zeros(T, 3, 3) Matrix{T}(I, 3, 3)
             -invM*K -invM*(C(q, q_dot) .+ D)
@@ -198,12 +212,26 @@ function calc_torque(
         ]
     end
 
+    #println("Co = \n", ctrb(A, B))
+    #println("rank = ", ctrb(A, B) |> rank)
 
-    S = zero(B)  # 何か不明
-    P, _, _ = arec(A, B, p.R, p.Q, S)  # リカッチ方程式を解く
-    K = inv(p.R) * B' * P  # 最適フィードバックゲイン
-    
-    return -K*x .- G(q)
+    if rank(ctrb(A, B)) == size(A, 1)
+        println("可制御!")
+        S = zero(B)  # 何か不明
+        P, _, _ = arec(A, B, p.R, p.Q, S)  # リカッチ方程式を解く
+        #println(P)
+        opt_gain = inv(p.R) * B' * P  # 最適フィードバックゲイン
+        println(-opt_gain*x .- G(q))
+        return -opt_gain*x .- G(q)
+    else
+        println("ランク落ち...")
+        S = zero(B)  # 何か不明
+        P, _, _ = arec(A, B, p.R, p.Q, S)  # リカッチ方程式を解く
+        #println(P)
+        opt_gain = inv(p.R) * B' * P  # 最適フィードバックゲイン
+        println(-opt_gain*x .- G(q))
+        return -opt_gain*x .- G(q)
+    end
 end
 
 
