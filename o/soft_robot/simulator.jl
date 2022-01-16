@@ -110,9 +110,7 @@ function run_simulation(
     t_span = (0.0, TIME_SPAN) 
     println(method_name * " now...")
     prob = ODEProblem(state_eq!, X₀, t_span, controller_param)
-    sol = solve(prob)
-    
-    return sol
+    solve(prob)
 end
 
 
@@ -128,9 +126,8 @@ function run_simulation(
     t_span = (0.0, TIME_SPAN) 
     println(method_name * " now...")
     prob = ODEProblem(state_eq!, X₀, t_span, controller_param)
-    sol = solve(prob)
-    
-    return sol
+
+    solve(prob)
 end
 
 
@@ -151,12 +148,13 @@ function reproduce_τ(p, t::T, u::Vector{T}) where T
     )
 end
 
+
 """実行"""
 function exmample()
 
-    TIME_SPAN = 0.02
+    TIME_SPAN = 2.0
 
-    hutashikasa = false
+    hutashikasa = false  # 剛性行列と減衰行列に不確かさがあるかないか
 
     params = [
         # (
@@ -315,4 +313,4 @@ function exmample()
 end
 
 
-@time sols = exmample()
+@time _ = exmample()

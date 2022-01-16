@@ -6,6 +6,8 @@ using LinearAlgebra
 using Parameters  # 構造体にキーワード引数をつけるためのモジュール
 using MatrixEquations  #　行列方程式ソルバー
 using ControlSystems  # 制御関係
+using Optim  # 最適化ライブラリ
+using JuMP
 
 include("dynamics.jl")
 using .Dynamics: M, C, G, K, D, uncertain_K, uncertain_D
@@ -33,7 +35,6 @@ function calc_torque(
     p::KinematicController{T},
     q::Vector{T}, q_dot::Vector{T},
     qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
-
     ) where T
     ek = qd .- q
     return p.K_kin * ek
@@ -61,16 +62,16 @@ function calc_torque(
     α = M(q)
     q̃ = q .- qd
     q̃_dot = q_dot .- qd_dot
+
+    τ_dash = qd_dot_dot .- p.Kd*q̃_dot .- p.Kp*q̃
     
     if p.isUncertainty  # 不確かさあり
         β = C(q, q_dot)*q_dot .+ uncertain_D*q_dot .+ uncertain_K*q .+ G(q)
-        τ_dash = qd_dot_dot .- p.Kd*q̃_dot .- p.Kp*q̃
-        return α*τ_dash .+ β
     else
         β = C(q, q_dot)*q_dot .+ D*q_dot .+ K*q .+ G(q)
-        τ_dash = qd_dot_dot .- p.Kd*q̃_dot .- p.Kp*q̃
-        return α*τ_dash .+ β
     end
+
+    α*τ_dash .+ β
 end
 
 
@@ -217,23 +218,61 @@ function calc_torque(
 
     if rank(ctrb(A, B)) == size(A, 1)
         println("可制御!")
-        S = zero(B)  # 何か不明
-        P, _, _ = arec(A, B, p.R, p.Q, S)  # リカッチ方程式を解く
-        #println(P)
-        opt_gain = inv(p.R) * B' * P  # 最適フィードバックゲイン
-        println(-opt_gain*x .- G(q))
-        return -opt_gain*x .- G(q)
     else
         println("ランク落ち...")
-        S = zero(B)  # 何か不明
-        P, _, _ = arec(A, B, p.R, p.Q, S)  # リカッチ方程式を解く
-        #println(P)
-        opt_gain = inv(p.R) * B' * P  # 最適フィードバックゲイン
-        println(-opt_gain*x .- G(q))
-        return -opt_gain*x .- G(q)
     end
+
+    P, _, _ = arec(A, B, p.R, p.Q, zero(B))  # リカッチ方程式を解く
+    #println(P)
+    opt_gain = inv(p.R) * B' * P  # 最適フィードバックゲイン
+    println(-opt_gain*x .- G(q))
+    return -opt_gain*x .- G(q)
 end
 
+
+"""MPC制御器"""
+@with_kw struct MPCController{T}
+    Q::Matrix{T}
+    R::Matrix{T}
+    predit_span::T  # 予測ホライズン
+    isUncertainty::Bool
+end
+
+
+function state_eq!(X_dot::Vector{T}, X::Vector{T}, p, t::T) where T
+    q = X[1:3]
+    q_dot = X[4:6]
+    H = X[7:9]
+    #println(t)
+    τ = p
+    X_dot[1:3] = q_dot
+    X_dot[4:6] = Dynamics.calc_q_dot_dot(τ, q, q_dot, H)
+    X_dot[7:9] = H_dot(H, q, q_dot)
+end
+
+
+
+"""MPCのコスト関数"""
+function cost(
+    p::MPCController{T},
+    q::Vector{T}, q_dot::Vector{T},
+    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
+    ) where T
+
+
+
+end
+
+function calc_torque(
+    p::MPCController{T},
+    q::Vector{T}, q_dot::Vector{T},
+    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
+    ) where T
+
+
+
+
+end
 
 
 
