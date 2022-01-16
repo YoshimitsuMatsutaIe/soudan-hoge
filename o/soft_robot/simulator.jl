@@ -154,47 +154,47 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 1.0
+    TIME_SPAN = 0.02
 
     hutashikasa = false
 
-    params = (
-        (
-            name = "kine",
-            p = KinematicController(
-                K_kin = Dynamics.K,
-                isUncertainty = hutashikasa,
-            ),
-            color = :red
-        ),
-        (
-            name = "pdfb",
-            p = PDandFBController(
-                Kd = Matrix{Float64}(I, 3, 3)*200,
-                Kp = Matrix{Float64}(I, 3, 3)*10000,
-                isUncertainty = hutashikasa,
-            ),
-            color = :blue,
-        ),
-        (
-            name = "psiv",
-            p = PassivityBasedController(
-                Λ = Matrix{Float64}(I, 3, 3)*10,
-                KG = Matrix{Float64}(I, 3, 3)*10,
-                isUncertainty = hutashikasa,
-            ),
-            color = :magenta
-        ),
-        (
-            name = "psad",
-            p = PassivityBasedAdaptiveController(
-                invΓ = Matrix{Float64}(I, 6, 6)*1e+5,
-                Λ = Matrix{Float64}(I, 3, 3)*10,
-                KG = Matrix{Float64}(I, 3, 3)*10,
-                isUncertainty = hutashikasa,
-            ),
-            color = :black
-        ),
+    params = [
+        # (
+        #     name = "kine",
+        #     p = KinematicController(
+        #         K_kin = Dynamics.K,
+        #         isUncertainty = hutashikasa,
+        #     ),
+        #     color = :red
+        # ),
+        # (
+        #     name = "pdfb",
+        #     p = PDandFBController(
+        #         Kd = Matrix{Float64}(I, 3, 3)*200,
+        #         Kp = Matrix{Float64}(I, 3, 3)*10000,
+        #         isUncertainty = hutashikasa,
+        #     ),
+        #     color = :blue,
+        # ),
+        # (
+        #     name = "psiv",
+        #     p = PassivityBasedController(
+        #         Λ = Matrix{Float64}(I, 3, 3)*10,
+        #         KG = Matrix{Float64}(I, 3, 3)*10,
+        #         isUncertainty = hutashikasa,
+        #     ),
+        #     color = :magenta
+        # ),
+        # (
+        #     name = "psad",
+        #     p = PassivityBasedAdaptiveController(
+        #         invΓ = Matrix{Float64}(I, 6, 6)*1e+5,
+        #         Λ = Matrix{Float64}(I, 3, 3)*10,
+        #         KG = Matrix{Float64}(I, 3, 3)*10,
+        #         isUncertainty = hutashikasa,
+        #     ),
+        #     color = :black
+        # ),
         (
             name = "sdre",
             p = SDREController(
@@ -204,7 +204,7 @@ function exmample()
             ),
             color = :green
         )
-    )
+    ]
     sols = []
     fig0 = plot(xlims=(0.0, TIME_SPAN), ylims=(0,0.02))
     fig_tau = plot(xlims=(0.0, TIME_SPAN), ylims=(-150.0, 150.0))
