@@ -152,7 +152,7 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 2.0
+    TIME_SPAN = 0.05
 
     hutashikasa = false  # 剛性行列と減衰行列に不確かさがあるかないか
 
