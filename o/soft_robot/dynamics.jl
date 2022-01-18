@@ -139,7 +139,8 @@ end
 using LinearAlgebra
 using .Dynamics
 
-m = Dynamics.invM([0.1, 0.1, 0.2])
-
-e,u=eigen(m)
-e
+m = Dynamics.invM([0.0, 0.01, 0.0])
+m2 = Dynamics.invM([0.0, 0.02, 0.0])
+println((m .- m2) ./ m)
+# e,u=eigen(m)
+# e
