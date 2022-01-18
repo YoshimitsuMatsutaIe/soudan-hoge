@@ -10,7 +10,7 @@ using Optim  # 最適化ライブラリ
 using JuMP
 
 include("dynamics.jl")
-using .Dynamics: M, C, G, K, D, uncertain_K, uncertain_D
+using .Dynamics: M, C, G, K, D, uncertain_K, uncertain_D, invM
 
 
 export KinematicController
@@ -18,6 +18,7 @@ export PDandFBController
 export PassivityBasedController
 export PassivityBasedAdaptiveController
 export SDREController
+export MPCController
 export calc_torque
 export θp_dot
 
@@ -234,44 +235,169 @@ end
 @with_kw struct MPCController{T}
     Q::Matrix{T}
     R::Matrix{T}
-    predit_span::T  # 予測ホライズン
+    n::T  # 予測ホライズン
+    Δt::T  # 予測ホライズンの刻み時価
     isUncertainty::Bool
 end
 
 
-function state_eq!(X_dot::Vector{T}, X::Vector{T}, p, t::T) where T
-    q = X[1:3]
-    q_dot = X[4:6]
-    H = X[7:9]
-    #println(t)
-    τ = p
-    X_dot[1:3] = q_dot
-    X_dot[4:6] = Dynamics.calc_q_dot_dot(τ, q, q_dot, H)
-    X_dot[7:9] = H_dot(H, q, q_dot)
+"""線形化したときのA行列"""
+function A!(
+    q::Vector{Float64}, q_dot::Vector{Float64}, H::Vector{Float64},
+    out::Matrix{Float64}
+    )
+    ccall(
+        (:q_dot_dot, "o/soft_robot/derived/ikko_dake/eqs/c_so/A.so"),
+        Cvoid,
+        (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
+        H[1], H[2], H[3], q[1], q_dot[1], q[2], q_dot[2], q[3], q_dot[3], out
+    )
 end
 
 
-
-"""MPCのコスト関数"""
-function cost(
-    p::MPCController{T},
-    q::Vector{T}, q_dot::Vector{T},
-    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
-    ) where T
-
-
-
+"""線形化したときのA行列"""
+function A(
+    q::Vector{Float64}, q_dot::Vector{Float64}, H::Vector{Float64},
+    )
+    Z = Matrix{Float64}(undef, 9, 9)
+    A!(q, q_dot, H, Z)
+    Z
 end
 
+
+"""状態方程式のドリフト項"""
+function fx!(
+    q::Vector{Float64}, q_dot::Vector{Float64}, H::Vector{Float64},
+    out::Vector{Float64}
+    )
+    ccall(
+        (:q_dot_dot, "o/soft_robot/derived/ikko_dake/eqs/c_so/fx.so"),
+        Cvoid,
+        (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
+        H[1], H[2], H[3], q[1], q_dot[1], q[2], q_dot[2], q[3], q_dot[3], out
+    )
+end
+
+
+"""状態方程式のドリフト項"""
+function fx(
+    q::Vector{Float64}, q_dot::Vector{Float64}, H::Vector{Float64},
+    )
+    Z = Vector{Float64}(undef, 9)
+    fx!(q, q_dot, H, Z)
+    Z
+end
+
+
+function ℱ(A::Matrix{T}, n::Int64) where T
+    m = size(A, 1)  # システムの次元
+    Z = Marix{T}(undef, m*n, m)
+
+    for i in 1:n
+        Z[(i-1)*m+1:i*m, :] = A^i
+    end
+    
+    Z
+end
+
+
+function 𝒢(A::Matrix{T}, B::Matrix{T}, n::Int64) where T
+    m = size(A, 1)  # システムの次元
+    _m = size(A, 2)
+    Z = Marix{T}(undef, m*n, _m*n)
+
+    for i in 1:n
+        for j in 1:n
+            if j > i
+                Z[(i-1)*m+1:i*m, (j-1)*_m+1:j*_m] = zero(B)
+            else
+                Z[(i-1)*m+1:i*m, (j-1)*_m+1:j*_m] = A^(i-1) * B
+            end
+        end
+    end
+    
+    Z
+end
+
+
+function 𝒮(A::Matrix{T}, n::Int64) where T
+    m = size(A, 1)  # システムの次元
+    Z = Marix{T}(undef, m*n, m*n)
+
+    for i in 1:n
+        for j in 1:n
+            if j > i
+                Z[(i-1)*m+1:i*m, (j-1)*m+1:j*m] = zero(A)
+            else
+                Z[(i-1)*m+1:i*m, (j-1)*m+1:j*m] = A^(i-1)
+            end
+        end
+    end
+    
+    Z
+end
+
+
+function ℋ(C::Matrix{T}, n::Int64) where T
+    m = size(C, 1)
+    Z = zeros(T, m, m)
+    for i in 1:n
+        Z[(i-1)*m+1:i*m, (i-1)*m+1:i*m] = C
+    end
+
+    Z
+end
+
+
+"""MPCで入力を計算"""
 function calc_torque(
     p::MPCController{T},
-    q::Vector{T}, q_dot::Vector{T},
-    qd::Vector{T}, qd_dot::Vector{T}, qd_dot_dot::Vector{T},
+    q::Vector{T}, q_dot::Vector{T}, H::Vector{T},
+    qd, qd_dot,
+    t::T
     ) where T
 
+    X₀ = [q; q_dot; H]
 
+    # A, B，C行列を計算
+    A = A(q, q_dot, H)
+    B = [
+        zeros(T, 3, 3)
+        invM(q)
+        zeros(T, 3, 3)
+    ]
+    C = Matrix{T}(I, 9, 9)
 
+    # 目標状態ベクトルと目標入力ベクトル作成
+    Yref = Vector{T}(undef, 9*p.n)
+    for i in 1:p.n
+        Yref[(i-1)*9+1:i*9] = [
+            qd(t + i*p.Δt)
+            qd_dot(t + i*p.Δt)
+            zeros(T, 3)
+        ]
+    end
+    Uref = zero(Yref)
 
+    # 外乱ベクトル作成
+    W = Vector{T}(undef, 9*p.n)
+    for i in 1:p.n
+        W[(i-1)*9+1:i*9] = [
+            zeros(T, 6)
+            H
+        ]
+    end
+
+    # F, G, S行列作成
+    ℱ = ℱ(A, p.n)
+    𝒢 = 𝒢(A, B, p.n)
+    𝒮 = 𝒮(A, p.n)
+
+    ℳ = 𝒢' * C' * p.Q * C * G .+ R
+    𝒩 = (C*(ℱ*X₀ .+ 𝒮*W .- Yref))' * Q * C * 𝒢 .- Uref'*R
+    Uopt = -inv(ℳ) * 𝒩'  # 最適入力
+
+    return Uopt[1:3]
 end
 
 

@@ -10,7 +10,7 @@
 #ifndef CPROJECT__C__H
 #define CPROJECT__C__H
 
-void C(double l1, double l1_dot, double l2, double l2_dot, double l3, double l3_dot, double *out_6884848922257569018);
+void C(double l1, double l1_dot, double l2, double l2_dot, double l3, double l3_dot, double *out_3640155202882127667);
 
 #endif
 

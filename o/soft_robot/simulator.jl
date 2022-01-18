@@ -53,6 +53,8 @@ end
 
 
 
+
+
 """ソルバで使うやつ"""
 function state_eq!(
     X_dot::Vector{T}, X::Vector{T},
@@ -152,7 +154,7 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 0.05
+    TIME_SPAN = 0.5
 
     hutashikasa = false  # 剛性行列と減衰行列に不確かさがあるかないか
 
@@ -165,15 +167,15 @@ function exmample()
         #     ),
         #     color = :red
         # ),
-        # (
-        #     name = "pdfb",
-        #     p = PDandFBController(
-        #         Kd = Matrix{Float64}(I, 3, 3)*200,
-        #         Kp = Matrix{Float64}(I, 3, 3)*10000,
-        #         isUncertainty = hutashikasa,
-        #     ),
-        #     color = :blue,
-        # ),
+        (
+            name = "pdfb",
+            p = PDandFBController(
+                Kd = Matrix{Float64}(I, 3, 3)*200,
+                Kp = Matrix{Float64}(I, 3, 3)*10000,
+                isUncertainty = hutashikasa,
+            ),
+            color = :blue,
+        ),
         # (
         #     name = "psiv",
         #     p = PassivityBasedController(
@@ -201,6 +203,17 @@ function exmample()
                 isUncertainty = hutashikasa,
             ),
             color = :green
+        ),
+        (
+            name = "dmpc",
+            p = MPCController(
+                Q = diagm([10, 10, 10, 10, 10, 10, 0.0, 0.0, 0.0]),
+                R = diagm([0, 0, 0, 1.0, 1.0, 1.0, 0, 0, 0]),
+                n = 5,
+                Δt = 0.001,
+                isUncertainty = hutashikasa
+            ),
+            color = :cyan
         )
     ]
     sols = []

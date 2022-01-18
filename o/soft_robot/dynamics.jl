@@ -4,7 +4,7 @@ module Dynamics
 
 using LinearAlgebra
 
-"""Mのラッパー"""
+"""慣性行列"""
 function M!(q::Vector{Float64}, out::Matrix{Float64})
     ccall(
         (:M, "o/soft_robot/derived/ikko_dake/eqs/c_so/M.so"),
@@ -19,6 +19,25 @@ end
 function M(q::Vector{Float64})
     Z = Matrix{Float64}(undef, 3, 3)
     M!(q, Z)
+    return Z
+end
+
+
+"""慣性行列の逆行列"""
+function invM!(q::Vector{Float64}, out::Matrix{Float64})
+    ccall(
+        (:invM, "o/soft_robot/derived/ikko_dake/eqs/c_so/invM.so"),
+        Cvoid,
+        (Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
+        q[1], q[2], q[3], out
+    )
+end
+
+
+"""慣性行列の逆行列"""
+function invM(q::Vector{Float64})
+    Z = Matrix{Float64}(undef, 3, 3)
+    invM!(q, Z)
     return Z
 end
 
@@ -96,4 +115,29 @@ function calc_q_dot_dot(
     inv(M(q)) * (τ .- (C(q, q_dot) .+ D)*q_dot .- K*q .- G(q) .- H) |> vec
 end
 
+
+"""加速度
+
+outに加速度ベクトルを書き出す
+"""
+function q_dot_dot!(
+    τ::Vector{Float64}, q::Vector{Float64}, q_dot::Vector{Float64},
+    H::Vector{Float64}, out::Vector{Float64}
+    )
+    ccall(
+        (:q_dot_dot, "o/soft_robot/derived/ikko_dake/eqs/c_so/q_dot_dot.so"),
+        Cvoid,
+        (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
+        H[1], H[2], H[3], q[1], q_dot[1], q[2], q_dot[2], q[3], q_dot[3], τ[1], τ[2], τ[3], out
+    )
 end
+
+
+
+# using LinearAlgebra
+# using .Dynamics
+
+# m = Dynamics.M([0.1, 0.1, 0.2])
+
+# e,u=eigen(m)
+# e
