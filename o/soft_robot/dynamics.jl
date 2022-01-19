@@ -116,31 +116,31 @@ function calc_q_dot_dot(
 end
 
 
-# """加速度
+"""加速度
 
-# outに加速度ベクトルを書き出す
-# """
-# function q_dot_dot!(
-#     τ::Vector{Float64}, q::Vector{Float64}, q_dot::Vector{Float64},
-#     H::Vector{Float64}, out::Vector{Float64}
-#     )
-#     ccall(
-#         (:q_dot_dot, "o/soft_robot/derived/ikko_dake/eqs/c_so/q_dot_dot.so"),
-#         Cvoid,
-#         (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
-#         H[1], H[2], H[3], q[1], q_dot[1], q[2], q_dot[2], q[3], q_dot[3], τ[1], τ[2], τ[3], out
-#     )
-# end
+outに加速度ベクトルを書き出す
+"""
+function q_dot_dot!(
+    τ::Vector{Float64}, q::Vector{Float64}, q_dot::Vector{Float64},
+    H::Vector{Float64}, out::Vector{Float64}
+    )
+    ccall(
+        (:q_dot_dot, "o/soft_robot/derived/ikko_dake/eqs/c_so/q_dot_dot.so"),
+        Cvoid,
+        (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
+        H[1], H[2], H[3], q[1], q_dot[1], q[2], q_dot[2], q[3], q_dot[3], τ[1], τ[2], τ[3], out
+    )
+end
 
 
 
 end
 
-using LinearAlgebra
-using .Dynamics
+# using LinearAlgebra
+# using .Dynamics
 
-m = Dynamics.invM([0.0, 0.01, 0.0])
-m2 = Dynamics.invM([0.0, 0.02, 0.0])
-println((m .- m2) ./ m)
-# e,u=eigen(m)
-# e
+# m = Dynamics.invM([0.0, 0.01, 0.0])
+# m2 = Dynamics.invM([0.0, 0.02, 0.0])
+# println((m .- m2) ./ m)
+# # e,u=eigen(m)
+# # e
