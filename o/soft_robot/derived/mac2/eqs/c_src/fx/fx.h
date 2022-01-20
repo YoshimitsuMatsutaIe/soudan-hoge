@@ -3,14 +3,14 @@
  *                                                                            *
  *              See http://www.sympy.org/ for more information.               *
  *                                                                            *
- *                    This file is part of 'A_6_0project'                     *
+ *                      This file is part of 'fxproject'                      *
  ******************************************************************************/
 
 
-#ifndef A_6_0PROJECT__A_6_0__H
-#define A_6_0PROJECT__A_6_0__H
+#ifndef FXPROJECT__FX__H
+#define FXPROJECT__FX__H
 
-double A_6_0();
+void fx(double h1, double h2, double h3, double l1, double l1_dot, double l2, double l2_dot, double l3, double l3_dot, double *out_8696384932897300687);
 
 #endif
 

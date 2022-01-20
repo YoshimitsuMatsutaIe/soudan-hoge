@@ -103,6 +103,26 @@ function state_eq!(
 end
 
 
+"""ソルバで使うやつ"""
+function state_eq!(
+    X_dot::Vector{T}, X::Vector{T},
+    p::MPCController,
+    t::T
+    ) where T
+    q = X[1:3]
+    q_dot = X[4:6]
+    H = X[7:9]
+    #println(t)
+    τ = calc_torque(
+    p, q, q_dot, H,
+    calc_qd, calc_qd_dot, t,
+    )
+    X_dot[1:3] = q_dot
+    X_dot[4:6] = calc_q_dot_dot(τ, q, q_dot, H)
+    X_dot[7:9] = H_dot(H, q, q_dot)
+end
+
+
 """微分方程式を解く"""
 function run_simulation(
     TIME_SPAN::T, method_name::String, controller_param
@@ -132,6 +152,19 @@ function run_simulation(
     solve(prob)
 end
 
+# """微分方程式を解く"""
+# function run_simulation(
+#     TIME_SPAN::T, method_name::String,
+#     controller_param::MPCController{T}
+#     ) where T
+
+#     X₀ = zeros(T, 9)
+#     t_span = (0.0, TIME_SPAN) 
+#     println(method_name * " now...")
+#     prob = ODEProblem(state_eq!, X₀, t_span, controller_param)
+
+#     solve(prob)
+# end
 
 
 function reproduce_τ(p::PassivityBasedAdaptiveController{T}, t::T, u::Vector{T}) where T
@@ -154,7 +187,7 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 0.5
+    TIME_SPAN = 0.05
 
     hutashikasa = false  # 剛性行列と減衰行列に不確かさがあるかないか
 
@@ -167,15 +200,15 @@ function exmample()
         #     ),
         #     color = :red
         # ),
-        (
-            name = "pdfb",
-            p = PDandFBController(
-                Kd = Matrix{Float64}(I, 3, 3)*200,
-                Kp = Matrix{Float64}(I, 3, 3)*10000,
-                isUncertainty = hutashikasa,
-            ),
-            color = :blue,
-        ),
+        # (
+        #     name = "pdfb",
+        #     p = PDandFBController(
+        #         Kd = Matrix{Float64}(I, 3, 3)*200,
+        #         Kp = Matrix{Float64}(I, 3, 3)*10000,
+        #         isUncertainty = hutashikasa,
+        #     ),
+        #     color = :blue,
+        # ),
         # (
         #     name = "psiv",
         #     p = PassivityBasedController(
@@ -195,22 +228,22 @@ function exmample()
         #     ),
         #     color = :black
         # ),
-        (
-            name = "sdre",
-            p = SDREController(
-                Q = Matrix{Float64}(I, 6, 6)*2000,
-                R = Matrix{Float64}(I, 3, 3)*0.1,
-                isUncertainty = hutashikasa,
-            ),
-            color = :green
-        ),
+        # (
+        #     name = "sdre",
+        #     p = SDREController(
+        #         Q = Matrix{Float64}(I, 6, 6)*2000,
+        #         R = Matrix{Float64}(I, 3, 3)*0.1,
+        #         isUncertainty = hutashikasa,
+        #     ),
+        #     color = :green
+        # ),
         (
             name = "dmpc",
             p = MPCController(
                 Q = diagm([10, 10, 10, 10, 10, 10, 0.0, 0.0, 0.0]),
-                R = diagm([0, 0, 0, 1.0, 1.0, 1.0, 0, 0, 0]),
-                n = 5,
-                Δt = 0.001,
+                R = diagm([1.0, 1.0, 1.0,]),
+                n = 3,
+                Δt = 0.0001,
                 isUncertainty = hutashikasa
             ),
             color = :cyan

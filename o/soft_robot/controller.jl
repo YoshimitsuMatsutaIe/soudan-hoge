@@ -6,8 +6,9 @@ using LinearAlgebra
 using Parameters  # 構造体にキーワード引数をつけるためのモジュール
 using MatrixEquations  #　行列方程式ソルバー
 using ControlSystems  # 制御関係
-using Optim  # 最適化ライブラリ
-using JuMP
+#using Optim  # 最適化ライブラリ
+#using JuMP
+using ForwardDiff
 
 include("dynamics.jl")
 using .Dynamics: M, C, G, K, D, uncertain_K, uncertain_D, invM
@@ -235,32 +236,32 @@ end
 @with_kw struct MPCController{T}
     Q::Matrix{T}
     R::Matrix{T}
-    n::T  # 予測ホライズン
+    n::Int64  # 予測ホライズン
     Δt::T  # 予測ホライズンの刻み時価
     isUncertainty::Bool
 end
 
 
 """線形化したときのA行列"""
-function A!(
+function calc_A!(
     q::Vector{Float64}, q_dot::Vector{Float64}, H::Vector{Float64},
     out::Matrix{Float64}
     )
     ccall(
-        (:q_dot_dot, "o/soft_robot/derived/ikko_dake/eqs/c_so/A.so"),
+        (:A, "o/soft_robot/derived/mac2/eqs/c_so/A.so"),
         Cvoid,
-        (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
+        (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
         H[1], H[2], H[3], q[1], q_dot[1], q[2], q_dot[2], q[3], q_dot[3], out
     )
 end
 
 
 """線形化したときのA行列"""
-function A(
+function calc_A(
     q::Vector{Float64}, q_dot::Vector{Float64}, H::Vector{Float64},
     )
     Z = Matrix{Float64}(undef, 9, 9)
-    A!(q, q_dot, H, Z)
+    calc_A!(q, q_dot, H, Z)
     Z
 end
 
@@ -271,9 +272,9 @@ function fx!(
     out::Vector{Float64}
     )
     ccall(
-        (:q_dot_dot, "o/soft_robot/derived/ikko_dake/eqs/c_so/fx.so"),
+        (:fx, "o/soft_robot/derived/ikko_dake/eqs/c_so/fx.so"),
         Cvoid,
-        (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
+        (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
         H[1], H[2], H[3], q[1], q_dot[1], q[2], q_dot[2], q[3], q_dot[3], out
     )
 end
@@ -289,29 +290,26 @@ function fx(
 end
 
 
-function ℱ(A::Matrix{T}, n::Int64) where T
-    m = size(A, 1)  # システムの次元
-    Z = Marix{T}(undef, m*n, m)
+function calc_ℱ(A::Matrix{T}, n::Int64) where T
+    Z = Matrix{T}(undef, 9*n, 9)
 
     for i in 1:n
-        Z[(i-1)*m+1:i*m, :] = A^i
+        Z[(i-1)*9+1:i*9, :] = A^i
     end
     
     Z
 end
 
 
-function 𝒢(A::Matrix{T}, B::Matrix{T}, n::Int64) where T
-    m = size(A, 1)  # システムの次元
-    _m = size(A, 2)
-    Z = Marix{T}(undef, m*n, _m*n)
+function calc_𝒢(A::Matrix{T}, B::Matrix{T}, n::Int64) where T
+    Z = Matrix{T}(undef, 9*n, 3*n)
 
     for i in 1:n
         for j in 1:n
             if j > i
-                Z[(i-1)*m+1:i*m, (j-1)*_m+1:j*_m] = zero(B)
+                Z[(i-1)*9+1:i*9, (j-1)*3+1:j*3] = zero(B)
             else
-                Z[(i-1)*m+1:i*m, (j-1)*_m+1:j*_m] = A^(i-1) * B
+                Z[(i-1)*9+1:i*9, (j-1)*3+1:j*3] = A^(i-1) * B
             end
         end
     end
@@ -320,16 +318,15 @@ function 𝒢(A::Matrix{T}, B::Matrix{T}, n::Int64) where T
 end
 
 
-function 𝒮(A::Matrix{T}, n::Int64) where T
-    m = size(A, 1)  # システムの次元
-    Z = Marix{T}(undef, m*n, m*n)
+function calc_𝒮(A::Matrix{T}, n::Int64) where T
+    Z = Matrix{T}(undef, 9*n, 9*n)
 
     for i in 1:n
         for j in 1:n
             if j > i
-                Z[(i-1)*m+1:i*m, (j-1)*m+1:j*m] = zero(A)
+                Z[(i-1)*9+1:i*9, (j-1)*9+1:j*9] = zero(A)
             else
-                Z[(i-1)*m+1:i*m, (j-1)*m+1:j*m] = A^(i-1)
+                Z[(i-1)*9+1:i*9, (j-1)*9+1:j*9] = A^(i-1)
             end
         end
     end
@@ -338,9 +335,9 @@ function 𝒮(A::Matrix{T}, n::Int64) where T
 end
 
 
-function ℋ(C::Matrix{T}, n::Int64) where T
+function calc_ℋ(C::Matrix{T}, n::Int64) where T
     m = size(C, 1)
-    Z = zeros(T, m, m)
+    Z = zeros(T, m*n, m*n)
     for i in 1:n
         Z[(i-1)*m+1:i*m, (i-1)*m+1:i*m] = C
     end
@@ -353,17 +350,20 @@ end
 function calc_torque(
     p::MPCController{T},
     q::Vector{T}, q_dot::Vector{T}, H::Vector{T},
-    qd, qd_dot,
+    calc_qd, calc_qd_dot,
     t::T
     ) where T
 
     X₀ = [q; q_dot; H]
 
     # A, B，C行列を計算
-    A = A(q, q_dot, H)
+    A = calc_A(q, q_dot, H)
+    #_fx(q) = fx(q, q_dot, H)
+    #A = ForwardDiff.jacobian(_fx, q)
+    println(eigvals(A))
     B = [
         zeros(T, 3, 3)
-        invM(q)
+        Matrix{T}(I, 3, 3)
         zeros(T, 3, 3)
     ]
     C = Matrix{T}(I, 9, 9)
@@ -372,12 +372,12 @@ function calc_torque(
     Yref = Vector{T}(undef, 9*p.n)
     for i in 1:p.n
         Yref[(i-1)*9+1:i*9] = [
-            qd(t + i*p.Δt)
-            qd_dot(t + i*p.Δt)
+            calc_qd(t + i*p.Δt)
+            calc_qd_dot(t + i*p.Δt)
             zeros(T, 3)
         ]
     end
-    Uref = zero(Yref)
+    Uref = zeros(T, 3*p.n)
 
     # 外乱ベクトル作成
     W = Vector{T}(undef, 9*p.n)
@@ -385,22 +385,64 @@ function calc_torque(
         W[(i-1)*9+1:i*9] = [
             zeros(T, 6)
             H
-        ]
+        ] .+ fx(q, q_dot, H)
     end
 
     # F, G, S行列作成
-    ℱ = ℱ(A, p.n)
-    𝒢 = 𝒢(A, B, p.n)
-    𝒮 = 𝒮(A, p.n)
+    ℱ = calc_ℱ(A, p.n) .* p.Δt
+    𝒢 = calc_𝒢(A, B, p.n) .* p.Δt
+    𝒮 = calc_𝒮(A, p.n) .* p.Δt
+    ℋ = calc_ℋ(C, p.n) .* p.Δt
 
-    ℳ = 𝒢' * C' * p.Q * C * G .+ R
-    𝒩 = (C*(ℱ*X₀ .+ 𝒮*W .- Yref))' * Q * C * 𝒢 .- Uref'*R
+    # 重み行列を作成
+    𝒬 = zeros(T, 9*p.n, 9*p.n)
+    for i in 1:p.n
+        𝒬[(i-1)*9+1:i*9, (i-1)*9+1:i*9] = p.Q
+    end
+
+    ℛ = zeros(T, 3*p.n, 3*p.n)
+    for i in 1:p.n
+        ℛ[(i-1)*3+1:i*3, (i-1)*3+1:i*3] = p.R
+    end
+
+    # println("G ", size(𝒢))
+    # println("ℋ ", size(ℋ))
+    # println("Q ", size(𝒬))
+    # println("R ", size(ℛ))
+
+    println("HGのランク", rank(ℋ * 𝒢))
+    ℳ = 𝒢' * ℋ' * 𝒬 * ℋ * 𝒢 .+ ℛ
+    𝒩 = (ℋ*(ℱ*X₀ .+ 𝒮*W .- Yref))' * 𝒬 * ℋ * 𝒢 .- Uref'*ℛ
+    # println("M, ", size(ℳ))
+    # println("N, ", size(𝒩))
+    println("Mの固有値 ", eigvals(ℳ))
     Uopt = -inv(ℳ) * 𝒩'  # 最適入力
 
-    return Uopt[1:3]
+    # 最適入力を最適トルクに変換
+    return invM(q) * Uopt[1:3]
 end
 
 
 
 
 end
+
+# using LinearAlgebra
+# using ForwardDiff
+# using Zygote
+# using .Controller
+# # A = Controller.calc_A(
+# #     [0.001, 0.0002, 0.005],zeros(Float64, 3),zeros(Float64, 3)
+# # )
+# # eigvals(A)
+# x = zeros(Float64, 3)
+# function _f(q)
+#     q_dot = zeros(Float64, 3)
+#     H = zeros(Float64, 3)
+#     return Controller.fx([q, 0.0, 0.0], q_dot, H)[1]
+# end
+# #_f(q) = [q[1], q[2]^2, q[3]]
+# #B = _f(zeros(Float64, 9))
+# #A = ForwardDiff.jacobian(_f, x)
+# A = ForwardDiff.derivative(_f, 0.0)
+

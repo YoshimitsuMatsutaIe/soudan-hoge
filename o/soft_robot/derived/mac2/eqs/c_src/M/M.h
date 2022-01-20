@@ -10,7 +10,7 @@
 #ifndef MPROJECT__M__H
 #define MPROJECT__M__H
 
-void M(double l1, double l2, double l3, double *out_849912884421337487);
+void M(double l1, double l2, double l3, double *out_3473247926695451036);
 
 #endif
 

@@ -127,7 +127,7 @@ function q_dot_dot!(
     ccall(
         (:q_dot_dot, "o/soft_robot/derived/ikko_dake/eqs/c_so/q_dot_dot.so"),
         Cvoid,
-        (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
+        (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Cdouble, Ptr{Cdouble}),
         H[1], H[2], H[3], q[1], q_dot[1], q[2], q_dot[2], q[3], q_dot[3], τ[1], τ[2], τ[3], out
     )
 end

@@ -3,14 +3,14 @@
  *                                                                            *
  *              See http://www.sympy.org/ for more information.               *
  *                                                                            *
- *                    This file is part of 'A_6_0project'                     *
+ *                      This file is part of 'Aproject'                       *
  ******************************************************************************/
 
 
-#ifndef A_6_0PROJECT__A_6_0__H
-#define A_6_0PROJECT__A_6_0__H
+#ifndef APROJECT__A__H
+#define APROJECT__A__H
 
-double A_6_0();
+void A(double h1, double h2, double h3, double l1, double l1_dot, double l2, double l2_dot, double l3, double l3_dot, double *out_7944087098711729224);
 
 #endif
 

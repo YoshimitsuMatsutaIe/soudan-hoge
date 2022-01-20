@@ -8,10 +8,10 @@
 #include "A_8_2.h"
 #include <math.h>
 
-int A_8_2() {
+double A_8_2() {
 
-   int A_8_2_result;
-   A_8_2_result = 0;
+   double A_8_2_result;
+   A_8_2_result = 23.704999999999998;
    return A_8_2_result;
 
 }
