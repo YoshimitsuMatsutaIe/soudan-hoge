@@ -6,19 +6,19 @@
 import sympy as sy
 from sympy import sqrt
 
-import maclaurin_2.P_0 as P_0
-import maclaurin_2.P_1 as P_1
-import maclaurin_2.P_2 as P_2
+import sumi_maclaurin_2.P_0 as P_0
+import sumi_maclaurin_2.P_1 as P_1
+import sumi_maclaurin_2.P_2 as P_2
 
-import maclaurin_2.R_0_0 as R_0_0
-import maclaurin_2.R_0_1 as R_0_1
-import maclaurin_2.R_0_2 as R_0_2
-import maclaurin_2.R_0_0 as R_1_0
-import maclaurin_2.R_0_1 as R_1_1
-import maclaurin_2.R_0_2 as R_1_2
-import maclaurin_2.R_0_0 as R_2_0
-import maclaurin_2.R_0_1 as R_2_1
-import maclaurin_2.R_0_2 as R_2_2
+import sumi_maclaurin_2.R_0_0 as R_0_0
+import sumi_maclaurin_2.R_0_1 as R_0_1
+import sumi_maclaurin_2.R_0_2 as R_0_2
+import sumi_maclaurin_2.R_0_0 as R_1_0
+import sumi_maclaurin_2.R_0_1 as R_1_1
+import sumi_maclaurin_2.R_0_2 as R_1_2
+import sumi_maclaurin_2.R_0_0 as R_2_0
+import sumi_maclaurin_2.R_0_1 as R_2_1
+import sumi_maclaurin_2.R_0_2 as R_2_2
 
 
 class Local:
