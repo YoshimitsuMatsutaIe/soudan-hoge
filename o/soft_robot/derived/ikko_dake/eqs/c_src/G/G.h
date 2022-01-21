@@ -10,7 +10,7 @@
 #ifndef GPROJECT__G__H
 #define GPROJECT__G__H
 
-void G(double l1, double l2, double l3, double *out_2318389662957047336);
+void G(double l1, double l2, double l3, double *out_1091559844127157795);
 
 #endif
 

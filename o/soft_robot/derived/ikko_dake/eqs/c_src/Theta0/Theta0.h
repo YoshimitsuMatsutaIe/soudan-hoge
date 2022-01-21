@@ -10,7 +10,7 @@
 #ifndef THETA0PROJECT__THETA0__H
 #define THETA0PROJECT__THETA0__H
 
-void Theta0(double l1, double l2, double l3, double xi, double *out_4686131334347928102);
+void Theta0(double l1, double l2, double l3, double xi, double *out_5974403025215453526);
 
 #endif
 

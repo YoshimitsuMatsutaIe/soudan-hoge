@@ -309,7 +309,7 @@ function calc_𝒢(A::Matrix{T}, B::Matrix{T}, n::Int64) where T
             if j > i
                 Z[(i-1)*9+1:i*9, (j-1)*3+1:j*3] = zero(B)
             else
-                Z[(i-1)*9+1:i*9, (j-1)*3+1:j*3] = A^(i-1) * B
+                Z[(i-1)*9+1:i*9, (j-1)*3+1:j*3] = A^(i-1-j) * B
             end
         end
     end
@@ -326,7 +326,7 @@ function calc_𝒮(A::Matrix{T}, n::Int64) where T
             if j > i
                 Z[(i-1)*9+1:i*9, (j-1)*9+1:j*9] = zero(A)
             else
-                Z[(i-1)*9+1:i*9, (j-1)*9+1:j*9] = A^(i-1)
+                Z[(i-1)*9+1:i*9, (j-1)*9+1:j*9] = A^(i-1-j)
             end
         end
     end
@@ -354,6 +354,8 @@ function calc_torque(
     t::T
     ) where T
 
+    println(" ")
+    println("t = ", t)
     X₀ = [q; q_dot; H]
 
     # A, B，C行列を計算
@@ -389,10 +391,10 @@ function calc_torque(
     end
 
     # F, G, S行列作成
-    ℱ = calc_ℱ(A, p.n) .* p.Δt
-    𝒢 = calc_𝒢(A, B, p.n) .* p.Δt
-    𝒮 = calc_𝒮(A, p.n) .* p.Δt
-    ℋ = calc_ℋ(C, p.n) .* p.Δt
+    ℱ = calc_ℱ(A, p.n)
+    𝒢 = calc_𝒢(A, B, p.n)
+    𝒮 = calc_𝒮(A, p.n)
+    ℋ = calc_ℋ(C, p.n)
 
     # 重み行列を作成
     𝒬 = zeros(T, 9*p.n, 9*p.n)
@@ -410,6 +412,7 @@ function calc_torque(
     # println("Q ", size(𝒬))
     # println("R ", size(ℛ))
 
+    #println("G = ", 𝒢)
     println("HGのランク", rank(ℋ * 𝒢))
     ℳ = 𝒢' * ℋ' * 𝒬 * ℋ * 𝒢 .+ ℛ
     𝒩 = (ℋ*(ℱ*X₀ .+ 𝒮*W .- Yref))' * 𝒬 * ℋ * 𝒢 .- Uref'*ℛ
@@ -419,7 +422,8 @@ function calc_torque(
     Uopt = -inv(ℳ) * 𝒩'  # 最適入力
 
     # 最適入力を最適トルクに変換
-    return invM(q) * Uopt[1:3]
+    print("tau = ", inv(M(q)) * Uopt[1:3])
+    return inv(M(q)) * Uopt[1:3]
 end
 
 
@@ -427,22 +431,35 @@ end
 
 end
 
-# using LinearAlgebra
-# using ForwardDiff
-# using Zygote
-# using .Controller
-# # A = Controller.calc_A(
-# #     [0.001, 0.0002, 0.005],zeros(Float64, 3),zeros(Float64, 3)
-# # )
-# # eigvals(A)
+using LinearAlgebra
+using ForwardDiff
+using Zygote
+using .Controller
+A = Controller.calc_A(
+    zeros(Float64, 3),zeros(Float64, 3),zeros(Float64, 3)
+)
+eigvals(A)
 # x = zeros(Float64, 3)
 # function _f(q)
 #     q_dot = zeros(Float64, 3)
 #     H = zeros(Float64, 3)
 #     return Controller.fx([q, 0.0, 0.0], q_dot, H)[1]
 # end
-# #_f(q) = [q[1], q[2]^2, q[3]]
-# #B = _f(zeros(Float64, 9))
-# #A = ForwardDiff.jacobian(_f, x)
-# A = ForwardDiff.derivative(_f, 0.0)
+#_f(q) = [q[1], q[2]^2, q[3]]
+#B = _f(zeros(Float64, 9))
+#A = ForwardDiff.jacobian(_f, x)
+#A = ForwardDiff.derivative(_f, 0.0)
 
+
+## Gあってるか確認
+# using LinearAlgebra
+# using .Controller
+# A = Controller.calc_A(
+#     [0.001, 0.0002, 0.005],zeros(Float64, 3),zeros(Float64, 3)
+# )
+# B = [
+#     zeros(Float64, 3, 3)
+#     Matrix{Float64}(I, 3, 3)
+#     zeros(Float64, 3, 3)
+# ]
+# G = Controller.calc_𝒢(A, B, 2)

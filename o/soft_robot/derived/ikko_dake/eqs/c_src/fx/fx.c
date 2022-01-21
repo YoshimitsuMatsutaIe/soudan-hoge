@@ -18,7 +18,7 @@ void fx(double h1, double h2, double h3, double l1, double l1_dot, double l2, do
     out[3] = fx_3(h1, h2, h3, l1, l1_dot, l2, l2_dot, l3, l3_dot);
     out[4] = fx_4(h1, h2, h3, l1, l1_dot, l2, l2_dot, l3, l3_dot);
     out[5] = fx_5(h1, h2, h3, l1, l1_dot, l2, l2_dot, l3, l3_dot);
-    out[6] = fx_6();
-    out[7] = fx_7();
-    out[8] = fx_8();
+    out[6] = fx_6(l1);
+    out[7] = fx_7(l2);
+    out[8] = fx_8(l3);
 }

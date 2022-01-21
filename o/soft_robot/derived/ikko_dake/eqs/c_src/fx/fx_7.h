@@ -10,7 +10,7 @@
 #ifndef FX_7PROJECT__FX_7__H
 #define FX_7PROJECT__FX_7__H
 
-int fx_7();
+double fx_7(double l2);
 
 #endif
 

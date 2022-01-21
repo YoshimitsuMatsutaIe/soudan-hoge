@@ -8,10 +8,10 @@
 #include "fx_7.h"
 #include <math.h>
 
-int fx_7() {
+double fx_7(double l2) {
 
-   int fx_7_result;
-   fx_7_result = 0;
+   double fx_7_result;
+   fx_7_result = 23.704999999999998*l2;
    return fx_7_result;
 
 }

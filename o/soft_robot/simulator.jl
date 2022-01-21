@@ -240,10 +240,10 @@ function exmample()
         (
             name = "dmpc",
             p = MPCController(
-                Q = diagm([10, 10, 10, 10, 10, 10, 0.0, 0.0, 0.0]),
+                Q = diagm([1, 1, 1, 1, 1, 1, 0.0, 0.0, 0.0]),
                 R = diagm([1.0, 1.0, 1.0,]),
-                n = 3,
-                Δt = 0.0001,
+                n = 10,
+                Δt = 1.0e-15,
                 isUncertainty = hutashikasa
             ),
             color = :cyan

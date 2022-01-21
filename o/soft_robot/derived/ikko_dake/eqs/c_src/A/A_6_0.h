@@ -10,7 +10,7 @@
 #ifndef A_6_0PROJECT__A_6_0__H
 #define A_6_0PROJECT__A_6_0__H
 
-int A_6_0();
+double A_6_0();
 
 #endif
 
