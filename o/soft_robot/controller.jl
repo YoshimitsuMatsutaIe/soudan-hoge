@@ -436,7 +436,7 @@ using ForwardDiff
 using Zygote
 using .Controller
 A = Controller.calc_A(
-    zeros(Float64, 3),zeros(Float64, 3),zeros(Float64, 3)
+    [0.001, 0.002, 0.005],zeros(Float64, 3),zeros(Float64, 3)
 )
 eigvals(A)
 # x = zeros(Float64, 3)

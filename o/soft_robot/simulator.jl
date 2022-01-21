@@ -228,26 +228,26 @@ function exmample()
         #     ),
         #     color = :black
         # ),
-        # (
-        #     name = "sdre",
-        #     p = SDREController(
-        #         Q = Matrix{Float64}(I, 6, 6)*2000,
-        #         R = Matrix{Float64}(I, 3, 3)*0.1,
-        #         isUncertainty = hutashikasa,
-        #     ),
-        #     color = :green
-        # ),
         (
-            name = "dmpc",
-            p = MPCController(
-                Q = diagm([1, 1, 1, 1, 1, 1, 0.0, 0.0, 0.0]),
-                R = diagm([1.0, 1.0, 1.0,]),
-                n = 10,
-                Δt = 1.0e-15,
-                isUncertainty = hutashikasa
+            name = "sdre",
+            p = SDREController(
+                Q = Matrix{Float64}(I, 6, 6)*2000,
+                R = Matrix{Float64}(I, 3, 3)*0.1,
+                isUncertainty = hutashikasa,
             ),
-            color = :cyan
-        )
+            color = :green
+        ),
+        # (
+        #     name = "dmpc",
+        #     p = MPCController(
+        #         Q = diagm([1, 1, 1, 1, 1, 1, 0.0, 0.0, 0.0]),
+        #         R = diagm([1.0, 1.0, 1.0,]),
+        #         n = 10,
+        #         Δt = 1.0e-15,
+        #         isUncertainty = hutashikasa
+        #     ),
+        #     color = :cyan
+        # )
     ]
     sols = []
     fig0 = plot(xlims=(0.0, TIME_SPAN), ylims=(0,0.02))
