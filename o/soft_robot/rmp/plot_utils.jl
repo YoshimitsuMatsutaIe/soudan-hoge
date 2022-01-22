@@ -1,5 +1,7 @@
 """視覚化"""
 
+module PlotTool
+
 using Plots
 using ProgressBars
 
@@ -176,4 +178,6 @@ function make_animation(sol, xd_func)
     gif(anim, "julia.gif", fps = 60)
 
     println("アニメ作成完了")
+end
+
 end
