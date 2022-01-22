@@ -9,6 +9,7 @@ using DifferentialEquations  # 微分方程式のソルバ
 using LaTeXStrings
 using ProgressBars
 
+include("utils.jl")
 include("kinematics.jl")
 include("differential_kinematics.jl")
 #include("controller.jl")
