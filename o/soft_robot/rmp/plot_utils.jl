@@ -51,7 +51,10 @@ end
 """1フレームを描写"""
 function draw_frame(
     t::T, q::Vector{T}, qd::Union{Vector{T}, Nothing},
-    fig_shape
+    fig_shape::Union{
+        NamedTuple{(:xl, :xu, :yl, :yu, :zl, :zu), Tuple{T, T, T, T, T, T}},
+        Nothing
+    }
     ) where T
     
 
@@ -94,11 +97,11 @@ function draw_frame(
         title = string(round(t, digits=2)) * "[s]"
     )
 
-    return fig, arm
+    return fig
 end
 
 
-fig, arm = draw_frame(
+fig = draw_frame(
     0.0,
     [
         0.0, 0.0, 0.0,
