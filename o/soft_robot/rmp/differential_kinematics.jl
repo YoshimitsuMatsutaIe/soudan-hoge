@@ -58,3 +58,19 @@ function J_2(q::Vector{Float64}, ξ)
 end
 
 end
+
+
+using .DifferentialKinematics
+
+
+using LinearAlgebra
+
+
+q = [
+    0, 0, 0,
+    0, 0, 0,
+    0.1, 0.2, 0.1
+]
+
+
+J = J_2(q, 1.0)

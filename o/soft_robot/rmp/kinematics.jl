@@ -78,7 +78,23 @@ function Arm(q::Vector{T},) where T
     return Phis
 end
 
+"""アームのディスク位置を計算"""
+function Arm(q::Vector{T}, m::Int64) where T
+    n = length(Ξ)
+    Phis = Vector{Vector{T}}(undef, n)
+    for (i, ξ) in enumerate(Ξ)
+        if m == 0
+            Phis[i] = Phi_0(q, ξ)
+        elseif m == 1
+            Phis[i] = Phi_1(q, ξ)
+        else
+            Phis[i] = Phi_2(q, ξ)
+        end
 
+
+    end
+    return Phis
+end
 
 end
 
@@ -89,6 +105,7 @@ end
 # p1 = Phi_1(q, 0.5)
 # p2 = Phi_2(q, 0.5)
 
+# Arm(q, 0)
 # println(p0)
 # println(p1)
 # println(p2)

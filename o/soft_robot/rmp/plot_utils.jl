@@ -50,7 +50,7 @@ end
 
 """1フレームを描写"""
 function draw_frame(
-    t::T, q::Vector{T}, qd::Union{Vector{T}, Nothing},
+    t::T, q::Vector{T}, xd::Union{Vector{T}, Nothing},
     fig_shape::Union{
         NamedTuple{(:xl, :xu, :yl, :yu, :zl, :zu), Tuple{T, T, T, T, T, T}},
         Nothing
@@ -58,23 +58,44 @@ function draw_frame(
     ) where T
     
 
-    arm = Arm(q)
+    arm0 = Arm(q, 0)
+    arm1 = Arm(q, 1)
+    arm2 = Arm(q, 2)
 
-    x, y, z = split_vec_of_arrays(arm)
+    x, y, z = split_vec_of_arrays(arm0)
     fig = plot(
         x, y, z,
         #marker=:circle,
         aspect_ratio = 1,
         #markersize=2,
-        label="arm",
+        label="1",
         xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
     )
-
-    if !isnothing(qd)
+    x, y, z = split_vec_of_arrays(arm1)
+    plot!(
+        fig,
+        x, y, z,
+        #marker=:circle,
+        aspect_ratio = 1,
+        #markersize=2,
+        label="2",
+        xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
+    )
+    x, y, z = split_vec_of_arrays(arm2)
+    plot!(
+        fig,
+        x, y, z,
+        #marker=:circle,
+        aspect_ratio = 1,
+        #markersize=2,
+        label="3",
+        xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
+    )
+    if !isnothing(xd)
         scatter!(
             fig,
             [xd[1]], [xd[2]], [xd[3]],
-            label="qd",
+            label="xd",
             markershape=:star6,
         )
     end
@@ -89,9 +110,9 @@ function draw_frame(
 
     plot!(
         fig,
-        # xlims=(fig_shape.xl, fig_shape.xu),
-        # ylims=(fig_shape.yl, fig_shape.yu),
-        # zlims=(fig_shape.zl, fig_shape.zu),
+        xlims=(fig_shape.xl, fig_shape.xu),
+        ylims=(fig_shape.yl, fig_shape.yu),
+        zlims=(fig_shape.zl, fig_shape.zu),
         legend = true,
         size=(600, 600),
         title = string(round(t, digits=2)) * "[s]"
@@ -101,21 +122,21 @@ function draw_frame(
 end
 
 
-fig = draw_frame(
-    0.0,
-    [
-        0.0, 0.0, 0.0,
-        0.0, 0.0, 0.05,
-        0.0, 0.05, 0.0
-    ], nothing, nothing)
+# fig = draw_frame(
+#     0.0,
+#     [
+#         0.0, 0.0, 0.0,
+#         0.0, 0.0, 0.00,
+#         0.0, 0.15, 0.1
+#     ], nothing, nothing)
 
 """アニメ作成"""
-function make_animation(data)
+function make_animation(sol, xd_func)
     println("アニメ作成中...")
     # 枚数決める
     #println(data.t)
     epoch_max = 100
-    epoch = length(data.t)
+    epoch = length(sol.t)
     if epoch < epoch_max
         step = 1
     else
@@ -124,11 +145,11 @@ function make_animation(data)
 
     #println(step)
 
-    x_max = 0.1
-    x_min = -0.1
-    y_max = 0.1
-    y_min = -0.1
-    z_max = 0.15
+    x_max = 0.2
+    x_min = -0.2
+    y_max = 0.2
+    y_min = -0.2
+    z_max = 0.55
     z_min = 0.0
     max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
     x_mid = (x_max + x_min) / 2
@@ -140,13 +161,13 @@ function make_animation(data)
         zl = z_mid-max_range, zu = z_mid+max_range,
     )
 
-    xd_all = [Phi0(q, 1.0) for q in data.qd]
-    x, y, z = split_vec_of_arrays(xd_all)
+    #xd_all = [P(q, 1.0) for q in data.qd]
+    #x, y, z = split_vec_of_arrays(xd_all)
 
     anim = Animation()
-    @gif for i in tqdm(1:step:length(data.t))
-        _fig = draw_frame(data.t[i], data.q[i], data.qd[i], fig_shape)
-        plot!(_fig, x, y, z, label="xd",)
+    @gif for i in tqdm(1:step:length(sol.t))
+        _fig = draw_frame(sol.t[i], sol.u[i], xd_func(sol.t[i]), fig_shape)
+        #plot!(_fig, x, y, z, label="xd",)
         frame(anim, _fig)
     end
 

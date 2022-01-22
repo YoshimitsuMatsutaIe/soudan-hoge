@@ -20,24 +20,30 @@ using .DifferentialKinematics
 
 
 
-const R = 0.1
+const R = 0.01
 const offset_z = 0.5
 
 """適当な目標位置変位"""
 function calc_xd(t::T) where T
-    [
-        R * sin(3t),
-        R * cos(3t),
-        offset_z,
-    ]
+    # [
+    #     #R * sin(3t),
+    #     0.0,
+    #     #R * cos(3t),
+    #     0,
+    #     #offset_z,
+        
+    # ]
+    Phi_2([0.001, 0.01, 0, 0, 0, 0, 0.0, 0.002, 0.01], 1.0)
 end
 
 
 """適当な目標位置速度"""
 function calc_xd_dot(t::T) where T
     [
-        R * 3cos(3t),
-        R * -3sin(3t),
+        #R * 3cos(3t),
+        0,
+        #R * -3sin(3t),
+        0,
         0,
     ]
 end
@@ -46,27 +52,91 @@ end
 """適当な目標位置加速度"""
 function calc_xd_dot_dot(t::T) where T
     [
-        R * -9sin(3t),
-        R * -9cos(3t),
+        #R * -9sin(3t),
+        0,
+        #R * -9cos(3t),
+        0,
         0,
     ]
 end
 
+"""ソフトマックス関数"""
+function soft_max(s::T, α::T) where T
+    s + 1/α * log(1 + exp(-2 * α * s))
+end
+
+"""ソフト正規化関数"""
+function soft_normal(v, alpha)
+    return v ./ soft_max(norm(v), alpha)
+end
+
+"""空間を一方向に伸ばす計量"""
+function metric_stretch(v, alpha)
+    xi = soft_normal(v, alpha)
+    return xi * xi'
+end
+
+"""基本の計量"""
+function basic_metric_H(f::Vector{T}, alpha::T, beta::T) where T
+    dim = length(f)
+    return beta .* metric_stretch(f, alpha) + (1 - beta) .* Matrix{T}(I, dim, dim)
+end
+
+function pullbacked_rmp(f, M, J)
+    pulled_f = J' * f
+    pulled_M = J' * M * J
+    return pulled_f, pulled_M
+end
 
 function state_eq!(
     X_dot::Vector{T}, X::Vector{T},
     p,
     t::T
     ) where T
-
-    J = J_2(X[1:9], 1.0)
     X_dot[1:9] = X[10:18]
-    X_dot[10:18] = pinv(J) *
-    (
-        calc_xd_dot_dot(t) .-
-        p.D*(J*X[10:18] .- calc_xd_dot(t)) .-
-        p.K*(Phi_2(X[1:9], 1.0) - calc_xd(t))
-    )
+    println("t = ", t)
+    J = J_2(X[1:9], 1.0)
+    
+    #println(pinv(J))
+    #println(J*X[10:18])
+    A = pinv(J) * calc_xd_dot_dot(t)
+    B = pinv(J) * (-p.D*(J*X[10:18] .- calc_xd_dot(t)))
+    C = pinv(J) * (-p.K*(Phi_2(X[1:9], 1.0) - calc_xd(t)))
+    X_dot[10:18] =  A .+ B .+ C
+    # println("A = ", norm(A))
+    # println("B = ", norm(B))
+    # println("C = ", norm(C))
+
+
+    # gain = 10.0
+    # max_speed = 5.0
+    # sigma_H = 5.0
+    # sigma_W = 1.0
+    # damp_r = 0.01
+    # ddq_damp_r = 0.01
+
+    # z0 = calc_xd(t)
+    # z = Phi_2(X[1:9], 1.0)
+    # dz = J * X[10:18]
+    # damp = gain / max_speed
+    # a = gain .* soft_normal(z0.-z, damp_r) .- damp*dz
+
+    # dis = norm(z0 .- z)
+    # weight = exp(-dis ./ sigma_W)
+    # beta = 1.0 - exp(-1/2 * (dis / sigma_H)^2)
+    # M = weight .* basic_metric_H(a, ddq_damp_r, beta)
+
+    # pulled_f, pulled_M = pullbacked_rmp(a, M, J)
+
+
+
+
+
+    # ddq = pinv(pulled_M) * pulled_f
+
+    # X_dot[10:18] = ddq
+
+
 end
 
 
@@ -75,21 +145,29 @@ function run_simulation(
     TIME_SPAN::T
     ) where T
 
-    X₀ = zeros(T, 18)
+    #X₀ = zeros(T, 18)
+    X₀ = [
+        0, 0, 0,
+        0, 0, 0,
+        0.01, 0, 0,
+        0, 0, 0,
+        0, 0, 0,
+        0, 0, 0
+    ]
     t_span = (0.0, TIME_SPAN)
     p = (
-        K = Matrix{T}(I, 3, 3)*10,
+        K = Matrix{T}(I, 3, 3)*0.1,
         D = Matrix{T}(I, 3, 3)*1,
     )
     prob = ODEProblem(state_eq!, X₀, t_span, p)
-    solve(prob)
+    solve(prob)#, tstops=[10000])
 end
 
 
 """実行"""
 function exmample()
 
-    TIME_SPAN = 3.0
+    TIME_SPAN = 13.0
 
     fig0 = plot(xlims=(0.0, TIME_SPAN),) #ylims=(0,0.02))
 
@@ -112,7 +190,8 @@ function exmample()
         label="err",
         legend=:outerright,
         #c=param.color,
-        ylabel="error [m]"
+        ylabel="error [m]",
+        ylims=(0.0, maximum(L2_error))
     )
 
     plot!(
@@ -144,9 +223,12 @@ function exmample()
     savefig(fig_I, "sol.png")
 
 
-    sol
+    
+    println(length(sol.t))
     println("done!")
+    make_animation(sol, calc_xd)
+    sol
 end
 
 
-@time _ = exmample()
+@time sol = exmample();
