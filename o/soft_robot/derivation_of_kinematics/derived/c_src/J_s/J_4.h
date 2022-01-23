@@ -10,7 +10,7 @@
 #ifndef J_4PROJECT__J_4__H
 #define J_4PROJECT__J_4__H
 
-void J_4(double *q_large, double *xi_large, double *out_2435973813313695373);
+void J_4(double *q_large, double xi, double *out_9138614865645660399);
 
 #endif
 

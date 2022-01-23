@@ -10,7 +10,7 @@
 #ifndef J_2PROJECT__J_2__H
 #define J_2PROJECT__J_2__H
 
-void J_2(double *q_large, double *xi_large, double *out_4954902247025846517);
+void J_2(double *q_large, double xi, double *out_4693307724290185755);
 
 #endif
 

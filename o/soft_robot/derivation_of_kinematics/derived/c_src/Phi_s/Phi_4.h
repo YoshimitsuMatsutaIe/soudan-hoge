@@ -10,7 +10,7 @@
 #ifndef PHI_4PROJECT__PHI_4__H
 #define PHI_4PROJECT__PHI_4__H
 
-void Phi_4(double *q_large, double *xi_large, double *out_4459298913103145584);
+void Phi_4(double *q_large, double xi, double *out_3926057223962941547);
 
 #endif
 

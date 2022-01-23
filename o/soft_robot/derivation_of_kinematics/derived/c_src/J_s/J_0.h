@@ -10,7 +10,7 @@
 #ifndef J_0PROJECT__J_0__H
 #define J_0PROJECT__J_0__H
 
-void J_0(double *q_large, double *xi_large, double *out_7919859379349735113);
+void J_0(double *q_large, double xi, double *out_559692533711693324);
 
 #endif
 
