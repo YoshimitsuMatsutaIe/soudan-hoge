@@ -22,17 +22,17 @@ using .DifferentialKinematics
 
 const sec_n = 3
 
-const R = 0.05
-const offset_z = 0.51
+const R = 0.1
+const offset_z = 0.45
 
 """適当な目標位置変位"""
 function calc_xd(t::T) where T
-    [
-        R * sin(3t),
-        R * cos(3t),
-        offset_z,
-    ]
-    #Phi_2([0.001, 0.01, 0, 0, 0, 0, 0.0, 0.002, 0.01], 1.0)
+    # [
+    #     R * sin(3t),
+    #     R * cos(3t),
+    #     offset_z,
+    # ]
+    Phi_2([0.01, 0.01, 0, 0, 0, 0, 0.0, 0.02, 0.01], 1.0)
 end
 
 
@@ -94,42 +94,42 @@ function state_eq!(
     
     #println(pinv(J))
     #println(J*X[10:18])
-    A = pinv(J) * calc_xd_dot_dot(t)
-    B = pinv(J) * (-p.D*(J*X[10:18] .- calc_xd_dot(t)))
-    C = pinv(J) * (-p.K*(Phi_2(X[1:9], 1.0) - calc_xd(t)))
-    X_dot[10:18] =  A .+ B .+ C
+    # A = pinv(J) * calc_xd_dot_dot(t)
+    # B = pinv(J) * (-p.D*(J*X[10:18] .- calc_xd_dot(t)))
+    # C = pinv(J) * (-p.K*(Phi_2(X[1:9], 1.0) - calc_xd(t)))
+    # X_dot[10:18] =  A .+ B .+ C
     # println("A = ", norm(A))
     # println("B = ", norm(B))
     #println("C = ", norm(C))
 
 
-    # gain = 10.0
-    # max_speed = 5.0
-    # sigma_H = 5.0
-    # sigma_W = 1.0
-    # damp_r = 0.01
-    # ddq_damp_r = 0.01
+    gain = 100.0
+    max_speed = 50.0
+    sigma_H = 5.0
+    sigma_W = 1.0
+    damp_r = 0.01
+    ddq_damp_r = 0.01
 
-    # z0 = calc_xd(t)
-    # z = Phi_2(X[1:9], 1.0)
-    # dz = J * X[10:18]
-    # damp = gain / max_speed
-    # a = gain .* soft_normal(z0.-z, damp_r) .- damp*dz
+    z0 = calc_xd(t)
+    z = Phi_2(X[1:9], 1.0)
+    dz = J * X[10:18]
+    damp = gain / max_speed
+    a = gain .* soft_normal(z0.-z, damp_r) .- damp*dz
 
-    # dis = norm(z0 .- z)
-    # weight = exp(-dis ./ sigma_W)
-    # beta = 1.0 - exp(-1/2 * (dis / sigma_H)^2)
-    # M = weight .* basic_metric_H(a, ddq_damp_r, beta)
+    dis = norm(z0 .- z)
+    weight = exp(-dis ./ sigma_W)
+    beta = 1.0 - exp(-1/2 * (dis / sigma_H)^2)
+    M = weight .* basic_metric_H(a, ddq_damp_r, beta)
 
-    # pulled_f, pulled_M = pullbacked_rmp(a, M, J)
-
-
+    pulled_f, pulled_M = pullbacked_rmp(a, M, J)
 
 
 
-    # ddq = pinv(pulled_M) * pulled_f
 
-    # X_dot[10:18] = ddq
+
+    ddq = pinv(pulled_M) * pulled_f
+
+    X_dot[10:18] = ddq
 
 
 end
@@ -182,6 +182,7 @@ function draw_frame(
     #     label="3",
     #     xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
     # )
+    fig = plot()
     arm = Vector{Vector{T}}(undef, length(Ξ))
     for (i, ξ) in enumerate(Ξ)
         arm[i] = Phi_0(q, ξ)
@@ -343,7 +344,7 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 60.0
+    TIME_SPAN = 150.0
 
     fig0 = plot(xlims=(0.0, TIME_SPAN),) #ylims=(0,0.02))
 
