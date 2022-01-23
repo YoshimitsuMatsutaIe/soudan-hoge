@@ -77,6 +77,9 @@ function basic_metric_H(f::Vector{T}, alpha::T, beta::T) where T
     return beta .* metric_stretch(f, alpha) + (1 - beta) .* Matrix{T}(I, dim, dim)
 end
 
+
+
+
 function pullbacked_rmp(f, M, J)
     pulled_f = J' * f
     pulled_M = J' * M * J
@@ -102,13 +105,13 @@ function state_eq!(
     # println("B = ", norm(B))
     #println("C = ", norm(C))
 
-
+    # 目標制御
     gain = 100.0
     max_speed = 50.0
-    sigma_H = 5.0
+    sigma_H = 1.0
     sigma_W = 1.0
     damp_r = 0.01
-    ddq_damp_r = 0.01
+    ddq_damp_r = 0.05
 
     z0 = calc_xd(t)
     z = Phi_2(X[1:9], 1.0)
@@ -122,11 +125,29 @@ function state_eq!(
     M = weight .* basic_metric_H(a, ddq_damp_r, beta)
 
     pulled_f, pulled_M = pullbacked_rmp(a, M, J)
+    root_f = pulled_f
+    root_M = pulled_M
 
 
+    # ジョイント制限回避
+    gamma_p = 0.05
+    gamma_d = 1.0
+    lambda = 0.5
+    q = X[1:9]
+    dq = X[10:18]
 
+    q_max = [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    q_min = -[0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1]
+    diags = (q_max .- q_min) .* (exp.(-q) ./ (1.0 .+ exp.(-q)).^2)
+    D_sigma =  diagm(diags)
 
-
+    z = gamma_p .* (-q) .- gamma_d .* dq
+    a = inv(D_sigma) * z
+    M = lambda .* Matrix{T}(I, 9, 9)
+    
+    @. root_f += a
+    @. root_M += M
+    
     ddq = pinv(pulled_M) * pulled_f
 
     X_dot[10:18] = ddq
@@ -344,7 +365,7 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 150.0
+    TIME_SPAN = 60.0
 
     fig0 = plot(xlims=(0.0, TIME_SPAN),) #ylims=(0,0.02))
 
@@ -403,7 +424,7 @@ function exmample()
     
     println(length(sol.t))
     println("done!")
-    make_animation(sol, calc_xd)
+    #make_animation(sol, calc_xd)
     sol
 end
 
