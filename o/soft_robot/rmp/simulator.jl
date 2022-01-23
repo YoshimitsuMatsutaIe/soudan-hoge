@@ -22,17 +22,23 @@ using .DifferentialKinematics
 
 const sec_n = 3
 
-const R = 0.1
+const R = 0.15
+const ω = 0.1
 const offset_z = 0.45
 
 """適当な目標位置変位"""
 function calc_xd(t::T) where T
     # [
-    #     R * sin(3t),
-    #     R * cos(3t),
+    #     R * sin(ω*t),
+    #     R * cos(ω*t),
     #     offset_z,
     # ]
-    Phi_2([0.01, 0.01, 0, 0, 0, 0, 0.0, 0.02, 0.01], 1.0)
+    [
+        0.2cos(ω*2*t)*cos(ω*t)
+        0.2cos(ω*2*t)*sin(ω*t)
+        offset_z
+    ]
+    #Phi_2([0.01, 0.01, 0, 0, 0, 0, 0.0, 0.02, 0.01], 1.0)
 end
 
 
@@ -92,7 +98,7 @@ function state_eq!(
     t::T
     ) where T
     X_dot[1:9] = X[10:18]
-    println("t = ", t)
+    #println("t = ", t)
     J = J_2(X[1:9], 1.0, sec_n)
     
     #println(pinv(J))
@@ -106,8 +112,8 @@ function state_eq!(
     #println("C = ", norm(C))
 
     # 目標制御
-    gain = 100.0
-    max_speed = 50.0
+    gain = 900.0
+    max_speed = 300.0
     sigma_H = 1.0
     sigma_W = 1.0
     damp_r = 0.01
@@ -170,39 +176,6 @@ function draw_frame(
     ) where T
     
 
-    # arm0 = Arm(q, 0)
-    # arm1 = Arm(q, 1)
-    # arm2 = Arm(q, 2)
-
-    # x, y, z = split_vec_of_arrays(arm0)
-    # fig = plot(
-    #     x, y, z,
-    #     #marker=:circle,
-    #     aspect_ratio = 1,
-    #     #markersize=2,
-    #     label="1",
-    #     xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
-    # )
-    # x, y, z = split_vec_of_arrays(arm1)
-    # plot!(
-    #     fig,
-    #     x, y, z,
-    #     #marker=:circle,
-    #     aspect_ratio = 1,
-    #     #markersize=2,
-    #     label="2",
-    #     xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
-    # )
-    # x, y, z = split_vec_of_arrays(arm2)
-    # plot!(
-    #     fig,
-    #     x, y, z,
-    #     #marker=:circle,
-    #     aspect_ratio = 1,
-    #     #markersize=2,
-    #     label="3",
-    #     xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
-    # )
     fig = plot()
     arm = Vector{Vector{T}}(undef, length(Ξ))
     for (i, ξ) in enumerate(Ξ)
@@ -321,13 +294,13 @@ function make_animation(sol, xd_func)
         zl = z_mid-max_range, zu = z_mid+max_range,
     )
 
-    #xd_all = [P(q, 1.0) for q in data.qd]
-    #x, y, z = split_vec_of_arrays(xd_all)
+    xd_all = [xd_func(t) for t in sol.t]
+    x, y, z = split_vec_of_arrays(xd_all)
 
     anim = Animation()
     @gif for i in tqdm(1:step:length(sol.t))
         _fig = draw_frame(sol.t[i], sol.u[i], xd_func(sol.t[i]), fig_shape)
-        #plot!(_fig, x, y, z, label="xd",)
+        plot!(_fig, x, y, z, label="xd line",)
         frame(anim, _fig)
     end
 
@@ -365,7 +338,7 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 60.0
+    TIME_SPAN = 80.0
 
     fig0 = plot(xlims=(0.0, TIME_SPAN),) #ylims=(0,0.02))
 
@@ -424,7 +397,7 @@ function exmample()
     
     println(length(sol.t))
     println("done!")
-    #make_animation(sol, calc_xd)
+    make_animation(sol, calc_xd)
     sol
 end
 
