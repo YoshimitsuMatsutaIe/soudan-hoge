@@ -20,32 +20,27 @@ using .DifferentialKinematics
 #using .PlotTool
 #using .Controller
 
+const sec_n = 3
 
-
-const R = 0.01
-const offset_z = 0.5
+const R = 0.05
+const offset_z = 0.51
 
 """適当な目標位置変位"""
 function calc_xd(t::T) where T
-    # [
-    #     #R * sin(3t),
-    #     0.0,
-    #     #R * cos(3t),
-    #     0,
-    #     #offset_z,
-        
-    # ]
-    Phi_2([0.001, 0.01, 0, 0, 0, 0, 0.0, 0.002, 0.01], 1.0)
+    [
+        R * sin(3t),
+        R * cos(3t),
+        offset_z,
+    ]
+    #Phi_2([0.001, 0.01, 0, 0, 0, 0, 0.0, 0.002, 0.01], 1.0)
 end
 
 
 """適当な目標位置速度"""
 function calc_xd_dot(t::T) where T
     [
-        #R * 3cos(3t),
-        0,
-        #R * -3sin(3t),
-        0,
+        R * 3cos(3t),
+        R * -3sin(3t),
         0,
     ]
 end
@@ -54,10 +49,8 @@ end
 """適当な目標位置加速度"""
 function calc_xd_dot_dot(t::T) where T
     [
-        #R * -9sin(3t),
-        0,
-        #R * -9cos(3t),
-        0,
+        R * -9sin(3t),
+        R * -9cos(3t),
         0,
     ]
 end
@@ -97,7 +90,7 @@ function state_eq!(
     ) where T
     X_dot[1:9] = X[10:18]
     println("t = ", t)
-    J = J_2(X[1:9], 1.0)
+    J = J_2(X[1:9], 1.0, sec_n)
     
     #println(pinv(J))
     #println(J*X[10:18])
@@ -107,7 +100,7 @@ function state_eq!(
     X_dot[10:18] =  A .+ B .+ C
     # println("A = ", norm(A))
     # println("B = ", norm(B))
-    println("C = ", norm(C))
+    #println("C = ", norm(C))
 
 
     # gain = 10.0
@@ -156,12 +149,46 @@ function draw_frame(
     ) where T
     
 
-    arm0 = Arm(q, 0)
-    arm1 = Arm(q, 1)
-    arm2 = Arm(q, 2)
+    # arm0 = Arm(q, 0)
+    # arm1 = Arm(q, 1)
+    # arm2 = Arm(q, 2)
 
-    x, y, z = split_vec_of_arrays(arm0)
-    fig = plot(
+    # x, y, z = split_vec_of_arrays(arm0)
+    # fig = plot(
+    #     x, y, z,
+    #     #marker=:circle,
+    #     aspect_ratio = 1,
+    #     #markersize=2,
+    #     label="1",
+    #     xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
+    # )
+    # x, y, z = split_vec_of_arrays(arm1)
+    # plot!(
+    #     fig,
+    #     x, y, z,
+    #     #marker=:circle,
+    #     aspect_ratio = 1,
+    #     #markersize=2,
+    #     label="2",
+    #     xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
+    # )
+    # x, y, z = split_vec_of_arrays(arm2)
+    # plot!(
+    #     fig,
+    #     x, y, z,
+    #     #marker=:circle,
+    #     aspect_ratio = 1,
+    #     #markersize=2,
+    #     label="3",
+    #     xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
+    # )
+    arm = Vector{Vector{T}}(undef, length(Ξ))
+    for (i, ξ) in enumerate(Ξ)
+        arm[i] = Phi_0(q, ξ)
+    end
+    x, y, z = split_vec_of_arrays(arm)
+    plot!(
+        fig,
         x, y, z,
         #marker=:circle,
         aspect_ratio = 1,
@@ -169,7 +196,12 @@ function draw_frame(
         label="1",
         xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
     )
-    x, y, z = split_vec_of_arrays(arm1)
+
+    arm = Vector{Vector{T}}(undef, length(Ξ))
+    for (i, ξ) in enumerate(Ξ)
+        arm[i] = Phi_1(q, ξ)
+    end
+    x, y, z = split_vec_of_arrays(arm)
     plot!(
         fig,
         x, y, z,
@@ -179,7 +211,12 @@ function draw_frame(
         label="2",
         xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
     )
-    x, y, z = split_vec_of_arrays(arm2)
+
+    arm = Vector{Vector{T}}(undef, length(Ξ))
+    for (i, ξ) in enumerate(Ξ)
+        arm[i] = Phi_2(q, ξ)
+    end
+    x, y, z = split_vec_of_arrays(arm)
     plot!(
         fig,
         x, y, z,
@@ -189,6 +226,9 @@ function draw_frame(
         label="3",
         xlabel = "X[m]", ylabel = "Y[m]", zlabel = "Z[m]",
     )
+
+
+
     if !isnothing(xd)
         scatter!(
             fig,
@@ -303,7 +343,7 @@ end
 """実行"""
 function exmample()
 
-    TIME_SPAN = 13.0
+    TIME_SPAN = 60.0
 
     fig0 = plot(xlims=(0.0, TIME_SPAN),) #ylims=(0,0.02))
 
