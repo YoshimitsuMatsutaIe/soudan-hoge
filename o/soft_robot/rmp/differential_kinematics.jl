@@ -9,7 +9,7 @@ export J_2
 
 function J_0!(q::Vector{Float64}, ξ::Vector{Float64}, out::Matrix{Float64})
     ccall(
-        (:J_0, "o/soft_robot/rmp/J_0.so"),
+        (:J_0, "o/soft_robot/derivation_of_kinematics/derived/N_is_3/c_src/J_s/J_0.so"),
         Cvoid,
         (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
         q, ξ, out

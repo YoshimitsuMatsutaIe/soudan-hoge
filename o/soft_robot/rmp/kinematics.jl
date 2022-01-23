@@ -8,11 +8,11 @@ export Phi_1
 export Phi_2
 
 export Arm
-
+ctrlab2021_soudan\o\soft_robot\derivation_of_kinematics\derived\N_is_3\c_src\J_s\J_0.so
 
 function Phi_0!(q::Vector{Float64}, ξ::Vector{Float64}, out::Vector{Float64})
     ccall(
-        (:Phi_0, "o/soft_robot/rmp/Phi_0.so"),
+        (:Phi_0, "/o/soft_robot/derivation_of_kinematics/derived/N_is_3/c_src/Phi_s/Phi_0.so"),
         Cvoid,
         (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
         q, ξ, out
@@ -28,7 +28,7 @@ end
 
 function Phi_1!(q::Vector{Float64}, ξ::Vector{Float64}, out::Vector{Float64})
     ccall(
-        (:Phi_1, "o/soft_robot/rmp/Phi_1.so"),
+        (:Phi_1, "/o/soft_robot/derivation_of_kinematics/derived/N_is_3/c_src/Phi_s/Phi_1.so"),
         Cvoid,
         (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
         q, ξ, out
@@ -44,7 +44,7 @@ end
 
 function Phi_2!(q::Vector{Float64}, ξ::Vector{Float64}, out::Vector{Float64})
     ccall(
-        (:Phi_2, "o/soft_robot/rmp/Phi_2.so"),
+        (:Phi_2, "/o/soft_robot/derivation_of_kinematics/derived/N_is_3/c_src/Phi_s/Phi_2.so"),
         Cvoid,
         (Ptr{Cdouble}, Ptr{Cdouble}, Ptr{Cdouble}),
         q, ξ, out
