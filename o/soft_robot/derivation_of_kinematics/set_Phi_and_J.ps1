@@ -1,3 +1,6 @@
+# コンパイルするスクリプト
+
+
 Write-Output "コンパイル実行中..."
 
 Set-Location .\o\soft_robot\derivation_of_kinematics
