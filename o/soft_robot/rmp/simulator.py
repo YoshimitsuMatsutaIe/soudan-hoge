@@ -160,6 +160,13 @@ class Simulator:
         plt.show()
 
 
+    def make_aniation(self,):
+        
+        
+        
+        
+        return None
+
 
 
 
@@ -171,3 +178,4 @@ if __name__ == "__main__":
     
     hoge.run()
     hoge.plot()
+    hoge.make_aniation()
