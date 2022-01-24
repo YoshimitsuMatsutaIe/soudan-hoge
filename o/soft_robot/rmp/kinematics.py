@@ -11,21 +11,19 @@ import Phi_4
 class Kinematics:
     """運動学"""
     
-    
-    def Phi_0(self, q, xi=1):
-        return Phi_0.f(q, xi)
-
-    def Phi_1(self, q, xi=1):
-        return Phi_1.f(q, xi)
-
-    def Phi_2(self, q, xi=1):
-        return Phi_2.f(q, xi)
-    
-    def Phi_3(self, q, xi=1):
-        return Phi_3.f(q, xi)
-    
-    def Phi_4(self, q, xi=1):
-        return Phi_4.f(q, xi)
+    def Phi(self, n, q, xi=1):
+        if n == 1:
+            return Phi_0.f(q, xi)
+        elif n == 2:
+            return Phi_1.f(q, xi)
+        elif n == 3:
+            return Phi_2.f(q, xi)
+        elif n == 4:
+            return Phi_3.f(q, xi)
+        elif n == 5:
+            return Phi_4.f(q, xi)
+        
+        return None
 
 
 class KinematiOriginal:
@@ -99,7 +97,8 @@ if __name__ == "__main__":
     hoge = Kinematics()
     
     def ikko_dake(l1, l2, l3):
-        return hoge.Phi_0(
+        return hoge.Phi(
+                0,
                 q = np.array([[
                     l1, l2, l3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                 ]]).T

@@ -1,11 +1,10 @@
 import numpy as np
 import math
-from math import pi, cos, sin, tan
-
-import rmp_fromGDS_attract_xi_M
+from numpy import pi, cos, sin, tan
 
 
-class RMP:
+
+class RMPbase:
     def __init__(self, goal_attractor, collision_avoidance,):
         self.goal_attractor = goal_attractor
         self.collision_avoidance = collision_avoidance
@@ -19,7 +18,6 @@ def pullback(f, M, J, dJ=None, dx= None):
         _f = J.T @ f
         _M = J.T @ M @ J
     else:
-
         _f = J.T @ (f - M @ dJ @ dx)
         _M = J.T @ M @ J
     return _f, _M
@@ -170,7 +168,7 @@ class OriginalRMPJointLimitAvoidance:
     def __init__(self, **kwargs):
         self.gamma_p = kwargs.pop('gamma_p')
         self.gamma_d = kwargs.pop('gamma_d')
-        self.lam = kwargs.pop('lambda')
+        self.lam = kwargs.pop('lam')
 
     def _a(self, q, dq, q_max, q_min):
         """ジョイント制限処理加速度"""
@@ -203,260 +201,260 @@ class OriginalRMPJointLimitAvoidance:
 
 
 
-def jl_alpha_upper(dq, sigma):
-    return 1 - math.exp(-(max(dq, 0) ** 2) / (2 * sigma ** 2))
+# def jl_alpha_upper(dq, sigma):
+#     return 1 - math.exp(-(max(dq, 0) ** 2) / (2 * sigma ** 2))
 
-def jl_alpha_lower(dq, sigma):
-    return 1 - math.exp(-(min(dq, 0) ** 2) / (2 * sigma ** 2))
+# def jl_alpha_lower(dq, sigma):
+#     return 1 - math.exp(-(min(dq, 0) ** 2) / (2 * sigma ** 2))
 
-def jl_s(q, q_min, q_max):
-    return (q - q_min) / (q_max - q_min)
+# def jl_s(q, q_min, q_max):
+#     return (q - q_min) / (q_max - q_min)
 
-def jl_b(q, dq, q_min, q_max, sigma):
-    """???を計算"""
-    s = jl_s(q, q_min, q_max)
-    d = 4 * s * (1 - s)
-    alpha_u = jl_alpha_upper(dq, sigma)
-    alpha_l = jl_alpha_lower(dq, sigma)
-    return s * (alpha_u * d + (1 - alpha_u)) + (1 - s) * (alpha_l * d + (1 - alpha_l))
+# def jl_b(q, dq, q_min, q_max, sigma):
+#     """???を計算"""
+#     s = jl_s(q, q_min, q_max)
+#     d = 4 * s * (1 - s)
+#     alpha_u = jl_alpha_upper(dq, sigma)
+#     alpha_l = jl_alpha_lower(dq, sigma)
+#     return s * (alpha_u * d + (1 - alpha_u)) + (1 - s) * (alpha_l * d + (1 - alpha_l))
 
-def dAiidqi(q, dq, q_min, q_max, sigma):
-    """????に使用"""
-    alpha_l = jl_alpha_lower(dq, sigma)
-    alpha_u = jl_alpha_upper(dq, sigma)
-    z = 2*(q_max - q_min)**6*(-4*alpha_l*(q - q_max)*(q - q_min) - 4*alpha_l*(q - q_max)*(2*q - q_max - q_min) + 4*alpha_u*(q - q_max)*(q - q_min) + 4*alpha_u*(q - q_min)*(2*q - q_max - q_min)\
-        - (1 - alpha_u)*(q_max - q_min)**2 - (alpha_l - 1)*(q_max - q_min)**2)\
-            /((q - q_max)*(4*alpha_l*(q - q_max)*(q - q_min) + (alpha_l - 1)*(q_max - q_min)**2) - (q - q_min)*(4*alpha_u*(q - q_max)*(q - q_min) + (alpha_u - 1)*(q_max - q_min)**2))**3
-    return z
-
-
+# def dAiidqi(q, dq, q_min, q_max, sigma):
+#     """????に使用"""
+#     alpha_l = jl_alpha_lower(dq, sigma)
+#     alpha_u = jl_alpha_upper(dq, sigma)
+#     z = 2*(q_max - q_min)**6*(-4*alpha_l*(q - q_max)*(q - q_min) - 4*alpha_l*(q - q_max)*(2*q - q_max - q_min) + 4*alpha_u*(q - q_max)*(q - q_min) + 4*alpha_u*(q - q_min)*(2*q - q_max - q_min)\
+#         - (1 - alpha_u)*(q_max - q_min)**2 - (alpha_l - 1)*(q_max - q_min)**2)\
+#             /((q - q_max)*(4*alpha_l*(q - q_max)*(q - q_min) + (alpha_l - 1)*(q_max - q_min)**2) - (q - q_min)*(4*alpha_u*(q - q_max)*(q - q_min) + (alpha_u - 1)*(q_max - q_min)**2))**3
+#     return z
 
 
-class RMPfromGDSAttractor:
-    """論文[R1]のRMP"""
 
-    def __init__(self, **kwargs):
-        self.max_speed = kwargs.pop('max_speed')
-        self.gain = kwargs.pop('gain')
-        self.alpha_f = kwargs.pop('alpha_f')
-        self.sigma_alpha = kwargs.pop('sigma_alpha')
-        self.sigma_gamma = kwargs.pop('sigma_gamma')
-        self.w_u = kwargs.pop('w_u')
-        self.w_l = kwargs.pop('w_l')
-        self.alpha = kwargs.pop('alpha')
-        self.epsilon = kwargs.pop('epsilon')
 
-    def _inertia_matrix(self, x, dx, x0, dx0):
-        """アトラクター慣性行列"""
-        z = x0 - x
-        dz = dx0 - dx
-        M = rmp_fromGDS_attract_xi_M.attract_M(
-            z, 
-            dz, 
-            self.sigma_alpha, 
-            self.sigma_gamma, 
-            self.w_u, 
-            self.w_l, 
-            self.alpha, 
-            self.epsilon)
-        return M
+# class RMPfromGDSAttractor:
+#     """論文[R1]のRMP"""
+
+#     def __init__(self, **kwargs):
+#         self.max_speed = kwargs.pop('max_speed')
+#         self.gain = kwargs.pop('gain')
+#         self.alpha_f = kwargs.pop('alpha_f')
+#         self.sigma_alpha = kwargs.pop('sigma_alpha')
+#         self.sigma_gamma = kwargs.pop('sigma_gamma')
+#         self.w_u = kwargs.pop('w_u')
+#         self.w_l = kwargs.pop('w_l')
+#         self.alpha = kwargs.pop('alpha')
+#         self.epsilon = kwargs.pop('epsilon')
+
+#     def _inertia_matrix(self, x, dx, x0, dx0):
+#         """アトラクター慣性行列"""
+#         z = x0 - x
+#         dz = dx0 - dx
+#         M = rmp_fromGDS_attract_xi_M.attract_M(
+#             z, 
+#             dz, 
+#             self.sigma_alpha, 
+#             self.sigma_gamma, 
+#             self.w_u, 
+#             self.w_l, 
+#             self.alpha, 
+#             self.epsilon)
+#         return M
     
-    def _f(self, x, dx, x0, dx0, M_attract):
-        """アトラクト力（加速度？）"""
-        # パラメーター
-        gamma_p = self.gain
-        gamma_d = self.gain / self.max_speed
-        alpha = self.alpha_f
-        # 変数変換
-        z = x0 - x
-        dz = dx0 - dx
+#     def _f(self, x, dx, x0, dx0, M_attract):
+#         """アトラクト力（加速度？）"""
+#         # パラメーター
+#         gamma_p = self.gain
+#         gamma_d = self.gain / self.max_speed
+#         alpha = self.alpha_f
+#         # 変数変換
+#         z = x0 - x
+#         dz = dx0 - dx
         
-        # メイン
-        f1 = -gamma_p * soft_normal(z, alpha) - gamma_d * dz
-        xi_M = rmp_fromGDS_attract_xi_M.attract_xi_M(
-            z, 
-            dz, 
-            self.sigma_alpha, 
-            self.sigma_gamma, 
-            self.w_u, 
-            self.w_l, 
-            self.alpha, 
-            self.epsilon
-        )
-        carv = -np.linalg.inv(M_attract) @ xi_M
-        f = f1 + carv
-        return f
+#         # メイン
+#         f1 = -gamma_p * soft_normal(z, alpha) - gamma_d * dz
+#         xi_M = rmp_fromGDS_attract_xi_M.attract_xi_M(
+#             z, 
+#             dz, 
+#             self.sigma_alpha, 
+#             self.sigma_gamma, 
+#             self.w_u, 
+#             self.w_l, 
+#             self.alpha, 
+#             self.epsilon
+#         )
+#         carv = -np.linalg.inv(M_attract) @ xi_M
+#         f = f1 + carv
+#         return f
 
-    def get_natural(self, x, dx, x0, dx0):
-        """form ()"""
+#     def get_natural(self, x, dx, x0, dx0):
+#         """form ()"""
         
-        M = self._inertia_matrix(x, dx, x0, dx0)
-        f = self._f(x, dx, x0, dx0, M)
+#         M = self._inertia_matrix(x, dx, x0, dx0)
+#         f = self._f(x, dx, x0, dx0, M)
         
-        return f, M
+#         return f, M
 
 
 
 
-class RMPfromGDSCollisionAvoidance:
-    """論文[R2]のRMP"""
+# class RMPfromGDSCollisionAvoidance:
+#     """論文[R2]のRMP"""
 
-    def __init__(self, **kwargs):
-        self.rw = kwargs.pop('rw')
-        self.sigma = kwargs.pop('sigma')
-        self.alpha = kwargs.pop('alpha')
+#     def __init__(self, **kwargs):
+#         self.rw = kwargs.pop('rw')
+#         self.sigma = kwargs.pop('sigma')
+#         self.alpha = kwargs.pop('alpha')
 
-    def _w(self, s):
-        """重み関数"""
-        # if s < self.rw:
-        #     return (self.rw - s)**2 / s
-        # else:
-        #     return 0
+#     def _w(self, s):
+#         """重み関数"""
+#         # if s < self.rw:
+#         #     return (self.rw - s)**2 / s
+#         # else:
+#         #     return 0
         
-        return 1/s**4
+#         return 1/s**4
 
-    def _dwds(self, s):
-        """重み関数のs微分"""
-        # if s < self.rw:
-        #     return 1 - self.rw**2 / s**3
-        # else:
-        #     return 0
+#     def _dwds(self, s):
+#         """重み関数のs微分"""
+#         # if s < self.rw:
+#         #     return 1 - self.rw**2 / s**3
+#         # else:
+#         #     return 0
 
-        return -4*s**-5
+#         return -4*s**-5
     
-    def _u(self, ds):
-        """速度依存計量の速度依存部分"""
-        if ds < 0:
-            return 1 - np.exp(-ds**2 / (2 * self.sigma**2))
-            #return 0
-        else:
-            return 0
+#     def _u(self, ds):
+#         """速度依存計量の速度依存部分"""
+#         if ds < 0:
+#             return 1 - np.exp(-ds**2 / (2 * self.sigma**2))
+#             #return 0
+#         else:
+#             return 0
     
-    def _dudsdot(self, ds,):
-        if ds < 0:
-            return -np.exp(-ds**2 / (2 * self.sigma**2)) * (-ds / self.sigma**2)
-            #return 0
-        else:
-            return 0
+#     def _dudsdot(self, ds,):
+#         if ds < 0:
+#             return -np.exp(-ds**2 / (2 * self.sigma**2)) * (-ds / self.sigma**2)
+#             #return 0
+#         else:
+#             return 0
     
-    def _delta(self, s, ds,):
-        return self._u(ds) + 1/2 * ds * self._dudsdot(ds)
+#     def _delta(self, s, ds,):
+#         return self._u(ds) + 1/2 * ds * self._dudsdot(ds)
 
-    def _xi(self, s, ds):
-        """曲率"""
-        return 1/2 * self._u(ds) * self._dwds(s) * ds**2
+#     def _xi(self, s, ds):
+#         """曲率"""
+#         return 1/2 * self._u(ds) * self._dwds(s) * ds**2
 
-    def _phi_1(self, s):
-        """バリア型ポテンシャル（R2の2次元の例より）"""
-        return 1/2 * self.alpha * self._w(s)**2
+#     def _phi_1(self, s):
+#         """バリア型ポテンシャル（R2の2次元の例より）"""
+#         return 1/2 * self.alpha * self._w(s)**2
 
-    def _grad_dphi_1(self, s):
-        return self.alpha * self._w(s) * self._dwds(s)
+#     def _grad_dphi_1(self, s):
+#         return self.alpha * self._w(s) * self._dwds(s)
 
-    def _inertia(self, s, ds):
-        """障害物計量"""
-        return self._w(s) * self._delta(s, ds)
+#     def _inertia(self, s, ds):
+#         """障害物計量"""
+#         return self._w(s) * self._delta(s, ds)
     
-    def _f(self, s, ds):
-        """障害物力"""
-        w = self._w(s)
-        grad_phi = self._grad_dphi_1(s)
-        xi = self._xi(s, ds)
+#     def _f(self, s, ds):
+#         """障害物力"""
+#         w = self._w(s)
+#         grad_phi = self._grad_dphi_1(s)
+#         xi = self._xi(s, ds)
         
-        return -w * grad_phi - xi
+#         return -w * grad_phi - xi
 
-    def get_natural(self, x, dx, x0, dx0):
-        """form ()
+#     def get_natural(self, x, dx, x0, dx0):
+#         """form ()
         
-        ・RMP-treeを実装後には直す
-        """
+#         ・RMP-treeを実装後には直す
+#         """
         
-        S = (x0 - x) 
-        V = (dx0 - dx)
-        s = np.linalg.norm(S)
-        ds = 1/s * (S.T @ V)
+#         S = (x0 - x) 
+#         V = (dx0 - dx)
+#         s = np.linalg.norm(S)
+#         ds = 1/s * (S.T @ V)
         
-        m = self._inertia(s, ds)
-        f = self._f(s, ds,)
+#         m = self._inertia(s, ds)
+#         f = self._f(s, ds,)
         
-        J = -(x - dx).T / s
-        dJ = -1 / s**2 * ((dx0 - dx).T - (x0 - dx).T*ds)
+#         J = -(x - dx).T / s
+#         dJ = -1 / s**2 * ((dx0 - dx).T - (x0 - dx).T*ds)
         
-        f = J.T * (f - m * dJ @ dx)
-        M = J.T @ m @ J
+#         f = J.T * (f - m * dJ @ dx)
+#         M = J.T @ m @ J
         
-        # f = J.T * f
-        # M = J.T @ m @ J
+#         # f = J.T * f
+#         # M = J.T @ m @ J
         
-        # print('f = ', f)
-        # print('M = ', M)
-        return f, M
-
-
+#         # print('f = ', f)
+#         # print('M = ', M)
+#         return f, M
 
 
-class RMPfromGDSJointLimitAvoidance:
-    """論文[R1]のRMP"""
 
-    def __init__(self, **kwargs):
-        # ジョイント制限処理力
-        self.gamma_p = kwargs.pop('gamma_p')
-        self.gamma_d = kwargs.pop('gamma_d')
-        # ジョイント制限処理計量
-        self.jl_lambda = kwargs.pop('lambda')
-        self.jl_sigma = kwargs.pop('jl_sigma')
 
-    def _inertia_matrix(self, q, dq, q_max, q_min):
-        """ジョイント制限回避計量"""
-        A_ii = []
-        dof = len(q)
-        for i in range(0, dof, 1):
-            b = jl_b(
-                q[i, 0], 
-                dq[i, 0], 
-                q_min[i, 0], 
-                q_max[i, 0], 
-                self.jl_sigma)
-            A_ii.append(b ** (-2))
-        A = self.jl_lambda * np.diag(A_ii)
-        return A
+# class RMPfromGDSJointLimitAvoidance:
+#     """論文[R1]のRMP"""
+
+#     def __init__(self, **kwargs):
+#         # ジョイント制限処理力
+#         self.gamma_p = kwargs.pop('gamma_p')
+#         self.gamma_d = kwargs.pop('gamma_d')
+#         # ジョイント制限処理計量
+#         self.jl_lambda = kwargs.pop('lambda')
+#         self.jl_sigma = kwargs.pop('jl_sigma')
+
+#     def _inertia_matrix(self, q, dq, q_max, q_min):
+#         """ジョイント制限回避計量"""
+#         A_ii = []
+#         dof = len(q)
+#         for i in range(0, dof, 1):
+#             b = jl_b(
+#                 q[i, 0], 
+#                 dq[i, 0], 
+#                 q_min[i, 0], 
+#                 q_max[i, 0], 
+#                 self.jl_sigma)
+#             A_ii.append(b ** (-2))
+#         A = self.jl_lambda * np.diag(A_ii)
+#         return A
     
-    def _f(self, q, dq, q_max, q_min, metric_jl):
-        """ジョイント制限処理力（加速度？）"""
+#     def _f(self, q, dq, q_max, q_min, metric_jl):
+#         """ジョイント制限処理力（加速度？）"""
         
-        gamma_p = self.gamma_p
-        gamma_d = self.gamma_d
-        ddq_old = gamma_p * (-q) - gamma_d * dq
+#         gamma_p = self.gamma_p
+#         gamma_d = self.gamma_d
+#         ddq_old = gamma_p * (-q) - gamma_d * dq
         
-        A = metric_jl
-        dof = len(q)
+#         A = metric_jl
+#         dof = len(q)
         
-        d_xi_A = []
+#         d_xi_A = []
         
-        for i in range(0, dof, 1):
-            dAdq = dAiidqi(
-                q[i, 0], 
-                dq[i, 0], 
-                q_min[i, 0],
-                q_max[i, 0],
-                self.jl_sigma)
-            d_xi_A.append(1/2 * dAdq * dq[i, 0])
+#         for i in range(0, dof, 1):
+#             dAdq = dAiidqi(
+#                 q[i, 0], 
+#                 dq[i, 0], 
+#                 q_min[i, 0],
+#                 q_max[i, 0],
+#                 self.jl_sigma)
+#             d_xi_A.append(1/2 * dAdq * dq[i, 0])
         
-        xi_A = np.diag(d_xi_A)
+#         xi_A = np.diag(d_xi_A)
         
-        carv = np.linalg.inv(A) @ xi_A
+#         carv = np.linalg.inv(A) @ xi_A
         
-        f = ddq_old - carv
-        #print("z = ", z)
-        return f
+#         f = ddq_old - carv
+#         #print("z = ", z)
+#         return f
 
-    def get_natural(self, q, dq, q_max, q_min):
-        """form ()"""
+#     def get_natural(self, q, dq, q_max, q_min):
+#         """form ()"""
         
-        M = self._inertia_matrix(q, dq, q_max, q_min)
-        f = self._f(q, dq, q_max, q_min, M)
+#         M = self._inertia_matrix(q, dq, q_max, q_min)
+#         f = self._f(q, dq, q_max, q_min, M)
         
-        return f, M
+#         return f, M
 
 
 
