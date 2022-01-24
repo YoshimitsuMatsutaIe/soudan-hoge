@@ -119,7 +119,8 @@ if __name__ == "__main__":
     
     hoge2 = KinematiOriginal()
     
-    p = [np.linalg.norm(hoge2.mapping_from_actuator_to_task_p(np.array([[l1, 0.001, 0]]).T)) for l1 in l]
+    p = [np.linalg.norm(hoge2.mapping_from_actuator_to_task_p(np.array([[l1, 0.01, 0.6]]).T)) for l1 in l]
+    print(p)
     ax.plot(l, p, label="origi_p_norm", linestyle = "dashed")
     
     o = [0.15 for _ in l]

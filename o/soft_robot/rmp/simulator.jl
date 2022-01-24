@@ -33,12 +33,12 @@ function calc_xd(t::T) where T
     #     R * cos(ω*t),
     #     offset_z,
     # ]
-    [
-        0.2cos(ω*2*t)*cos(ω*t)
-        0.2cos(ω*2*t)*sin(ω*t)
-        offset_z
-    ]
-    #Phi_2([0.01, 0.01, 0, 0, 0, 0, 0.0, 0.02, 0.01], 1.0)
+    # [
+    #     0.2cos(ω*2*t)*cos(ω*t)
+    #     0.2cos(ω*2*t)*sin(ω*t)
+    #     offset_z
+    # ]
+    Phi_2([0.01, -0.02, 0, 0.02, 0, 0, 0.0, 0.02, 0.01], 1.0)
 end
 
 
@@ -92,6 +92,9 @@ function pullbacked_rmp(f, M, J)
     return pulled_f, pulled_M
 end
 
+
+global error = [0.0, 0.0, 0.0]
+
 function state_eq!(
     X_dot::Vector{T}, X::Vector{T},
     p,
@@ -112,8 +115,8 @@ function state_eq!(
     #println("C = ", norm(C))
 
     # 目標制御
-    gain = 900.0
-    max_speed = 300.0
+    gain = 300.0
+    max_speed = 10.0
     sigma_H = 1.0
     sigma_W = 1.0
     damp_r = 0.01
@@ -123,22 +126,29 @@ function state_eq!(
     z = Phi_2(X[1:9], 1.0)
     dz = J * X[10:18]
     damp = gain / max_speed
-    a = gain .* soft_normal(z0.-z, damp_r) .- damp*dz
+    a = gain .* soft_normal(z0.-z, damp_r) .- damp*dz# .- 0.05*error
+
+
+
 
     dis = norm(z0 .- z)
+
+    
+    #global error += (z0 .- z)
+
     weight = exp(-dis ./ sigma_W)
     beta = 1.0 - exp(-1/2 * (dis / sigma_H)^2)
     M = weight .* basic_metric_H(a, ddq_damp_r, beta)
 
-    pulled_f, pulled_M = pullbacked_rmp(a, M, J)
+    pulled_f, pulled_M = pullbacked_rmp(M*a, M, J)
     root_f = pulled_f
     root_M = pulled_M
 
 
     # ジョイント制限回避
-    gamma_p = 0.05
+    gamma_p = 5.0
     gamma_d = 1.0
-    lambda = 0.5
+    lambda = 1.0
     q = X[1:9]
     dq = X[10:18]
 
@@ -148,13 +158,16 @@ function state_eq!(
     D_sigma =  diagm(diags)
 
     z = gamma_p .* (-q) .- gamma_d .* dq
-    a = inv(D_sigma) * z
-    M = lambda .* Matrix{T}(I, 9, 9)
+    ajl = inv(D_sigma) * z
+    Mjl = lambda .* Matrix{T}(I, 9, 9)
+
+
+    #println(root_f)
+    #println(M*a)
+    root_f += Mjl*ajl
+    @. root_M += Mjl
     
-    @. root_f += a
-    @. root_M += M
-    
-    ddq = pinv(pulled_M) * pulled_f
+    ddq = pinv(root_M) * root_f
 
     X_dot[10:18] = ddq
 
@@ -306,7 +319,7 @@ function make_animation(sol, xd_func)
 
 
 
-    gif(anim, "julia.gif", fps = 60)
+    gif(anim, "julianasi.gif", fps = 60)
 
     println("アニメ作成完了")
 end

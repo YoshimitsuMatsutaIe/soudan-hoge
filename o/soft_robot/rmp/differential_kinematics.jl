@@ -110,19 +110,19 @@ end
 end
 
 
-using .DifferentialKinematics
+# using .DifferentialKinematics
 
 
-using LinearAlgebra
+# using LinearAlgebra
 
 
-q = [
-    0, 0, 0,
-    0, 0, 0,
-    0.1, 0.2, 0.1
-]
+# q = [
+#     0, 0, 0,
+#     0, 0, 0,
+#     0.1, 0.2, 0.1
+# ]
 
-q0 = [0.01, 0.05, 0.1]
+# q0 = [0.01, 0.05, 0.1]
 
-J = J_2(q, 1.0, 3)
-J0 = J_0(q0, 1.0, 1)
+# J = J_2(q, 1.0, 3)
+# J0 = J_0(q0, 1.0, 1)
