@@ -2,7 +2,10 @@ import numpy as np
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import matplotlib.animation as anm
+from IPython.display import HTML
 import tqdm
+import time
+from functools import wraps
 
 
 from kinematics import Kinematics
@@ -10,11 +13,23 @@ from differential_kinematics import DifferentialKinematics
 from controller import OriginalRMPAttractor, OriginalRMPJointLimitAvoidance, pullback
 
 
+def stop_watch(func):
+    """時間計測"""
+    @wraps(func)
+    def wrapper(*args, **kargs):
+        start = time.time()
+        result = func(*args, **kargs)
+        elapsed_time = time.time() - start
+
+        print("{} s in {}".format(elapsed_time, func.__name__))
+        return result
+    return wrapper
+
 
 class Simulator:
     """シミュレーション関係"""
     
-    TIME_SPAN = 0.1  # デフォルト
+    TIME_SPAN = 10  # デフォルト
     TIME_INTERVAL = 0.01  # デフォルト
     
     
@@ -29,8 +44,8 @@ class Simulator:
         # 目標位置
         if goal is None:  # デフォルト値
             self.goal = {
-                4:np.array([[0.1, 0.1, 0.5]]).T,
-                3:np.array([[0.1, 0.1, 0.45]]).T,
+                4:np.array([[0.1, 0.1, 0.6]]).T,
+                3:np.array([[0.1, 0.1, 0.5]]).T,
                 2:np.array([[0.1, 0.1, 0.4]]).T,
             }
         else:
@@ -59,30 +74,39 @@ class Simulator:
         
 
     def set_goal(self, goal):
-        """目標位置を準備"""
+        """目標位置を準備
+        
+        goal : dict
+        """
         self.goal = goal
     
     
     def X_dot(self, t, X):
         """scipyで使う微分方程式"""
-        print("t = ", t)
+        #print("t = ", t)
         q = X[:self.N*3].reshape(self.N*3, 1)
         q_dot = X[self.N*3:].reshape(self.N*3, 1)
         
+        # pushforward演算
+        xs = [self.kim.Phi(i+1, q) for i in range(self.N)]
+        Js = [self.diff_kim.J(i+1, q) for i in range(self.N)]
+        x_dots = [J @ q_dot for J in Js]
+
         
-        x = self.kim.Phi(self.N, q)
-        J = self.diff_kim.J(self.N, q)
-        x_dot = J @ q_dot
-        
+        # ルートのRMP
         root_f = np.zeros((self.N*3, 1))
         root_M = np.zeros((self.N*3, self.N*3))
 
+
         # アトラクター
-        f, M = self.attractor.get_natural(x, x_dot, self.goal, np.zeros((3,1)))
-        pullbacked_f, pullbacked_M = pullback(f, M, J)
-        root_f += pullbacked_f
-        root_M += pullbacked_M
-        
+        for k in self.goal:
+            f, M = self.attractor.get_natural(
+                xs[k], x_dots[k], self.goal[k], np.zeros((3,1))
+            )
+            pullbacked_f, pullbacked_M = pullback(f, M, Js[k])
+            root_f += pullbacked_f
+            root_M += pullbacked_M
+            
         
         # ジョイント制限回避
         f, M = self.jlavoidance.get_natural(
@@ -100,7 +124,7 @@ class Simulator:
         return np.ravel(np.concatenate([q_dot, q_dot_dot]))
     
     
-    
+    @stop_watch
     def run(self, TIME_SPAN=None, TIME_INTERVAL=None):
         """シミュレーション実行"""
         
@@ -126,30 +150,30 @@ class Simulator:
         print("シミュレーション終了!")
     
     
-    def plot(self,):
+    @stop_watch
+    def plot_basic(self,):
+        """基本的なものをプロット"""
         
         
         fig = plt.figure(figsize=(10, 15))
         
-        # xの時系列データ作成
-        e = []
-        for i in range(len(self.sol.t)):
-            temp_q = []
-            for j in range(self.N):
-                temp_q.append(self.sol.y[3*j][i])
-                temp_q.append(self.sol.y[3*j+1][i])
-                temp_q.append(self.sol.y[3*j+2][i])
-            temp_q = np.array([temp_q]).T
-            e.append(
-                np.linalg.norm(self.goal - self.kim.Phi(self.N, temp_q))
-            )
+        # 誤差の時系列
+        es = []
+        for k in self.goal:
+            e = []
+            for i in range(len(self.sol.t)):
+                e.append(
+                    np.linalg.norm(self.goal[k] - self.x_data[i][k][:, -1])
+                )
+            es.append(e)
         
         ax = fig.add_subplot(3, 1, 1)
-        ax.plot(self.sol.t, e, label="error")
+        for i, k in enumerate(self.goal):
+            ax.plot(self.sol.t, es[i], label="error in " + str(k))
         ax.set_xlabel("time [s]")
         ax.set_ylabel("[m]")
         ax.set_xlim(0, self.TIME_SPAN)
-        ax.set_ylim(0, max(e))
+        ax.set_ylim(0, max([x for row in es for x in row]))
         ax.legend()
         ax.grid()
         
@@ -181,6 +205,7 @@ class Simulator:
         print("plot完了!")
 
 
+    @stop_watch
     def reproduce_state(self,):
         """アクチュエータ変位から状態を再現"""
         
@@ -249,11 +274,13 @@ class Simulator:
         
         
         # 目標点
-        self.ax.scatter(
-            self.goal[0, 0], self.goal[1, 0], self.goal[2, 0],
-            s = 200, label = 'goal point', marker = '*', color = '#ff7f00', 
-            alpha = 1, linewidths = 1.5, edgecolors = 'red'
-        )
+        for k in self.goal:
+            self.ax.scatter(
+                self.goal[k][0, 0], self.goal[k][1, 0], self.goal[k][2, 0],
+                s = 200, label = 'goal of sec' + str(k),
+                marker = '*',# color = '#ff7f00', 
+                alpha = 1, linewidths = 1.1, edgecolors = 'red'
+            )
         
         # アーム
         for j in range(self.N):
@@ -272,7 +299,7 @@ class Simulator:
 
 
 
-
+    @stop_watch
     def make_aniation(self,):
         """アニメ作る"""
         
@@ -322,7 +349,7 @@ class Simulator:
         )
         
         
-        plt.show()
+        #plt.show()
 
         ani.save("hoge.gif", fps=60, writer='pillow')
         
@@ -331,8 +358,18 @@ class Simulator:
         
         
         
-        return None
+        return ani
 
+
+
+def ex_default():
+    """デフォルトの実行例"""
+    hoge = Simulator(N=5)
+    
+    hoge.run()
+    hoge.reproduce_state()
+    hoge.plot_basic()
+    hoge.make_aniation()
 
 
 
@@ -341,6 +378,6 @@ if __name__ == "__main__":
     hoge = Simulator(N=5)
     
     hoge.run()
-    hoge.plot()
     hoge.reproduce_state()
+    hoge.plot_basic()
     hoge.make_aniation()
