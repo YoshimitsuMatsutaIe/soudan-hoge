@@ -147,3 +147,5 @@ dmypy.json
 *.jpg
 *.pdf
 *.webm
+
+*.csv

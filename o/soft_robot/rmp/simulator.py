@@ -12,6 +12,7 @@ import datetime
 from functools import wraps
 import os
 from pathlib import Path
+import csv
 
 from kinematics import Kinematics
 from differential_kinematics import DifferentialKinematics
@@ -136,7 +137,7 @@ class Simulator:
         date_now = datetime.datetime.now()  # 名前つけるとき使う
         name = date_now.strftime('%Y-%m-%d--%H-%M-%S')
         cwd = str(Path().resolve())
-        self.base = cwd + "/name"
+        self.base = cwd + "/" + name
         os.makedirs(self.base, exist_ok=True)
         
         
@@ -255,6 +256,40 @@ class Simulator:
             self.x_data.append(temp)
 
 
+    @stop_watch
+    def save_data(self,):
+        """csvにデータを保存"""
+        
+        print("csvに保存中...")
+        
+        # q, q_dotを保存
+        header = 't'
+        for i in range(self.N):
+            for j in range(3):
+                header += ',l_' + str(i) + '_' + str(j)
+        for i in range(self.N):
+            for j in range(3):
+                header += ',l_dot_' + str(i) + '_' + str(j)
+        
+        _temp = [self.sol.t.reshape(len(self.sol.t), 1)]
+        for i in range(self.N*3*2):
+            _temp.append(self.sol.y[i].reshape(len(self.sol.t), 1))
+        
+        _temp = np.concatenate(_temp, axis=1)
+        np.savetxt(
+            self.base + '/actuator.csv',
+            _temp,
+            header=header,
+            comments='',
+            delimiter = ","
+        )
+
+        
+        
+        
+        print("完了!")
+
+
         print("完了!")
         
     
@@ -360,8 +395,13 @@ class Simulator:
         )
         
         
-        ani.save(self.base + "/ani.gif", fps=60, writer='pillow')
-        
+        # 保存
+        ani.save(
+            self.base + "/animation.gif", fps=60, writer='pillow'
+        )
+        ani.save(
+            self.base + "/animation.mp4", fps=60, writer='ffmpeg'
+        )  #Windowsだと無理かも
         
         print("完了!")
         plt.show()
@@ -389,5 +429,6 @@ if __name__ == "__main__":
     
     hoge.run(TIME_SPAN = 0.03)
     hoge.reproduce_state()
+    hoge.save_data()
     hoge.plot_basic()
     hoge.make_aniation()
