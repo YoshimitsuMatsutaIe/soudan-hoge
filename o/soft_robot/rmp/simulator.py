@@ -213,7 +213,10 @@ class Simulator:
         ax3.grid()
         
         fig.savefig(self.base + "/basic.png")
-        plt.show()
+        
+        
+        #plt.show()
+        
         print("plot完了!")
 
 
@@ -283,9 +286,6 @@ class Simulator:
             comments='',
             delimiter = ","
         )
-
-        
-        
         
         print("完了!")
 
