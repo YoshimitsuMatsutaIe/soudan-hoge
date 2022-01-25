@@ -1,0 +1,6 @@
+A_damp_r: 0.01
+a_damp_r: 0.05
+gain: 300
+max_speed: 10
+sigma_H: 1
+sigma_W: 1

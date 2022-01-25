@@ -1,15 +1,16 @@
 """シミュレーション関係
 
-基本的には上から順にメソッドを実行してけば良い  
+上から順にメソッドを実行してけば良い  
 
 """
 
-
-
 import numpy as np
+from math import pi, cos, sin
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import matplotlib.animation as anm
+from matplotlib.patches import Circle
+import mpl_toolkits.mplot3d.art3d as art3d
 #from matplotlib.font_manager import FontProperties
 #plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.family"] = "DejaVu Serif"
@@ -26,6 +27,29 @@ import yaml
 from kinematics import Kinematics
 from differential_kinematics import DifferentialKinematics
 from controller import OriginalRMPAttractor, OriginalRMPJointLimitAvoidance, pullback
+
+
+def _rotate(alpha, beta, gamma):
+    """3次元回転行列"""
+    
+    Rx = np.array([
+        [1, 0, 0],
+        [0, np.cos(alpha), -np.sin(alpha)],
+        [0, np.sin(alpha), np.cos(alpha)],
+    ])
+    Ry = np.array([
+        [np.cos(beta), 0, np.sin(beta)],
+        [0, 1, 0],
+        [-np.sin(beta), 0, np.cos(beta)],
+    ])
+    Rz = np.array([
+        [np.cos(gamma), -np.sin(gamma), 0],
+        [np.sin(gamma), np.cos(gamma), 0],
+        [0, 0, 1],
+    ])
+    
+    return Rx @ Ry @ Rz
+
 
 
 def stop_watch(func):
@@ -49,9 +73,9 @@ class Simulator:
     TIME_INTERVAL = 0.01  # 刻み時間
     
     goal_param = {
-        4:[0.1, 0.1, 0.6],
-        3:[0.1, 0.1, 0.5],
-        2:[0.1, 0.1, 0.4],
+        4:[0.2+0.05*cos(2*pi/4), 0.05*cos(2*pi/4), 0.6],
+        3:[0.2+0.05*cos(3*pi/4), 0.05*sin(3*pi/4), 0.55],
+        2:[0.2+0.05*cos(4*pi/4), 0.05*sin(4*pi/4), 0.5],
     }  # 目標位置
     
     attractor_param = {
@@ -395,9 +419,32 @@ class Simulator:
             self.ax.scatter(
                 self.x_data[i][j][0,-1], self.x_data[i][j][1,-1], self.x_data[i][j][2,-1],
             )
+        # p = Circle(
+        #     xy = (0.1, 0.1),
+        #     radius = 0.0125,
+        #     angle=0.4,
+        #     alpha = 0.5 
+        # )
+        # self.ax.add_patch(p)
+        # art3d.pathpatch_2d_to_3d(p, z=0, zdir = 'x')
+        #art3d.pathpatch_translate(p, (0.5, 1, 0))
+
+        Xc,Yc,Zc = self.data_for_cylinder_along_z(
+            0.2, 0, 0.05, 0.7
+        )
+        self.ax.plot_surface(Xc, Yc, Zc, alpha=0.4)
 
         self.ax.legend()
 
+
+    def data_for_cylinder_along_z(self, center_x,center_y,radius,height_z):
+        """コピペ"""
+        z = np.linspace(0, height_z, 50)
+        theta = np.linspace(0, 2*np.pi, 50)
+        theta_grid, z_grid=np.meshgrid(theta, z)
+        x_grid = radius*np.cos(theta_grid) + center_x
+        y_grid = radius*np.sin(theta_grid) + center_y
+        return x_grid,y_grid,z_grid
 
 
     @stop_watch
@@ -480,9 +527,9 @@ def ex_default():
 
 if __name__ == "__main__":
     
-    hoge = Simulator(N=5)
+    hoge = Simulator(N=5, goal_param=None)
     
-    hoge.run(TIME_SPAN = 0.04)
+    hoge.run(TIME_SPAN = 10)
     hoge.reproduce_state()
     hoge.save_data()
     hoge.plot_basic()
