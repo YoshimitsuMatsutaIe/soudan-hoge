@@ -2,11 +2,16 @@ import numpy as np
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import matplotlib.animation as anm
+#from matplotlib.font_manager import FontProperties
+#plt.rcParams["font.family"] = "Times New Roman"
+plt.rcParams["font.family"] = "DejaVu Serif"
 from IPython.display import HTML
 import tqdm
 import time
+import datetime
 from functools import wraps
-
+import os
+from pathlib import Path
 
 from kinematics import Kinematics
 from differential_kinematics import DifferentialKinematics
@@ -128,6 +133,13 @@ class Simulator:
     def run(self, TIME_SPAN=None, TIME_INTERVAL=None):
         """シミュレーション実行"""
         
+        date_now = datetime.datetime.now()  # 名前つけるとき使う
+        name = date_now.strftime('%Y-%m-%d--%H-%M-%S')
+        cwd = str(Path().resolve())
+        self.base = cwd + "/name"
+        os.makedirs(self.base, exist_ok=True)
+        
+        
         print("シミュレーション実行中...")
         
         
@@ -154,8 +166,7 @@ class Simulator:
     def plot_basic(self,):
         """基本的なものをプロット"""
         
-        
-        fig = plt.figure(figsize=(10, 15))
+        fig = plt.figure(figsize=(14, 15))
         
         # 誤差の時系列
         es = []
@@ -169,9 +180,9 @@ class Simulator:
         
         ax = fig.add_subplot(3, 1, 1)
         for i, k in enumerate(self.goal):
-            ax.plot(self.sol.t, es[i], label="error in " + str(k))
-        ax.set_xlabel("time [s]")
-        ax.set_ylabel("[m]")
+            ax.plot(self.sol.t, es[i], label=r"Section " + str(k))
+        ax.set_xlabel(r'Time $\it{t}$ [s]')
+        ax.set_ylabel(r"Position Error to Goal [m]")
         ax.set_xlim(0, self.TIME_SPAN)
         ax.set_ylim(0, max([x for row in es for x in row]))
         ax.legend()
@@ -179,28 +190,28 @@ class Simulator:
         
         ax2 = fig.add_subplot(3, 1, 2)
         for i in range(self.N):
-            ax2.plot(self.sol.t, self.sol.y[3*i], label="l" + str(i) + "_1")
-            ax2.plot(self.sol.t, self.sol.y[3*i+1], label="l" + str(i) + "_2")
-            ax2.plot(self.sol.t, self.sol.y[3*i+2], label="l" + str(i) + "_3")
-        ax2.set_xlabel("time [s]")
-        ax2.set_ylabel("length [m]")
+            ax2.plot(self.sol.t, self.sol.y[3*i], label=r"$\it{l^" + str(i) + r"_1}$")
+            ax2.plot(self.sol.t, self.sol.y[3*i+1], label=r"$\it{l^" + str(i) + r"_2}$")
+            ax2.plot(self.sol.t, self.sol.y[3*i+2], label=r"$\it{l^" + str(i) + r"_3}$")
+        ax2.set_xlabel(r'Time $\it{t}$ [s]')
+        ax2.set_ylabel(r'Actuator Length $\it{l}$ [m]')
         ax2.set_xlim(0, self.TIME_SPAN)
         ax2.legend()
         ax2.grid()
         
         ax3 = fig.add_subplot(3, 1, 3)
         for i in range(self.N):
-            ax3.plot(self.sol.t, self.sol.y[3*i+3*self.N], label="dl" + str(i) + "_1")
-            ax3.plot(self.sol.t, self.sol.y[3*i+1+3*self.N], label="dl" + str(i) + "_2")
-            ax3.plot(self.sol.t, self.sol.y[3*i+2+3*self.N], label="dl" + str(i) + "_3")
+            ax3.plot(self.sol.t, self.sol.y[3*i+3*self.N], label=r"$\.{l^" + str(i) + r"_1}$")
+            ax3.plot(self.sol.t, self.sol.y[3*i+1+3*self.N], label=r"$\.{l^" + str(i) + r"_2}$")
+            ax3.plot(self.sol.t, self.sol.y[3*i+2+3*self.N], label=r"$\.{l^" + str(i) + r"_3}$")
         
-        ax3.set_xlabel("time [s]")
-        ax3.set_ylabel("[m/s]")
+        ax3.set_xlabel(r'Time $\it{t}$ [s]')
+        ax3.set_ylabel(r"Actuator Velocity $\.{l}$ [m/s]")
         ax3.set_xlim(0, self.TIME_SPAN)
         ax3.legend()
         ax3.grid()
         
-        fig.savefig("py.png")
+        fig.savefig(self.base + "/basic.png")
         plt.show()
         print("plot完了!")
 
@@ -349,14 +360,11 @@ class Simulator:
         )
         
         
-        #plt.show()
-
-        ani.save("hoge.gif", fps=60, writer='pillow')
+        ani.save(self.base + "/ani.gif", fps=60, writer='pillow')
         
         
         print("完了!")
-        
-        
+        plt.show()
         
         return ani
 
@@ -373,11 +381,13 @@ def ex_default():
 
 
 
+
+
 if __name__ == "__main__":
     
     hoge = Simulator(N=5)
     
-    hoge.run()
+    hoge.run(TIME_SPAN = 0.03)
     hoge.reproduce_state()
     hoge.plot_basic()
     hoge.make_aniation()
