@@ -13,6 +13,7 @@ from functools import wraps
 import os
 from pathlib import Path
 import csv
+import yaml
 
 from kinematics import Kinematics
 from differential_kinematics import DifferentialKinematics
@@ -35,11 +36,37 @@ def stop_watch(func):
 class Simulator:
     """シミュレーション関係"""
     
-    TIME_SPAN = 10  # デフォルト
-    TIME_INTERVAL = 0.01  # デフォルト
+    # デフォルト値
+    TIME_SPAN = 10  # シミュレーション時間
+    TIME_INTERVAL = 0.01  # 刻み時間
+    
+    goal_param = {
+        4:[0.1, 0.1, 0.6],
+        3:[0.1, 0.1, 0.5],
+        2:[0.1, 0.1, 0.4],
+    }  # 目標位置
+    
+    attractor_param = {
+        "max_speed" : 10,
+        "gain" : 300,
+        "a_damp_r" : 0.05,
+        "sigma_W" : 1,
+        "sigma_H" : 1,
+        "A_damp_r" : 0.01,
+    }  # アトラクタRMPのパラメータ
+    
+    jlavoidance_param = {
+        "gamma_p" : 5,
+        "gamma_d" : 1,
+        "lam" : 1
+    }  # ジョイント制限回避RMPのパラメータ
     
     
-    def __init__(self, N=3, goal=None):
+    def __init__(
+        self,
+        N=3, goal_param=None,
+        attractor_param=None, jlavoidance_param=None
+    ):
         
         self.N = N  # セクションの数
         
@@ -47,44 +74,39 @@ class Simulator:
         self.diff_kim = DifferentialKinematics(N)
         
         
-        # 目標位置
-        if goal is None:  # デフォルト値
-            self.goal = {
-                4:np.array([[0.1, 0.1, 0.6]]).T,
-                3:np.array([[0.1, 0.1, 0.5]]).T,
-                2:np.array([[0.1, 0.1, 0.4]]).T,
-            }
-        else:
-            self.set_goal(goal)
+        # 目標位置をセット
+        if goal_param is not None:
+            self.goal_param = goal_param
+        self.set_goal()
         
         # アクチュエータ制約
         self.q_max = np.array([[0.1] * self.N*3]).T
         self.q_min = -self.q_max
         
         
-        self.attractor = OriginalRMPAttractor(
-            max_speed = 10,
-            gain = 300,
-            a_damp_r = 0.05,
-            sigma_W = 1,
-            sigma_H = 1,
-            A_damp_r = 0.01,
-        )
+        # RMPのパラメータをセット
+        if attractor_param is not None:
+            self.attractor_param = attractor_param
         
-        self.jlavoidance = OriginalRMPJointLimitAvoidance(
-            gamma_p = 5,
-            gamma_d = 1,
-            lam = 1
-        )
+        if jlavoidance_param is not None:
+            self.jlavoidance_param = jlavoidance_param
         
+        
+        self.attractor = OriginalRMPAttractor(**self.attractor_param)
+        self.jlavoidance = OriginalRMPJointLimitAvoidance(**self.jlavoidance_param)
         
 
-    def set_goal(self, goal):
+
+    def set_goal(self,):
         """目標位置を準備
         
         goal : dict
         """
-        self.goal = goal
+        
+        self.goal = {}
+        
+        for k, v in self.goal_param.items():
+            self.goal[k] = np.array(v).reshape(3, 1)
     
     
     def X_dot(self, t, X):
@@ -137,7 +159,7 @@ class Simulator:
         date_now = datetime.datetime.now()  # 名前つけるとき使う
         name = date_now.strftime('%Y-%m-%d--%H-%M-%S')
         cwd = str(Path().resolve())
-        self.base = cwd + "/" + name
+        self.base = cwd + "/result/" + name
         os.makedirs(self.base, exist_ok=True)
         
         
@@ -261,7 +283,7 @@ class Simulator:
 
     @stop_watch
     def save_data(self,):
-        """csvにデータを保存"""
+        """いろいろデータ保存"""
         
         print("csvに保存中...")
         
@@ -287,11 +309,25 @@ class Simulator:
             delimiter = ","
         )
         
-        print("完了!")
-
-
-        print("完了!")
         
+        
+        # 目標点保存
+        with open(self.base + "/goal.yaml", "w") as f:
+            yaml.dump(self.goal_param, f)
+        
+        # 使ったRMPパラメータ保存
+        with open(self.base + "/attractor_param.yaml", "w") as f:
+            yaml.dump(self.attractor_param, f)
+        
+        with open(self.base + "/jlavoidance_param.yaml", "w") as f:
+            yaml.dump(self.jlavoidance_param, f)
+        
+        
+        
+        
+        print("完了!")
+
+
     
     def _update(self, i):
         """アニメのフレーム作成"""
@@ -302,9 +338,9 @@ class Simulator:
         self.ax.cla()
         
         self.ax.grid(True)
-        self.ax.set_xlabel('X[m]')
-        self.ax.set_ylabel('Y[m]')
-        self.ax.set_zlabel('Z[m]')
+        self.ax.set_xlabel('X [m]')
+        self.ax.set_ylabel('Y [m]')
+        self.ax.set_zlabel('Z [m]')
         
         self.ax.set_xlim(self.xl, self.xu)
         self.ax.set_ylim(self.yl, self.yu)
@@ -323,7 +359,7 @@ class Simulator:
         for k in self.goal:
             self.ax.scatter(
                 self.goal[k][0, 0], self.goal[k][1, 0], self.goal[k][2, 0],
-                s = 200, label = 'goal of sec' + str(k),
+                s = 200, label = 'Goal of Sec ' + str(k),
                 marker = '*',# color = '#ff7f00', 
                 alpha = 1, linewidths = 1.1, edgecolors = 'red'
             )
@@ -332,7 +368,7 @@ class Simulator:
         for j in range(self.N):
             self.ax.plot(
                 self.x_data[i][j][0,:], self.x_data[i][j][1,:], self.x_data[i][j][2,:],
-                label="section" + str(j)
+                label="Section" + str(j)
             )
 
         # 接続位置
@@ -399,9 +435,9 @@ class Simulator:
         ani.save(
             self.base + "/animation.gif", fps=60, writer='pillow'
         )
-        ani.save(
-            self.base + "/animation.mp4", fps=60, writer='ffmpeg'
-        )  #Windowsだと無理かも
+        # ani.save(
+        #     self.base + "/animation.mp4", fps=60, writer='ffmpeg'
+        # )  #Windowsだと無理かも
         
         print("完了!")
         plt.show()
@@ -427,7 +463,7 @@ if __name__ == "__main__":
     
     hoge = Simulator(N=5)
     
-    hoge.run(TIME_SPAN = 0.03)
+    hoge.run(TIME_SPAN = 0.04)
     hoge.reproduce_state()
     hoge.save_data()
     hoge.plot_basic()
