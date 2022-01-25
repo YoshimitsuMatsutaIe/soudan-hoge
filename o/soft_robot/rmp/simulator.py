@@ -1,3 +1,11 @@
+"""シミュレーション関係
+
+基本的には上から順にメソッドを実行してけば良い  
+
+"""
+
+
+
 import numpy as np
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
@@ -67,6 +75,18 @@ class Simulator:
         N=3, goal_param=None,
         attractor_param=None, jlavoidance_param=None
     ):
+        """
+        Parameters
+        ---
+        N : int
+            セクションの数
+        goal_param : dict[int, list[float]]
+            ゴールのパラメータ．キーが対象となるセクション，値が目標位置ベクトル
+        attrctor_param : dict[str, float]
+            アトラクタRMPのパラメータ
+        jlavoidance_param : dict[dtr, float]
+            ジョイント制限回避RMPのパラメータ
+        """
         
         self.N = N  # セクションの数
         
@@ -98,10 +118,7 @@ class Simulator:
 
 
     def set_goal(self,):
-        """目標位置を準備
-        
-        goal : dict
-        """
+        """目標位置をセッティングg"""
         
         self.goal = {}
         
@@ -111,6 +128,7 @@ class Simulator:
     
     def X_dot(self, t, X):
         """scipyで使う微分方程式"""
+        
         #print("t = ", t)
         q = X[:self.N*3].reshape(self.N*3, 1)
         q_dot = X[self.N*3:].reshape(self.N*3, 1)
@@ -184,63 +202,6 @@ class Simulator:
         
         print("シミュレーション終了!")
     
-    
-    @stop_watch
-    def plot_basic(self,):
-        """基本的なものをプロット"""
-        
-        fig = plt.figure(figsize=(14, 15))
-        
-        # 誤差の時系列
-        es = []
-        for k in self.goal:
-            e = []
-            for i in range(len(self.sol.t)):
-                e.append(
-                    np.linalg.norm(self.goal[k] - self.x_data[i][k][:, -1])
-                )
-            es.append(e)
-        
-        ax = fig.add_subplot(3, 1, 1)
-        for i, k in enumerate(self.goal):
-            ax.plot(self.sol.t, es[i], label=r"Section " + str(k))
-        ax.set_xlabel(r'Time $\it{t}$ [s]')
-        ax.set_ylabel(r"Position Error to Goal [m]")
-        ax.set_xlim(0, self.TIME_SPAN)
-        ax.set_ylim(0, max([x for row in es for x in row]))
-        ax.legend()
-        ax.grid()
-        
-        ax2 = fig.add_subplot(3, 1, 2)
-        for i in range(self.N):
-            ax2.plot(self.sol.t, self.sol.y[3*i], label=r"$\it{l^" + str(i) + r"_1}$")
-            ax2.plot(self.sol.t, self.sol.y[3*i+1], label=r"$\it{l^" + str(i) + r"_2}$")
-            ax2.plot(self.sol.t, self.sol.y[3*i+2], label=r"$\it{l^" + str(i) + r"_3}$")
-        ax2.set_xlabel(r'Time $\it{t}$ [s]')
-        ax2.set_ylabel(r'Actuator Length $\it{l}$ [m]')
-        ax2.set_xlim(0, self.TIME_SPAN)
-        ax2.legend()
-        ax2.grid()
-        
-        ax3 = fig.add_subplot(3, 1, 3)
-        for i in range(self.N):
-            ax3.plot(self.sol.t, self.sol.y[3*i+3*self.N], label=r"$\.{l^" + str(i) + r"_1}$")
-            ax3.plot(self.sol.t, self.sol.y[3*i+1+3*self.N], label=r"$\.{l^" + str(i) + r"_2}$")
-            ax3.plot(self.sol.t, self.sol.y[3*i+2+3*self.N], label=r"$\.{l^" + str(i) + r"_3}$")
-        
-        ax3.set_xlabel(r'Time $\it{t}$ [s]')
-        ax3.set_ylabel(r"Actuator Velocity $\.{l}$ [m/s]")
-        ax3.set_xlim(0, self.TIME_SPAN)
-        ax3.legend()
-        ax3.grid()
-        
-        fig.savefig(self.base + "/basic.png")
-        
-        
-        #plt.show()
-        
-        print("plot完了!")
-
 
     @stop_watch
     def reproduce_state(self,):
@@ -308,9 +269,7 @@ class Simulator:
             comments='',
             delimiter = ","
         )
-        
-        
-        
+
         # 目標点保存
         with open(self.base + "/goal.yaml", "w") as f:
             yaml.dump(self.goal_param, f)
@@ -326,6 +285,68 @@ class Simulator:
         
         
         print("完了!")
+
+
+
+    @stop_watch
+    def plot_basic(self,):
+        """基本的なものをプロット"""
+        
+        fig = plt.figure(figsize=(14, 15))
+        
+        # 誤差の時系列
+        es = []
+        for k in self.goal:
+            e = []
+            for i in range(len(self.sol.t)):
+                e.append(
+                    np.linalg.norm(self.goal[k] - self.x_data[i][k][:, -1])
+                )
+            es.append(e)
+        
+        ax = fig.add_subplot(3, 1, 1)
+        for i, k in enumerate(self.goal):
+            ax.plot(self.sol.t, es[i], label=r"Section " + str(k))
+        ax.set_xlabel(r'Time $\it{t}$ [s]')
+        ax.set_ylabel(r"Position Error to Goal [m]")
+        ax.set_xlim(0, self.TIME_SPAN)
+        ax.set_ylim(0, max([x for row in es for x in row]))
+        ax.legend()
+        ax.grid()
+        
+        ax2 = fig.add_subplot(3, 1, 2)
+        for i in range(self.N):
+            ax2.plot(self.sol.t, self.sol.y[3*i], label=r"$\it{l^" + str(i) + r"_1}$")
+            ax2.plot(self.sol.t, self.sol.y[3*i+1], label=r"$\it{l^" + str(i) + r"_2}$")
+            ax2.plot(self.sol.t, self.sol.y[3*i+2], label=r"$\it{l^" + str(i) + r"_3}$")
+        ax2.set_xlabel(r'Time $\it{t}$ [s]')
+        ax2.set_ylabel(r'Actuator Length $\it{l}$ [m]')
+        ax2.set_xlim(0, self.TIME_SPAN)
+        ax2.legend()
+        ax2.grid()
+        
+        ax3 = fig.add_subplot(3, 1, 3)
+        for i in range(self.N):
+            ax3.plot(self.sol.t, self.sol.y[3*i+3*self.N], label=r"$\.{l^" + str(i) + r"_1}$")
+            ax3.plot(self.sol.t, self.sol.y[3*i+1+3*self.N], label=r"$\.{l^" + str(i) + r"_2}$")
+            ax3.plot(self.sol.t, self.sol.y[3*i+2+3*self.N], label=r"$\.{l^" + str(i) + r"_3}$")
+        
+        ax3.set_xlabel(r'Time $\it{t}$ [s]')
+        ax3.set_ylabel(r"Actuator Velocity $\.{l}$ [m/s]")
+        ax3.set_xlim(0, self.TIME_SPAN)
+        ax3.legend()
+        ax3.grid()
+        
+        fig.savefig(self.base + "/basic.png")
+        
+        
+        #plt.show()
+        
+        print("plot完了!")
+
+
+
+
 
 
     
@@ -352,8 +373,6 @@ class Simulator:
             0.0, 0.0, -0.01,
             self.time_template % (i * self.TIME_INTERVAL), size = 10
         )
-        
-        
         
         # 目標点
         for k in self.goal:
