@@ -12,8 +12,9 @@ from controller import OriginalRMPAttractor, OriginalRMPJointLimitAvoidance, pul
 
 
 class Simulator:
+    """シミュレーション関係"""
     
-    TIME_SPAN = 0.03  # デフォルト
+    TIME_SPAN = 0.1  # デフォルト
     TIME_INTERVAL = 0.01  # デフォルト
     
     
@@ -164,13 +165,16 @@ class Simulator:
         ax3.legend()
         ax3.grid()
         
+        fig.savefig("py.png")
         plt.show()
+        print("plot完了!")
 
 
     def reproduce_state(self,):
         """アクチュエータ変位から状態を再現"""
         
         print("データ復元中...")
+        print("q...")
         self.q_data = []
         for i in tqdm.tqdm(range(len(self.sol.t))):
             temp = []
@@ -180,6 +184,7 @@ class Simulator:
                 temp.append(self.sol.y[3*j+2][i])
             self.q_data.append(np.array([temp]).T)
         
+        print("q_dot...")
         self.q_dot_data = []
         for i in tqdm.tqdm(range(len(self.sol.t))):
             temp = []
@@ -189,25 +194,123 @@ class Simulator:
                 temp.append(self.sol.y[3*j+2+3*self.N][i])
             self.q_dot_data.append(np.array([temp]).T)
         
+        print("x...")
         self.x_data = []
         for i in tqdm.tqdm(range(len(self.sol.t))):
             temp = []
             for j in range(self.N):
                 temp.append(
                     np.concatenate(
-                        [self.kim.Phi(j, self.q_dada[i], xi) for xi in self.kim.xi_large]
+                        [self.kim.Phi(j+1, self.q_data[i], xi) for xi in self.kim.xi_large]
                     )
                 )
             self.x_data.append(temp)
 
 
-
         print("完了!")
         
+    
+    def _update(self, i):
+        """アニメのフレーム作成"""
         
+        t = i * self.TIME_INTERVAL
+        
+        
+        self.ax.cla()
+        
+        self.ax.grid(True)
+        self.ax.set_xlabel('X[m]')
+        self.ax.set_ylabel('Y[m]')
+        self.ax.set_zlabel('Z[m]')
+        
+        self.ax.set_xlim(self.xl, self.xu)
+        self.ax.set_ylim(self.yl, self.yu)
+        self.ax.set_zlim(self.zl, self.zu)
+        self.ax.set_box_aspect((1,1,1))
+        
+        # 時刻表示
+        self.ax.text(
+            0.0, 0.0, -0.01,
+            self.time_template % (i * self.TIME_INTERVAL), size = 10
+        )
+        
+        
+        
+        # 目標点
+        self.ax.scatter(
+            self.goal[0, 0], self.goal[1, 0], self.goal[2, 0],
+            s = 100, label = 'goal point', marker = '*', color = '#ff7f00', 
+            alpha = 1, linewidths = 1.5, edgecolors = 'red'
+        )
+        
+        # アーム
+        for j in range(self.N):
+            self.ax.plot(
+                self.x_data[i][j][0,:], self.x_data[i][j][1,:], self.x_data[i][j][2,:],
+                label="section" + str(j)
+            )
+
+
+
+
+
+
 
     def make_aniation(self,):
         """アニメ作る"""
+        
+        print("アニメ作成中...")
+        
+        # # 枚数決める
+        # #println(data.t)
+        # epoch_max = 100
+        # epoch = len(self.sol.t)
+        # if epoch < epoch_max
+        #     step = 1
+        # else
+        #     step = div(epoch, epoch_max)
+        
+        # 軸揃える
+        x_max = 0.2
+        x_min = -0.2
+        y_max = 0.2
+        y_min = -0.2
+        z_max = 0.55
+        z_min = 0.0
+        max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
+        x_mid = (x_max + x_min) / 2
+        y_mid = (y_max + y_min) / 2
+        z_mid = (z_max + z_min) / 2
+
+        self.xl = x_mid-max_range
+        self.xu = x_mid+max_range
+        self.yl = y_mid-max_range
+        self.yu = y_mid+max_range
+        self.zl = z_mid-max_range
+        self.zu = z_mid+max_range
+        
+        
+        self.time_template = 'time = %s [s]'
+        
+        
+        fig = plt.figure()
+        self.ax = fig.add_subplot(projection = '3d')
+        
+        ani = anm.FuncAnimation(
+            fig = fig,
+            func = self._update,
+            frames = len(self.sol.t),
+            #frames = int(self.TIME_SPAN / self.TIME_INTERVAL),
+            interval = self.TIME_INTERVAL * 0.001
+        )
+        
+        
+        plt.show()
+
+        ani.save("hoge.gif", fps=1/self.TIME_INTERVAL, writer='pillow')
+        
+        
+        print("完了!")
         
         
         
