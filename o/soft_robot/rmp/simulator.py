@@ -522,6 +522,57 @@ def ex_default():
     hoge.make_aniation()
 
 
+# 就活
+def ex_yasukawa():
+    """安川電機プレゼン用
+    
+    ・研究概要 動画不可
+    """
+    hoge = Simulator(N=5)
+    
+    hoge.run()
+    hoge.reproduce_state()
+    hoge.plot_basic()
+    hoge.make_aniation()
+
+
+def ex_denso():
+    """デンソー用
+    
+    ・スライド．動画可?
+    """
+    hoge = Simulator(N=5)
+    
+    hoge.run()
+    hoge.reproduce_state()
+    hoge.plot_basic()
+    hoge.make_aniation()
+
+
+def ex_kawasaki():
+    """川崎重工プレゼン用
+    
+    
+    """
+    hoge = Simulator(N=5)
+    
+    hoge.run()
+    hoge.reproduce_state()
+    hoge.plot_basic()
+    hoge.make_aniation()
+
+
+def ex_fujikoshi():
+    """不二越 研究プレゼン
+    
+    動画不可？
+    """
+    hoge = Simulator(N=5)
+    
+    hoge.run()
+    hoge.reproduce_state()
+    hoge.plot_basic()
+    hoge.make_aniation()
 
 
 
