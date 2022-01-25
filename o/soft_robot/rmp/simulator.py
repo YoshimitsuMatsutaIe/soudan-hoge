@@ -2,6 +2,8 @@ import numpy as np
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import matplotlib.animation as anm
+import tqdm
+
 
 from kinematics import Kinematics
 from differential_kinematics import DifferentialKinematics
@@ -11,7 +13,7 @@ from controller import OriginalRMPAttractor, OriginalRMPJointLimitAvoidance, pul
 
 class Simulator:
     
-    TIME_SPAN = 5  # デフォルト
+    TIME_SPAN = 0.03  # デフォルト
     TIME_INTERVAL = 0.01  # デフォルト
     
     
@@ -90,6 +92,9 @@ class Simulator:
     def run(self, TIME_SPAN=None, TIME_INTERVAL=None):
         """シミュレーション実行"""
         
+        print("シミュレーション実行中...")
+        
+        
         if TIME_SPAN is not None:
             self.TIME_SPAN = TIME_SPAN
         
@@ -105,6 +110,8 @@ class Simulator:
             y0 = X_init,
             t_eval = np.arange(0, self.TIME_SPAN, self.TIME_INTERVAL)
         )
+        
+        print("シミュレーション終了!")
     
     
     def plot(self,):
@@ -160,8 +167,47 @@ class Simulator:
         plt.show()
 
 
-    def make_aniation(self,):
+    def reproduce_state(self,):
+        """アクチュエータ変位から状態を再現"""
         
+        print("データ復元中...")
+        self.q_data = []
+        for i in tqdm.tqdm(range(len(self.sol.t))):
+            temp = []
+            for j in range(self.N):
+                temp.append(self.sol.y[3*j][i])
+                temp.append(self.sol.y[3*j+1][i])
+                temp.append(self.sol.y[3*j+2][i])
+            self.q_data.append(np.array([temp]).T)
+        
+        self.q_dot_data = []
+        for i in tqdm.tqdm(range(len(self.sol.t))):
+            temp = []
+            for j in range(self.N):
+                temp.append(self.sol.y[3*j+3*self.N][i])
+                temp.append(self.sol.y[3*j+1+3*self.N][i])
+                temp.append(self.sol.y[3*j+2+3*self.N][i])
+            self.q_dot_data.append(np.array([temp]).T)
+        
+        self.x_data = []
+        for i in tqdm.tqdm(range(len(self.sol.t))):
+            temp = []
+            for j in range(self.N):
+                temp.append(
+                    np.concatenate(
+                        [self.kim.Phi(j, self.q_dada[i], xi) for xi in self.kim.xi_large]
+                    )
+                )
+            self.x_data.append(temp)
+
+
+
+        print("完了!")
+        
+        
+
+    def make_aniation(self,):
+        """アニメ作る"""
         
         
         
@@ -178,4 +224,5 @@ if __name__ == "__main__":
     
     hoge.run()
     hoge.plot()
+    hoge.reproduce_state()
     hoge.make_aniation()

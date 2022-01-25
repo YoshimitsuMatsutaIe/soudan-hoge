@@ -11,6 +11,8 @@ import Phi_4
 class Kinematics:
     """運動学"""
     
+    xi_large = np.arange(0, 1, 0.01)
+    
     def Phi(self, n, q, xi=1):
         if n == 1:
             return Phi_0.f(q, xi)
