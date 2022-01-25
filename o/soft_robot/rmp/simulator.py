@@ -14,7 +14,7 @@ from controller import OriginalRMPAttractor, OriginalRMPJointLimitAvoidance, pul
 class Simulator:
     """シミュレーション関係"""
     
-    TIME_SPAN = 0.1  # デフォルト
+    TIME_SPAN = 5  # デフォルト
     TIME_INTERVAL = 0.01  # デフォルト
     
     
@@ -26,11 +26,13 @@ class Simulator:
         self.diff_kim = DifferentialKinematics(N)
         
         
-        self.goal = np.array([[1, 1, 5]]).T
+        # 目標位置
+        self.goal = np.array([[0.1, 0.1, 0.5]]).T
         
-        
+        # アクチュエータ制約
         self.q_max = np.array([[0.1] * self.N*3]).T
         self.q_min = -self.q_max
+        
         
         self.attractor = OriginalRMPAttractor(
             max_speed = 10,
@@ -201,7 +203,8 @@ class Simulator:
             for j in range(self.N):
                 temp.append(
                     np.concatenate(
-                        [self.kim.Phi(j+1, self.q_data[i], xi) for xi in self.kim.xi_large]
+                        [self.kim.Phi(j+1, self.q_data[i], xi) for xi in self.kim.xi_large],
+                        axis=1
                     )
                 )
             self.x_data.append(temp)
@@ -239,7 +242,7 @@ class Simulator:
         # 目標点
         self.ax.scatter(
             self.goal[0, 0], self.goal[1, 0], self.goal[2, 0],
-            s = 100, label = 'goal point', marker = '*', color = '#ff7f00', 
+            s = 200, label = 'goal point', marker = '*', color = '#ff7f00', 
             alpha = 1, linewidths = 1.5, edgecolors = 'red'
         )
         
@@ -251,7 +254,7 @@ class Simulator:
             )
 
 
-
+        self.ax.legend()
 
 
 
@@ -275,7 +278,7 @@ class Simulator:
         x_min = -0.2
         y_max = 0.2
         y_min = -0.2
-        z_max = 0.55
+        z_max = 0.8
         z_min = 0.0
         max_range = max(x_max-x_min, y_max-y_min, z_max-z_min)*0.5
         x_mid = (x_max + x_min) / 2
@@ -293,7 +296,7 @@ class Simulator:
         self.time_template = 'time = %s [s]'
         
         
-        fig = plt.figure()
+        fig = plt.figure(figsize=(8, 8))
         self.ax = fig.add_subplot(projection = '3d')
         
         ani = anm.FuncAnimation(
