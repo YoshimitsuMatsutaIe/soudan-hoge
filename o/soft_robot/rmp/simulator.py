@@ -14,11 +14,11 @@ from controller import OriginalRMPAttractor, OriginalRMPJointLimitAvoidance, pul
 class Simulator:
     """シミュレーション関係"""
     
-    TIME_SPAN = 5  # デフォルト
+    TIME_SPAN = 0.1  # デフォルト
     TIME_INTERVAL = 0.01  # デフォルト
     
     
-    def __init__(self, N=3):
+    def __init__(self, N=3, goal=None):
         
         self.N = N  # セクションの数
         
@@ -27,7 +27,14 @@ class Simulator:
         
         
         # 目標位置
-        self.goal = np.array([[0.1, 0.1, 0.5]]).T
+        if goal is None:  # デフォルト値
+            self.goal = {
+                4:np.array([[0.1, 0.1, 0.5]]).T,
+                3:np.array([[0.1, 0.1, 0.45]]).T,
+                2:np.array([[0.1, 0.1, 0.4]]).T,
+            }
+        else:
+            self.set_goal(goal)
         
         # アクチュエータ制約
         self.q_max = np.array([[0.1] * self.N*3]).T
@@ -51,7 +58,9 @@ class Simulator:
         
         
 
-        pass
+    def set_goal(self, goal):
+        """目標位置を準備"""
+        self.goal = goal
     
     
     def X_dot(self, t, X):
@@ -253,6 +262,11 @@ class Simulator:
                 label="section" + str(j)
             )
 
+        # 接続位置
+        for j in range(self.N):
+            self.ax.scatter(
+                self.x_data[i][j][0,-1], self.x_data[i][j][1,-1], self.x_data[i][j][2,-1],
+            )
 
         self.ax.legend()
 
@@ -310,7 +324,7 @@ class Simulator:
         
         plt.show()
 
-        ani.save("hoge.gif", fps=1/self.TIME_INTERVAL, writer='pillow')
+        ani.save("hoge.gif", fps=60, writer='pillow')
         
         
         print("完了!")
@@ -318,8 +332,6 @@ class Simulator:
         
         
         return None
-
-
 
 
 
