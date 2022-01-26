@@ -72,11 +72,14 @@ class Simulator:
     TIME_SPAN = 10  # シミュレーション時間
     TIME_INTERVAL = 0.01  # 刻み時間
     
-    goal_param = {
-        4:[0.2+0.05*cos(2*pi/4), 0.05*cos(2*pi/4), 0.6],
-        3:[0.2+0.05*cos(3*pi/4), 0.05*sin(3*pi/4), 0.55],
-        2:[0.2+0.05*cos(4*pi/4), 0.05*sin(4*pi/4), 0.5],
-    }  # 目標位置
+    env_param = {
+        "goal_param" : {
+            4:[0.2+0.05*cos(2*pi/4), 0.05*cos(2*pi/4), 0.6],
+            3:[0.2+0.05*cos(3*pi/4), 0.05*sin(3*pi/4), 0.55],
+            2:[0.2+0.05*cos(4*pi/4), 0.05*sin(4*pi/4), 0.5],
+        },
+        "target_param" : {},
+    }
     
     attractor_param = {
         "max_speed" : 10,
@@ -96,7 +99,8 @@ class Simulator:
     
     def __init__(
         self,
-        N=3, goal_param=None,
+        N=3,
+        env_param=None,
         attractor_param=None, jlavoidance_param=None
     ):
         """
@@ -119,8 +123,8 @@ class Simulator:
         
         
         # 目標位置をセット
-        if goal_param is not None:
-            self.goal_param = goal_param
+        if env_param is not None:
+            self.env_param = env_param
         self.set_goal()
         
         # アクチュエータ制約
