@@ -13,7 +13,7 @@ class PDFeedBack:
         self.Kd = kwargs.pop('Kd')
     
     
-    def input(self, x, x_dot, J, J_dot=None, xd, xd_dot=None, xd_dot_dot=None, q_dot=None):
+    def input(self, x, x_dot, J, xd, J_dot=None, xd_dot=None, xd_dot_dot=None, q_dot=None):
         """入力を計算"""
         
         # 位置フィードバック項
@@ -48,7 +48,7 @@ class RMPbase:
 
 
 
-def pullback(f, M, J, dJ=None, dx= None):
+def pullback(f, M, J, dJ=None, dx=None):
     """pullback演算"""
     
     if dJ is None and dx is None:
@@ -128,7 +128,7 @@ class OriginalRMPAttractor:
         M = self._metric(z, dz, z0, a)
         return a, M
 
-    def get_natural(self, z, dz, z0, dz0):
+    def get_natural(self, z, dz, z0, dz0=np.zeros_like(z0)):
         """form ()"""
         
         a, M = self.get_canonical(z, dz, z0)

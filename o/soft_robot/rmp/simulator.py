@@ -74,7 +74,9 @@ class Simulator:
     TIME_INTERVAL = 0.01  # 刻み時間
     
     env_param = {
-        "goal_param" : {4:lambda t: np.array([[0.2, 0.1, 0.6]])},
+        "goal_param" : {4 : lambda t: np.array([[0.2, 0.1, 0.6]])},
+        "goal_dot_param" : None,
+        "goal_dot_dot_param" : None,
         "target_param" : None,
     }
     
@@ -116,23 +118,19 @@ class Simulator:
         
         if env_param is not None:
             self.env_param = env_param
-        
         self.set_environment()
         
         if controller_param is not None:
             self.controller_param = controller_param
-        
         self.set_controller()
 
 
     def set_environment(self,):
         """シミュレーション環境をセット"""
         
-        
-        self.goal = {}
-        
-        for k, v in self.goal_param.items():
-            self.goal[k] = np.array(v).reshape(3, 1)
+        self.goal = self.env_param["goal_param"]
+        self.goal_dot = self.env_param["goal_dot_param"]
+        self.goal_dot_dot = self.env_param["goal_dot_dot_param"]
 
 
     def set_controller(self,):
@@ -142,9 +140,7 @@ class Simulator:
             self.pdfb = PDFeedBack(**self.controller_param)
             self.calc_input = self.calc_input_by_PDFB
         
-        elif self.controller_param["name"] == "rmp":
-            
-            # アクチュエータ制約
+        else self.controller_param["name"] == "rmp":
             self.q_max = np.array([[0.1] * self.N*3]).T
             self.q_min = -self.q_max
             
@@ -165,7 +161,7 @@ class Simulator:
             x = self.kim.Phi(self.N, q),
             J = self.diff_kim.J(self.N, q),
             x_dot = J * q_dot,
-            xd = self.calc_xd(t)
+            xd = self.goal[self.N](t)
         )
     
     
@@ -186,7 +182,7 @@ class Simulator:
         # アトラクター
         for k in self.goal:
             f, M = self.attractor.get_natural(
-                xs[k], x_dots[k], self.goal[k], np.zeros((3,1))
+                xs[k], x_dots[k], self.goal[k](t)
             )
             pullbacked_f, pullbacked_M = pullback(f, M, Js[k])
             root_f += pullbacked_f
@@ -296,12 +292,20 @@ class Simulator:
                 )
             self.x_data.append(temp)
 
+        print("xd...")
+        self.xd_data = []
+        for i in tqdm.tqdm(range(len(self.sol.t))):
+            temp = []
+            for j in range(self.N):
+                temp.append(self.goal)
+            self.q_dot_data.append(np.array([temp]).T)
+
 
     @stop_watch
     def save_data(self,):
         """いろいろデータ保存"""
         
-        print("csvに保存中...")
+        print("データ保存中...")
         
         # q, q_dotを保存
         header = 't'
@@ -325,18 +329,16 @@ class Simulator:
             delimiter = ","
         )
 
-        # 目標点保存
-        with open(self.base + "/goal.yaml", "w") as f:
-            yaml.dump(self.goal_param, f)
+        # シミュレーション設定
+        with open(self.base + "/envireonment.yaml", "w") as f:
+            yaml.dump(self.env_param, f)
         
-        # 使ったRMPパラメータ保存
-        with open(self.base + "/attractor_param.yaml", "w") as f:
-            yaml.dump(self.attractor_param, f)
+        # 使ったパラメータ保存
+        with open(self.base + "/controller_param.yaml", "w") as f:
+            yaml.dump(self.controller_param, f)
         
-        with open(self.base + "/jlavoidance_param.yaml", "w") as f:
-            yaml.dump(self.jlavoidance_param, f)
-        
-        
+        # with open(self.base + "/jlavoidance_param.yaml", "w") as f:
+        #     yaml.dump(self.jlavoidance_param, f)
         
         
         print("完了!")
@@ -353,9 +355,9 @@ class Simulator:
         es = []
         for k in self.goal:
             e = []
-            for i in range(len(self.sol.t)):
+            for t, i in enumerate(self.sol.t):
                 e.append(
-                    np.linalg.norm(self.goal[k] - self.x_data[i][k][:, -1])
+                    np.linalg.norm(self.goal[k](t) - self.x_data[i][k][:, -1])
                 )
             es.append(e)
         
