@@ -26,7 +26,7 @@ import yaml
 
 from kinematics import Kinematics
 from differential_kinematics import DifferentialKinematics
-from controller import OriginalRMPAttractor, OriginalRMPJointLimitAvoidance, pullback
+from controller import OriginalRMPAttractor, OriginalRMPJointLimitAvoidance, pullback, PDFeedBack
 
 
 def _rotate(alpha, beta, gamma):
@@ -65,10 +65,11 @@ def stop_watch(func):
     return wrapper
 
 
+
 class Simulator:
     """シミュレーション関係"""
     
-    # デフォルト値
+    ### デフォルト値 ###
     TIME_SPAN = 10  # シミュレーション時間
     TIME_INTERVAL = 0.01  # 刻み時間
     
@@ -81,39 +82,39 @@ class Simulator:
         "target_param" : {},
     }
     
-    attractor_param = {
-        "max_speed" : 10,
-        "gain" : 300,
-        "a_damp_r" : 0.05,
-        "sigma_W" : 1,
-        "sigma_H" : 1,
-        "A_damp_r" : 0.01,
-    }  # アトラクタRMPのパラメータ
-    
-    jlavoidance_param = {
-        "gamma_p" : 5,
-        "gamma_d" : 1,
-        "lam" : 1
-    }  # ジョイント制限回避RMPのパラメータ
+    controller_param = {
+        "name" : "rmp"
+        "attractor" : {
+            "max_speed" : 10,
+            "gain" : 300,
+            "a_damp_r" : 0.05,
+            "sigma_W" : 1,
+            "sigma_H" : 1,
+            "A_damp_r" : 0.01,
+        },
+        "jlavoidance" : {
+            "gamma_p" : 5,
+            "gamma_d" : 1,
+            "lam" : 1
+        }
+    }
     
     
     def __init__(
         self,
-        N=3,
+        N=5,
         env_param=None,
-        attractor_param=None, jlavoidance_param=None
+        controller_param=None,
     ):
         """
         Parameters
         ---
         N : int
             セクションの数
-        goal_param : dict[int, list[float]]
-            ゴールのパラメータ．キーが対象となるセクション，値が目標位置ベクトル
-        attrctor_param : dict[str, float]
-            アトラクタRMPのパラメータ
-        jlavoidance_param : dict[dtr, float]
-            ジョイント制限回避RMPのパラメータ
+        env_param : dict[int, list[float]]
+            環境のパラメータ．キーが対象となるセクション，値が目標位置ベクトル
+        controller_param : dict[str, float]
+            コントローラのパラメータ
         """
         
         self.N = N  # セクションの数
@@ -133,20 +134,35 @@ class Simulator:
         
         
         # RMPのパラメータをセット
-        if attractor_param is not None:
-            self.attractor_param = attractor_param
+        if controller_param is not None:
+            self.controller_param = controller_param
         
-        if jlavoidance_param is not None:
-            self.jlavoidance_param = jlavoidance_param
-        
-        
+        if self.controller_param[""]
         self.attractor = OriginalRMPAttractor(**self.attractor_param)
         self.jlavoidance = OriginalRMPJointLimitAvoidance(**self.jlavoidance_param)
         
+        
+        
+
+    def set_controller(self,):
+        """制御器をセット"""
+        
+        if self.controller_param["name"] == "pdfb":
+            self.pdfb = PDFeedBack(**self.controller_param)
+            self.calc_input = self.calc_input_by_PDFB
+        
+        elif self.controller_param["name"] == "rmp":
+            self.attractor = OriginalRMPAttractor(
+                **self.controller_param["attractor"]
+            )
+            self.jlavoidance = OriginalRMPJointLimitAvoidance(
+                **self.controller_param["jlavoidance"]
+            )
+            self.calc_input = self.calc_input_by_RMP
 
 
     def set_goal(self,):
-        """目標位置をセッティングg"""
+        """目標位置をセッティング"""
         
         self.goal = {}
         
@@ -154,12 +170,20 @@ class Simulator:
             self.goal[k] = np.array(v).reshape(3, 1)
     
     
-    def X_dot(self, t, X):
-        """scipyで使う微分方程式"""
+    
+    def calc_input_by_PDFB(self, t, q, q_dot):
+        """RMPで制御入力（角加速度）を計算"""
         
-        #print("t = ", t)
-        q = X[:self.N*3].reshape(self.N*3, 1)
-        q_dot = X[self.N*3:].reshape(self.N*3, 1)
+        return self.pdfb.input(
+            x = self.kim.Phi(self.N, q),
+            J = self.diff_kim.J(self.N, q),
+            x_dot = J * q_dot,
+            xd = self.calc_xd(t)
+        )
+    
+    
+    def calc_input_by_RMP(self, t, q, q_dot):
+        """RMPで制御入力（角加速度）を計算"""
         
         # pushforward演算
         xs = [self.kim.Phi(i+1, q) for i in range(self.N)]
@@ -180,7 +204,7 @@ class Simulator:
             pullbacked_f, pullbacked_M = pullback(f, M, Js[k])
             root_f += pullbacked_f
             root_M += pullbacked_M
-            
+        
         
         # ジョイント制限回避
         f, M = self.jlavoidance.get_natural(
@@ -193,9 +217,25 @@ class Simulator:
         root_M += M
         
         # resolve演算
-        q_dot_dot = np.linalg.pinv(root_M) @ root_f
+        return np.linalg.pinv(root_M) @ root_f
+    
+
+
+    def X_dot(self, t, X):
+        """scipyで使う微分方程式"""
         
-        return np.ravel(np.concatenate([q_dot, q_dot_dot]))
+        #print("t = ", t)
+        q = X[:self.N*3].reshape(self.N*3, 1)
+        q_dot = X[self.N*3:].reshape(self.N*3, 1)
+        
+        return np.ravel(
+            np.concatenate(
+                [
+                    q_dot,
+                    self.calc_input(t, q, q_dot)
+                ]
+            )
+        )
     
     
     @stop_watch

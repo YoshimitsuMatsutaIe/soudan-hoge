@@ -4,6 +4,43 @@ from numpy import pi, cos, sin, tan
 
 
 
+
+class PDFeedBack:
+    """タスク空間上のPDフィードバックコントローラ"""
+    
+    def __init__(self, **kwargs):
+        self.Kp = kwargs.pop('Kp')
+        self.Kd = kwargs.pop('Kd')
+    
+    
+    def input(self, x, x_dot, J, J_dot=None, xd, xd_dot=None, xd_dot_dot=None, q_dot=None):
+        """入力を計算"""
+        
+        # 位置フィードバック項
+        A = - self.Kp*(x - xd)
+        
+        # 速度フィードバック項
+        if xd_dot is not None:
+            B = - self.Kd*(x_dot - xd_dot)
+        else:
+            B = - self.Kd*(x_dot)
+        
+        # 加速度フィードバック?
+        if xd_dot_dot is not None:
+            C = xd_dot_dot
+        else:
+            C = np.zeros_like(x)
+        
+        # 補足項
+        if J_dot is not None and q_dot is not None:
+            D = - J_dot @ q_dot
+        else:
+            D = np.zeros_like(x)
+        
+        return np.linalg.pinv(J) @ (A + B + C + D)
+
+
+
 class RMPbase:
     def __init__(self, goal_attractor, collision_avoidance,):
         self.goal_attractor = goal_attractor
