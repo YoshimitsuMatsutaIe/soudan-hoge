@@ -27,6 +27,7 @@ import yaml
 from kinematics import Kinematics
 from differential_kinematics import DifferentialKinematics
 from controller import OriginalRMPAttractor, OriginalRMPJointLimitAvoidance, pullback, PDFeedBack
+from goal_trajectory import Point, Circle, RoseCurve
 
 
 def rotate_3d(alpha, beta, gamma):
@@ -297,8 +298,9 @@ class Simulator:
             temp_xd = []
             temp_error = []
             for k, v in self.goal.items():
-                temp_xd.append(v(t))
-                temp_error.apprnd(np.linalg.norm(v(t) - self.xd_data[i][k][:, [-1]]))
+                xd = v(t)
+                temp_xd.append(xd)
+                temp_error.append(np.linalg.norm(xd - self.x_data[i][k][:, [-1]]))
             self.xd_data.append(temp_xd)
             self.error_data.append(temp_error)
 
@@ -335,15 +337,16 @@ class Simulator:
         )
         
         # x（エンドエフェクタのみ）, xd, errorを保存
+        n = ('x', 'y', 'z')
         header = 't'
         for i in range(self.N):
             for j in range(3):
-                header += ',x_' + str(i) + '_' + str(j)
+                header += ',p_' + str(i) + '_' + n[j]
         for i in self.goal.keys():
             for j in range(3):
-                header += ',xd_' + str(i) + '_' + str(j)
+                header += ',pd_' + str(i) + '_' + n[j]
         for i in self.goal.keys():
-            header += ',error_' + str(i)
+            header += ',error_of_sec_' + str(i)
         
         temp = []
         for i, t in enumerate(self.sol.t):
@@ -389,15 +392,17 @@ class Simulator:
         fig = plt.figure(figsize=(14, 15))
         
         ax = fig.add_subplot(3, 1, 1)
+        _max = []
         for i, k in enumerate(self.goal.keys()):
             ax.plot(
                 self.sol.t, self.task_data[:, 1 + 3*self.N + 3*len(self.goal) + i],
                 label=r"Section " + str(k)
             )
+            _max.append(np.max(self.task_data[:, 1 + 3*self.N + 3*len(self.goal) + i]))
         ax.set_xlabel(r'Time $\it{t}$ [s]')
         ax.set_ylabel(r"Position Error to Goal [m]")
         ax.set_xlim(0, self.TIME_SPAN)
-        ax.set_ylim(0, max([x for row in es for x in row]))
+        ax.set_ylim(0, max(_max))
         ax.legend()
         ax.grid()
         
@@ -644,7 +649,7 @@ if __name__ == "__main__":
     
     hoge = Simulator(N=5)
     
-    hoge.run(TIME_SPAN = 0.05)
+    hoge.run(TIME_SPAN = 5)
     hoge.reproduce_state()
     hoge.save_data()
     hoge.plot_basic()
