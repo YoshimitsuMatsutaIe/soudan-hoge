@@ -15,7 +15,7 @@ import mpl_toolkits.mplot3d.art3d as art3d
 #plt.rcParams["font.family"] = "Times New Roman"
 plt.rcParams["font.family"] = "DejaVu Serif"
 from IPython.display import HTML
-import tqdm
+from tqdm import tqdm
 import time
 import datetime
 from functools import wraps
@@ -140,7 +140,7 @@ class Simulator:
             self.pdfb = PDFeedBack(**self.controller_param)
             self.calc_input = self.calc_input_by_PDFB
         
-        else self.controller_param["name"] == "rmp":
+        elif self.controller_param["name"] == "rmp":
             self.q_max = np.array([[0.1] * self.N*3]).T
             self.q_min = -self.q_max
             
@@ -261,7 +261,7 @@ class Simulator:
         print("データ復元中...")
         print("q...")
         self.q_data = []
-        for i in tqdm.tqdm(range(len(self.sol.t))):
+        for i in tqdm(range(len(self.sol.t))):
             temp = []
             for j in range(self.N):
                 temp.append(self.sol.y[3*j][i])
@@ -271,7 +271,7 @@ class Simulator:
         
         print("q_dot...")
         self.q_dot_data = []
-        for i in tqdm.tqdm(range(len(self.sol.t))):
+        for i in tqdm(range(len(self.sol.t))):
             temp = []
             for j in range(self.N):
                 temp.append(self.sol.y[3*j+3*self.N][i])
@@ -281,7 +281,7 @@ class Simulator:
         
         print("x...")
         self.x_data = []
-        for i in tqdm.tqdm(range(len(self.sol.t))):
+        for i in tqdm(range(len(self.sol.t))):
             temp = []
             for j in range(self.N):
                 temp.append(
@@ -292,18 +292,25 @@ class Simulator:
                 )
             self.x_data.append(temp)
 
-        print("xd...")
+        print("xd and error...")
         self.xd_data = []
-        for i in tqdm.tqdm(range(len(self.sol.t))):
-            temp = []
-            for j in range(self.N):
-                temp.append(self.goal)
-            self.q_dot_data.append(np.array([temp]).T)
+        self.error_data = []
+        for i, t in enumerate(tqdm(self.sol.t)):
+            temp_xd = []
+            temp_error = []
+            for k, v in self.goal.items():
+                temp_xd.append(v(t))
+                temp_error.apprnd(np.linalg.norm(v(t) - self.xd_data[i][k][:, [-1]]))
+            self.xd_data.append(temp_xd)
+            self.error_data.append(temp_error)
 
 
     @stop_watch
     def save_data(self,):
-        """いろいろデータ保存"""
+        """いろいろデータ保存
+        
+        もっと賢いやり方があると思います
+        """
         
         print("データ保存中...")
         
@@ -320,16 +327,48 @@ class Simulator:
         for i in range(self.N*3*2):
             _temp.append(self.sol.y[i].reshape(len(self.sol.t), 1))
         
-        _temp = np.concatenate(_temp, axis=1)
+        self.actuator_data = np.concatenate(_temp, axis=1)
         np.savetxt(
             self.base + '/actuator.csv',
-            _temp,
+            self.actuator_data,
+            header=header,
+            comments='',
+            delimiter = ","
+        )
+        
+        # x（エンドエフェクタのみ）, xd, errorを保存
+        header = 't'
+        for i in range(self.N):
+            for j in range(3):
+                header += ',x_' + str(i) + '_' + str(j)
+        for i in self.goal.keys():
+            for j in range(3):
+                header += ',xd_' + str(i) + '_' + str(j)
+        for i in self.goal.keys():
+            header += ',error_' + str(i)
+        
+        temp = []
+        for i, t in enumerate(self.sol.t):
+            _temp = [t.reshape(1, 1)]
+            for j in range(self.N):
+                _temp.append(self.x_data[i][j][:, [-1]])
+            for j in range(len(self.goal)):
+                _temp.append(self.xd_data[i][j])
+            for j in range(len(self.goal)):
+                _temp.append(np.array([[self.error_data[i][j]]]))
+            temp.append(np.concatenate(_temp))
+        
+        temp = np.concatenate(temp, axis=1)
+        self.task_data = temp.T
+        np.savetxt(
+            self.base + '/task.csv',
+            self.task_data,
             header=header,
             comments='',
             delimiter = ","
         )
 
-        # シミュレーション設定
+        # シミュレーション設定を保存
         with open(self.base + "/envireonment.yaml", "w") as f:
             yaml.dump(self.env_param, f)
         
@@ -351,19 +390,12 @@ class Simulator:
         
         fig = plt.figure(figsize=(14, 15))
         
-        # 誤差の時系列
-        es = []
-        for k in self.goal:
-            e = []
-            for t, i in enumerate(self.sol.t):
-                e.append(
-                    np.linalg.norm(self.goal[k](t) - self.x_data[i][k][:, -1])
-                )
-            es.append(e)
-        
         ax = fig.add_subplot(3, 1, 1)
-        for i, k in enumerate(self.goal):
-            ax.plot(self.sol.t, es[i], label=r"Section " + str(k))
+        for i, k in enumerate(self.goal.keys()):
+            ax.plot(
+                self.sol.t, self.task_data[:, 1 + 3*self.N + 3*len(self.goal) + i],
+                label=r"Section " + str(k)
+            )
         ax.set_xlabel(r'Time $\it{t}$ [s]')
         ax.set_ylabel(r"Position Error to Goal [m]")
         ax.set_xlim(0, self.TIME_SPAN)
@@ -432,9 +464,10 @@ class Simulator:
         )
         
         # 目標点
-        for k in self.goal:
+        for k, v in self.goal.items():
+            xd = v(t)
             self.ax.scatter(
-                self.goal[k][0, 0], self.goal[k][1, 0], self.goal[k][2, 0],
+                xd[0, 0], xd[1, 0], xd[2, 0],
                 s = 200, label = 'Goal of Sec ' + str(k),
                 marker = '*',# color = '#ff7f00', 
                 alpha = 1, linewidths = 1.1, edgecolors = 'red'
@@ -611,9 +644,9 @@ def ex_fujikoshi():
 
 if __name__ == "__main__":
     
-    hoge = Simulator(N=5, goal_param=None)
+    hoge = Simulator(N=5)
     
-    hoge.run(TIME_SPAN = 10)
+    hoge.run(TIME_SPAN = 0.05)
     hoge.reproduce_state()
     hoge.save_data()
     hoge.plot_basic()

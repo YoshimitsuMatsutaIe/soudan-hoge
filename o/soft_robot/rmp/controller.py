@@ -128,9 +128,10 @@ class OriginalRMPAttractor:
         M = self._metric(z, dz, z0, a)
         return a, M
 
-    def get_natural(self, z, dz, z0, dz0=np.zeros_like(z0)):
+    def get_natural(self, z, dz, z0, dz0=None):
         """form ()"""
-        
+        if dz0 is None:
+            dz0 = np.zeros_like(z0)
         a, M = self.get_canonical(z, dz, z0)
         f = M @ a
         return f, M
