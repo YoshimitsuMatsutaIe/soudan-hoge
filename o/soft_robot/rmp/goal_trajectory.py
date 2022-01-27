@@ -36,7 +36,8 @@ class Point:
     name = 'point'
     
     def __init__(self, **kwargs):
-        self.center = np.array(kwargs.pop('center')).reshape(len(kwargs.pop('center')), 1)
+        center = kwargs.pop('center')
+        self.center = np.array(center).reshape(len(center), 1)
 
     def xd(self, t):
         return self.center
@@ -57,7 +58,8 @@ class Circle:
     def __init__(self, **kwargs):
         self.r = kwargs.pop('r')
         self.omega = kwargs.pop('omega')
-        self.center = np.array(kwargs.pop('center')).reshape(kwargs.pop('center'), 1)
+        center = kwargs.pop('center')
+        self.center = np.array(center).reshape(len(center), 1)
         
         alpha = kwargs.pop('alpha')
         beta = kwargs.pop('beta')
@@ -70,8 +72,8 @@ class Circle:
         return self.center +\
             self.R @ \
                 np.array([
-                    [r * cos(self.omega * t)],
-                    [r * sin(self.omega * t)],
+                    [self.r * cos(self.omega * t)],
+                    [self.r * sin(self.omega * t)],
                     [0],
                 ])
 
@@ -80,8 +82,8 @@ class Circle:
         return self.center +\
             self.R @ \
                 np.array([
-                    [r * -self.omega * sin(self.omega * t)],
-                    [r * -self.omega * cos(self.omega * t)],
+                    [self.r * -self.omega * sin(self.omega * t)],
+                    [self.r * -self.omega * cos(self.omega * t)],
                     [0],
                 ])
 
@@ -90,8 +92,8 @@ class Circle:
         return self.center +\
             self.R @ \
                 np.array([
-                    [r * -self.omega**2 * cos(self.omega * t)],
-                    [r * -self.omega**2 * sin(self.omega * t)],
+                    [self.r * -self.omega**2 * cos(self.omega * t)],
+                    [self.r * -self.omega**2 * sin(self.omega * t)],
                     [0],
                 ])
 
@@ -105,7 +107,8 @@ class RoseCurve:
         self.r = kwargs.pop('r')
         self.zeta = kwargs.pop('zeta')
         self.omega = kwargs.pop('omega')
-        self.center = np.array(kwargs.pop('center')).reshape(kwargs.pop('center'), 1)
+        center = kwargs.pop('center')
+        self.center = np.array(center).reshape(len(center), 1)
 
         alpha = kwargs.pop('alpha')
         beta = kwargs.pop('beta')

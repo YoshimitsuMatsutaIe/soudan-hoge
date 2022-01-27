@@ -9,7 +9,7 @@ from math import pi, cos, sin
 import scipy.integrate as integrate
 import matplotlib.pyplot as plt
 import matplotlib.animation as anm
-from matplotlib.patches import Circle
+import matplotlib.patches as patches
 import mpl_toolkits.mplot3d.art3d as art3d
 #from matplotlib.font_manager import FontProperties
 #plt.rcParams["font.family"] = "Times New Roman"
@@ -74,10 +74,21 @@ class Simulator:
     TIME_SPAN = 3  # シミュレーション時間
     TIME_INTERVAL = 0.05  # 刻み時間
     
+    #dddd =  np.array([[0.2, 0.1, 0.6]]).
     env_param = {
-        "goal_param" : {4 : lambda t: np.array([[0.2, 0.1, 0.6]]).T},
-        "goal_dot_param" : None,
-        "goal_dot_dot_param" : None,
+        "goal" : {
+            4 : {
+                "name" : "Circle",
+                "param" :{
+                    "r" : 0.2,
+                    'center' : [0.0, 0.0, 0.6],
+                    "omega" : 1,
+                    "alpha" : 0,
+                    "beta" : 0,
+                    "gamma" : 0
+                }
+            }
+        },
         "target_param" : None,
     }
     
@@ -129,9 +140,16 @@ class Simulator:
     def set_environment(self,):
         """シミュレーション環境をセット"""
         
-        self.goal = self.env_param["goal_param"]
-        self.goal_dot = self.env_param["goal_dot_param"]
-        self.goal_dot_dot = self.env_param["goal_dot_dot_param"]
+        # 目標位置
+        self.goal = {}
+        
+        for k, v in self.env_param["goal"].items():
+            if v['name'] == 'Point':
+                self.goal[k] = Point(**v['param'])
+            elif v['name'] == 'Circle':
+                self.goal[k] = Circle(**v['param'])
+            elif v['name'] == 'RoseCurve':
+                self.goal[k] == RoseCurve(**v['param'])
 
 
     def set_controller(self,):
@@ -165,7 +183,7 @@ class Simulator:
             x = self.kim.Phi(self.N, q),
             J = self.diff_kim.J(self.N, q),
             x_dot = J * q_dot,
-            xd = self.goal[self.N](t)
+            xd = self.goal[self.N].xd(t)
         )
     
     
@@ -186,7 +204,10 @@ class Simulator:
         # アトラクター
         for k, v in self.goal.items():
             f, M = self.attractor.get_natural(
-                xs[k], x_dots[k], v(t)
+                x = xs[k],
+                dx = x_dots[k],
+                x0 = v.xd(t),
+                dx0 = v.xd_dot(t),
             )
             pullbacked_f, pullbacked_M = pullback(f, M, Js[k])
             root_f += pullbacked_f
@@ -301,7 +322,7 @@ class Simulator:
             temp_xd = []
             temp_error = []
             for k, v in self.goal.items():
-                xd = v(t)
+                xd = v.xd(t)
                 temp_xd.append(xd)
                 temp_error.append(np.linalg.norm(xd - self.x_data[i][k][:, [-1]]))
             self.xd_data.append(temp_xd)
@@ -438,13 +459,10 @@ class Simulator:
         #plt.show()
         
         print("plot完了!")
+        return
 
 
 
-
-
-
-    
     def _update(self, i):
         """アニメのフレーム作成"""
         
@@ -471,7 +489,7 @@ class Simulator:
         
         # 目標点
         for k, v in self.goal.items():
-            xd = v(t)
+            xd = v.xd(t)
             self.ax.scatter(
                 xd[0, 0], xd[1, 0], xd[2, 0],
                 s = 200, label = 'Goal of Sec ' + str(k),
@@ -479,6 +497,17 @@ class Simulator:
                 alpha = 1, linewidths = 1.1, edgecolors = 'red'
             )
         
+        
+        # 目標の軌道
+        for i, k in enumerate(self.goal.keys()):
+            i0 = 1 + 3*self.N + 3*i
+            self.ax.plot(
+                self.task_data[:, i0],
+                self.task_data[:, i0+1],
+                self.task_data[:, i0+2],
+                label = 'traj of Sec ' + str(k),
+            )
+
         # アーム
         for j in range(self.N):
             self.ax.plot(
