@@ -72,7 +72,7 @@ class Simulator:
     
     ### デフォルト値 ###
     TIME_SPAN = 3  # シミュレーション時間
-    TIME_INTERVAL = 0.05  # 刻み時間
+    TIME_INTERVAL = 0.01  # 刻み時間
     
     #dddd =  np.array([[0.2, 0.1, 0.6]]).
     env_param = {
@@ -81,8 +81,8 @@ class Simulator:
                 "name" : "Circle",
                 "param" :{
                     "r" : 0.2,
-                    'center' : [0.0, 0.0, 0.6],
-                    "omega" : 1,
+                    'center' : [0.0, 0.0, 0.75],
+                    "omega" : 1.5,
                     "alpha" : 0,
                     "beta" : 0,
                     "gamma" : 0
@@ -95,15 +95,15 @@ class Simulator:
     controller_param = {
         "name" : "rmp",
         "attractor" : {
-            "max_speed" : 10,
-            "gain" : 300,
+            "max_speed" : 1800,
+            "gain" : 15000,
             "a_damp_r" : 0.05,
             "sigma_W" : 1,
             "sigma_H" : 1,
             "A_damp_r" : 0.01,
         },
         "jlavoidance" : {
-            "gamma_p" : 5,
+            "gamma_p" : 4,
             "gamma_d" : 1,
             "lam" : 1
         }
@@ -499,15 +499,15 @@ class Simulator:
         
         
         # 目標の軌道
-        for i, k in enumerate(self.goal.keys()):
-            i0 = 1 + 3*self.N + 3*i
+        for j, k in enumerate(self.goal.keys()):
+            _i0 = 1 + 3*self.N + 3*j
             self.ax.plot(
-                self.task_data[:, i0],
-                self.task_data[:, i0+1],
-                self.task_data[:, i0+2],
-                label = 'traj of Sec ' + str(k),
+                self.task_data[:, _i0],
+                self.task_data[:, _i0+1],
+                self.task_data[:, _i0+2],
+                label = 'Goal traj of Sec ' + str(k),
             )
-
+        
         # アーム
         for j in range(self.N):
             self.ax.plot(
@@ -698,7 +698,7 @@ if __name__ == "__main__":
     
     hoge = Simulator(N=5)
     
-    hoge.run(TIME_SPAN = 2)
+    hoge.run(TIME_SPAN = 5)
     hoge.reproduce_state()
     hoge.save_data()
     hoge.plot_basic()
