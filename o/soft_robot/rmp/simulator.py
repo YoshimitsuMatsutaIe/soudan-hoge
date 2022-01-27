@@ -72,7 +72,7 @@ class Simulator:
     
     ### デフォルト値 ###
     TIME_SPAN = 3  # シミュレーション時間
-    TIME_INTERVAL = 0.01  # 刻み時間
+    TIME_INTERVAL = 0.05  # 刻み時間
     
     env_param = {
         "goal_param" : {4 : lambda t: np.array([[0.2, 0.1, 0.6]]).T},
@@ -106,7 +106,7 @@ class Simulator:
         N : int
             セクションの数
         env_param : dict[int, list[float]]
-            環境のパラメータ．キーが対象となるセクション，値が目標位置ベクトル
+            環境のパラメータ
         controller_param : dict[str, float]
             コントローラのパラメータ
         """
@@ -525,14 +525,14 @@ class Simulator:
         
         print("アニメ作成中...")
         
-        # # 枚数決める
-        # #println(data.t)
-        # epoch_max = 100
-        # epoch = len(self.sol.t)
-        # if epoch < epoch_max
-        #     step = 1
-        # else
-        #     step = div(epoch, epoch_max)
+        # 枚数決める
+        #println(data.t)
+        epoch_max = 100
+        epoch = len(self.sol.t)
+        if epoch < epoch_max:
+            step = 1
+        else:
+            step = epoch // epoch_max
         
         # 軸揃える
         x_max = 0.2
@@ -564,7 +564,7 @@ class Simulator:
             fig = fig,
             func = self._update,
             frames = len(self.sol.t),
-            #frames = int(self.TIME_SPAN / self.TIME_INTERVAL),
+            #frames = epoch_max,
             interval = self.TIME_INTERVAL * 0.001
         )
         
@@ -592,6 +592,23 @@ def ex_default():
     hoge.reproduce_state()
     hoge.plot_basic()
     hoge.make_aniation()
+
+
+
+def en_tuiju():
+    """円軌道追従
+    """
+    
+    env_param = {
+        "goal_param" : {4 : lambda t: np.array([[0.2, 0.1, 0.6]]).T},
+        "goal_dot_param" : None,
+        "goal_dot_dot_param" : None,
+        "target_param" : None,
+    }
+    
+    sim = Simulator(N=5)
+    
+
 
 
 # 就活
@@ -652,7 +669,7 @@ if __name__ == "__main__":
     
     hoge = Simulator(N=5)
     
-    hoge.run(TIME_SPAN = 10)
+    hoge.run(TIME_SPAN = 2)
     hoge.reproduce_state()
     hoge.save_data()
     hoge.plot_basic()
