@@ -74,7 +74,7 @@ class Simulator:
     TIME_INTERVAL = 0.01  # 刻み時間
     
     env_param = {
-        "goal_param" : {4 : lambda t: np.array([[0.2, 0.1, 0.6]])},
+        "goal_param" : {4 : lambda t: np.array([[0.2, 0.1, 0.6]]).T},
         "goal_dot_param" : None,
         "goal_dot_dot_param" : None,
         "target_param" : None,
@@ -180,9 +180,9 @@ class Simulator:
 
 
         # アトラクター
-        for k in self.goal:
+        for k, v in self.goal.items():
             f, M = self.attractor.get_natural(
-                xs[k], x_dots[k], self.goal[k](t)
+                xs[k], x_dots[k], v(t)
             )
             pullbacked_f, pullbacked_M = pullback(f, M, Js[k])
             root_f += pullbacked_f
@@ -207,18 +207,16 @@ class Simulator:
     def X_dot(self, t, X):
         """scipyで使う微分方程式"""
         
-        #print("t = ", t)
+        print("t = ", t)
         q = X[:self.N*3].reshape(self.N*3, 1)
         q_dot = X[self.N*3:].reshape(self.N*3, 1)
         
-        return np.ravel(
-            np.concatenate(
-                [
-                    q_dot,
-                    self.calc_input(t, q, q_dot)
-                ]
-            )
-        )
+        return np.ravel(np.concatenate(
+            [
+                q_dot,
+                self.calc_input(t, q, q_dot)
+            ]
+        ))
     
     
     @stop_watch

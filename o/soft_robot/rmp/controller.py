@@ -105,34 +105,32 @@ class OriginalRMPAttractor:
         self.sigma_H = kwargs.pop('sigma_H')
         self.A_damp_r = kwargs.pop('A_damp_r')
 
-    def _a(self, z, dz, z0):
+    def _a(self, z, dz):
         """アトラクタ加速度"""
         
         damp = self.gain / self.max_speed
-        a = self.gain * soft_normal(z0 - z, self.a_damp_r) - damp * dz
+        a = self.gain * soft_normal(z, self.a_damp_r) - damp * dz
         return a
     
-    def _metric(self, z, dz, z0, a):
+    def _metric(self, z, dz, a):
         """アトラクタ計量"""
         
-        dis = np.linalg.norm(z0 - z)
+        dis = np.linalg.norm(z)
         weight = np.exp(-dis / self.sigma_W)
         beta_attract = 1 - np.exp(-1 / 2 * (dis / self.sigma_H) ** 2)
         
         return weight * basic_metric_H(a, self.A_damp_r, beta_attract) # 論文
 
-    def get_canonical(self, z, dz, z0):
+    def get_canonical(self, z, dz):
         """form []"""
         
-        a = self._a(z, dz, z0)
-        M = self._metric(z, dz, z0, a)
+        a = self._a(z, dz)
+        M = self._metric(z, dz, a)
         return a, M
 
-    def get_natural(self, z, dz, z0, dz0=None):
+    def get_natural(self, x, dx, x0, dx0=np.zeros((3, 1))):
         """form ()"""
-        if dz0 is None:
-            dz0 = np.zeros_like(z0)
-        a, M = self.get_canonical(z, dz, z0)
+        a, M = self.get_canonical(z=x0-x, dz=dx0-dx)
         f = M @ a
         return f, M
 
