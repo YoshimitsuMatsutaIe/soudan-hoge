@@ -109,7 +109,7 @@ class OriginalRMPAttractor:
         """アトラクタ加速度"""
         
         damp = self.gain / self.max_speed
-        a = self.gain * soft_normal(z, self.a_damp_r) - damp * dz
+        a = self.gain * soft_normal(z, self.a_damp_r) + damp * dz
         return a
     
     def _metric(self, z, dz, a):

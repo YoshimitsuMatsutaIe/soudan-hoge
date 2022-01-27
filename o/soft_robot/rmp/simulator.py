@@ -71,7 +71,7 @@ class Simulator:
     """シミュレーション関係"""
     
     ### デフォルト値 ###
-    TIME_SPAN = 10  # シミュレーション時間
+    TIME_SPAN = 3  # シミュレーション時間
     TIME_INTERVAL = 0.01  # 刻み時間
     
     env_param = {
@@ -138,10 +138,13 @@ class Simulator:
         """制御器をセット"""
         
         if self.controller_param["name"] == "pdfb":
+            print("PDフィードバック制御")
             self.pdfb = PDFeedBack(**self.controller_param)
             self.calc_input = self.calc_input_by_PDFB
         
         elif self.controller_param["name"] == "rmp":
+            print("RMP制御")
+            
             self.q_max = np.array([[0.1] * self.N*3]).T
             self.q_min = -self.q_max
             
@@ -498,10 +501,10 @@ class Simulator:
         # art3d.pathpatch_2d_to_3d(p, z=0, zdir = 'x')
         #art3d.pathpatch_translate(p, (0.5, 1, 0))
 
-        Xc,Yc,Zc = self.data_for_cylinder_along_z(
-            0.2, 0, 0.05, 0.7
-        )
-        self.ax.plot_surface(Xc, Yc, Zc, alpha=0.4)
+        # Xc,Yc,Zc = self.data_for_cylinder_along_z(
+        #     0.2, 0, 0.05, 0.7
+        # )
+        # self.ax.plot_surface(Xc, Yc, Zc, alpha=0.4)
 
         self.ax.legend()
 
@@ -649,7 +652,7 @@ if __name__ == "__main__":
     
     hoge = Simulator(N=5)
     
-    hoge.run(TIME_SPAN = 5)
+    hoge.run(TIME_SPAN = 10)
     hoge.reproduce_state()
     hoge.save_data()
     hoge.plot_basic()
