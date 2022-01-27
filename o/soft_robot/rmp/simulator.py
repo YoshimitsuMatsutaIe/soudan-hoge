@@ -29,7 +29,7 @@ from differential_kinematics import DifferentialKinematics
 from controller import OriginalRMPAttractor, OriginalRMPJointLimitAvoidance, pullback, PDFeedBack
 
 
-def _rotate(alpha, beta, gamma):
+def rotate_3d(alpha, beta, gamma):
     """3次元回転行列"""
     
     Rx = np.array([
@@ -74,16 +74,12 @@ class Simulator:
     TIME_INTERVAL = 0.01  # 刻み時間
     
     env_param = {
-        "goal_param" : {
-            4:[0.2+0.05*cos(2*pi/4), 0.05*cos(2*pi/4), 0.6],
-            3:[0.2+0.05*cos(3*pi/4), 0.05*sin(3*pi/4), 0.55],
-            2:[0.2+0.05*cos(4*pi/4), 0.05*sin(4*pi/4), 0.5],
-        },
-        "target_param" : {},
+        "goal_param" : {4:lambda t: np.array([[0.2, 0.1, 0.6]])},
+        "target_param" : None,
     }
     
     controller_param = {
-        "name" : "rmp"
+        "name" : "rmp",
         "attractor" : {
             "max_speed" : 10,
             "gain" : 300,
@@ -100,12 +96,7 @@ class Simulator:
     }
     
     
-    def __init__(
-        self,
-        N=5,
-        env_param=None,
-        controller_param=None,
-    ):
+    def __init__(self, N=5, env_param=None, controller_param=None,):
         """
         Parameters
         ---
@@ -123,26 +114,26 @@ class Simulator:
         self.diff_kim = DifferentialKinematics(N)
         
         
-        # 目標位置をセット
         if env_param is not None:
             self.env_param = env_param
-        self.set_goal()
         
-        # アクチュエータ制約
-        self.q_max = np.array([[0.1] * self.N*3]).T
-        self.q_min = -self.q_max
+        self.set_environment()
         
-        
-        # RMPのパラメータをセット
         if controller_param is not None:
             self.controller_param = controller_param
         
-        if self.controller_param[""]
-        self.attractor = OriginalRMPAttractor(**self.attractor_param)
-        self.jlavoidance = OriginalRMPJointLimitAvoidance(**self.jlavoidance_param)
+        self.set_controller()
+
+
+    def set_environment(self,):
+        """シミュレーション環境をセット"""
         
         
+        self.goal = {}
         
+        for k, v in self.goal_param.items():
+            self.goal[k] = np.array(v).reshape(3, 1)
+
 
     def set_controller(self,):
         """制御器をセット"""
@@ -152,6 +143,11 @@ class Simulator:
             self.calc_input = self.calc_input_by_PDFB
         
         elif self.controller_param["name"] == "rmp":
+            
+            # アクチュエータ制約
+            self.q_max = np.array([[0.1] * self.N*3]).T
+            self.q_min = -self.q_max
+            
             self.attractor = OriginalRMPAttractor(
                 **self.controller_param["attractor"]
             )
@@ -160,15 +156,6 @@ class Simulator:
             )
             self.calc_input = self.calc_input_by_RMP
 
-
-    def set_goal(self,):
-        """目標位置をセッティング"""
-        
-        self.goal = {}
-        
-        for k, v in self.goal_param.items():
-            self.goal[k] = np.array(v).reshape(3, 1)
-    
     
     
     def calc_input_by_PDFB(self, t, q, q_dot):
