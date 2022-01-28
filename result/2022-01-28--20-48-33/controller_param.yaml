@@ -1,0 +1,12 @@
+attractor:
+  A_damp_r: 0.01
+  a_damp_r: 0.05
+  gain: 15000
+  max_speed: 1800
+  sigma_H: 1
+  sigma_W: 1
+jlavoidance:
+  gamma_d: 1
+  gamma_p: 4
+  lam: 1
+name: rmp
