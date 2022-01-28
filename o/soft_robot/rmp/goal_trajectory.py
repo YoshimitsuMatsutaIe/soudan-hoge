@@ -83,7 +83,7 @@ class Circle:
             self.R @ \
                 np.array([
                     [self.r * -self.omega * sin(self.omega * t)],
-                    [self.r * -self.omega * cos(self.omega * t)],
+                    [self.r * self.omega * cos(self.omega * t)],
                     [0],
                 ])
 
@@ -121,8 +121,8 @@ class RoseCurve:
         return self.center + \
             self.R @ \
                 np.array([
-                    [r * cos(self.zeta*t) * cos(self.omega*t)],
-                    [r * cos(self.zeta*t) * sin(self.omega*t)],
+                    [self.r * cos(self.zeta*t) * cos(self.omega*t)],
+                    [self.r * cos(self.zeta*t) * sin(self.omega*t)],
                     [0],
                 ])
 
@@ -131,8 +131,8 @@ class RoseCurve:
         return self.center + \
             rotate_3d(self.alpha, self.beta, self.gamma) @ \
                 np.array([
-                    [r * cos(self.zeta*t) * cos(self.omega*t)],
-                    [r * cos(self.zeta*t) * sin(self.omega*t)],
+                    [self.r * ((-self.zeta*sin(self.zeta*t) * cos(self.omega*t)) + (cos(self.zeta*t) * -self.omega*sin(self.omega*t)))],
+                    [self.r * ((-self.zeta*sin(self.zeta*t) * sin(self.omega*t)) + (cos(self.zeta*t) * self.omega*cos(self.omega*t)))],
                     [0],
                 ])
 

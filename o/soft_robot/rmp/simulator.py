@@ -4,6 +4,7 @@
 
 """
 
+from re import X
 import numpy as np
 from math import pi, cos, sin
 import scipy.integrate as integrate
@@ -179,11 +180,15 @@ class Simulator:
     def calc_input_by_PDFB(self, t, q, q_dot):
         """RMPで制御入力（角加速度）を計算"""
         
+        x = self.kim.Phi(self.N, q)
+        J = self.diff_kim.J(self.N, q)
+        x_dot = J @ q_dot
+        xd = self.goal[self.N-1].xd(t)
+        xd_dot = self.goal[self.N-1].xd_dot(t)
+        xd_dot_dot = self.goal[self.N-1].xd_dot_dot(t)
+        
         return self.pdfb.input(
-            x = self.kim.Phi(self.N, q),
-            J = self.diff_kim.J(self.N, q),
-            x_dot = J * q_dot,
-            xd = self.goal[self.N].xd(t)
+            x=x, J=J, x_dot=x_dot, xd=xd, xd_dot=xd_dot, xd_dot_dot=xd_dot_dot
         )
     
     
@@ -611,86 +616,6 @@ class Simulator:
         
         return ani
 
-
-
-def ex_default():
-    """デフォルトの実行例"""
-    hoge = Simulator(N=5)
-    
-    hoge.run()
-    hoge.reproduce_state()
-    hoge.plot_basic()
-    hoge.make_aniation()
-
-
-
-def en_tuiju():
-    """円軌道追従
-    """
-    
-    env_param = {
-        "goal_param" : {4 : lambda t: np.array([[0.2, 0.1, 0.6]]).T},
-        "goal_dot_param" : None,
-        "goal_dot_dot_param" : None,
-        "target_param" : None,
-    }
-    
-    sim = Simulator(N=5)
-    
-
-
-
-# 就活
-def ex_yasukawa():
-    """安川電機プレゼン用
-    
-    ・研究概要 動画不可
-    """
-    hoge = Simulator(N=5)
-    
-    hoge.run()
-    hoge.reproduce_state()
-    hoge.plot_basic()
-    hoge.make_aniation()
-
-
-def ex_denso():
-    """デンソー用
-    
-    ・スライド．動画可?
-    """
-    hoge = Simulator(N=5)
-    
-    hoge.run()
-    hoge.reproduce_state()
-    hoge.plot_basic()
-    hoge.make_aniation()
-
-
-def ex_kawasaki():
-    """川崎重工プレゼン用
-    
-    
-    """
-    hoge = Simulator(N=5)
-    
-    hoge.run()
-    hoge.reproduce_state()
-    hoge.plot_basic()
-    hoge.make_aniation()
-
-
-def ex_fujikoshi():
-    """不二越 研究プレゼン
-    
-    動画不可？
-    """
-    hoge = Simulator(N=5)
-    
-    hoge.run()
-    hoge.reproduce_state()
-    hoge.plot_basic()
-    hoge.make_aniation()
 
 
 

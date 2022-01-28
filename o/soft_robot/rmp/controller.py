@@ -9,21 +9,26 @@ class PDFeedBack:
     """タスク空間上のPDフィードバックコントローラ"""
     
     def __init__(self, **kwargs):
-        self.Kp = kwargs.pop('Kp')
-        self.Kd = kwargs.pop('Kd')
+        Kp = kwargs.pop('Kp')
+        Kd = kwargs.pop('Kd')
+        self.Kp = np.eye(3) * Kp
+        self.Kd = np.eye(3) * Kd
     
     
-    def input(self, x, x_dot, J, xd, J_dot=None, xd_dot=None, xd_dot_dot=None, q_dot=None):
+    def input(
+        self, x, x_dot, J, xd,
+        J_dot=None, xd_dot=None, xd_dot_dot=None, q_dot=None
+    ):
         """入力を計算"""
         
         # 位置フィードバック項
-        A = - self.Kp*(x - xd)
+        A = - self.Kp @ (x - xd)
         
         # 速度フィードバック項
         if xd_dot is not None:
-            B = - self.Kd*(x_dot - xd_dot)
+            B = - self.Kd @ (x_dot - xd_dot)
         else:
-            B = - self.Kd*(x_dot)
+            B = - self.Kd @ (x_dot)
         
         # 加速度フィードバック?
         if xd_dot_dot is not None:
