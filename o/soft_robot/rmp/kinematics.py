@@ -11,7 +11,7 @@ import Phi_4
 class Kinematics:
     """運動学"""
     
-    xi_large = np.arange(0, 1, 0.01)  # スライスの数（多いほうがキレイ）
+    xi_large = np.arange(0, 1, 0.1)  # スライスの数（多いほうがキレイ）
     
     def Phi(self, n, q, xi=1):
         if n == 1:

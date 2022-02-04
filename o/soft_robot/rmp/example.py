@@ -104,6 +104,61 @@ def en_tuiju_by_pdfb():
     hoge.make_aniation()
 
 
+def point_3_tuiju():
+    """3点を追従
+    
+    
+    """
+    N = 5
+    TIME_SPAN = 6
+
+    env_param = {
+        "goal" : {
+            4 : {
+                "name" : "Point",
+                "param" :{'center' : [0.14, 0, 0.63]}
+            },
+            3 : {
+                "name" : "Point",
+                "param" :{'center' : [0.2, 0.05, 0.5]}
+            },
+            2 : {
+                "name" : "Point",
+                "param" :{'center' : [0.14, 0, 0.4]}
+            }
+        },
+        "target_param" : None,
+    }
+    
+    controller_param = {
+        "name" : "rmp",
+        "attractor" : {
+            "max_speed" : 1800,
+            "gain" : 15000,
+            "a_damp_r" : 0.05,
+            "sigma_W" : 1,
+            "sigma_H" : 1,
+            "A_damp_r" : 0.01,
+        },
+        "jlavoidance" : {
+            "gamma_p" : 4,
+            "gamma_d" : 1,
+            "lam" : 1
+        }
+    }
+    
+    hoge = Simulator(
+        N=N,
+        env_param=env_param,
+        controller_param=controller_param
+    )
+    
+    hoge.run(TIME_SPAN)
+    hoge.reproduce_state()
+    hoge.save_data()
+    hoge.plot_basic()
+    hoge.make_aniation()
+
 
 # 就活
 def ex_yasukawa():
@@ -160,7 +215,11 @@ def ex_fujikoshi():
 
 
 if __name__ == '__main__':
-    en_tuiju_by_rmp()
+    #en_tuiju_by_rmp()
     
     
     #en_tuiju_by_pdfb()
+    
+    
+    
+    point_3_tuiju()
